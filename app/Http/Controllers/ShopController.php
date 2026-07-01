@@ -31,7 +31,6 @@ class ShopController extends Controller
             $query->where('sanpham.price', '<=', $request->max_price);
         }
 
-        // Lấy dữ liệu và phân trang (Lấy 9 sản phẩm)
         $newProducts = $query->orderBy('sanpham.id', 'desc')->paginate(9);
 
         // Chuyển sang array để khớp với view cũ của bạn
