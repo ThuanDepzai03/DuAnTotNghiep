@@ -2,7 +2,6 @@
 
 @section('content')
 @php 
-// Lấy giỏ hàng từ Laravel Session
 $cart = session('cart', []);
 $tongTien = 0;
 foreach ($cart as $item) {
@@ -10,57 +9,69 @@ foreach ($cart as $item) {
 }
 @endphp
 
-<div class="container my-5">
-    <h1 class="mb-4 text-center">🛒 Giỏ Hàng Của Bạn</h1>
-    <div class="card shadow-sm">
-        <div class="card-header bg-light d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">Các Sản Phẩm Trong Giỏ</h5>
-        </div>
-        <div class="card-body p-0">
-            <table class="table align-middle table-borderless m-0">
-                <thead class="bg-light">
+<div class="section">
+    <div class="container">
+        <h2 class="text-center" style="margin-bottom: 30px;">Giỏ Hàng Của Bạn</h2>
+        @if(count($cart) > 0)
+            <table class="table table-bordered text-center">
+                <thead>
                     <tr>
-                        <th class="col-5">Sản Phẩm</th>
-                        <th class="text-center col-2">Đơn Giá</th>
-                        <th class="text-center col-2">Số Lượng</th>
-                        <th class="text-end col-2">Thành Tiền</th>
-                        <th class="text-center col-1">Xóa</th>
+                        <th class="text-center">Hình ảnh</th>
+                        <th class="text-center">Tên sản phẩm</th>
+                        <th class="text-center">Đơn giá</th>
+                        <th class="text-center">Số lượng</th>
+                        <th class="text-center">Thành tiền</th>
+                        <th class="text-center">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($cart as $item)
                     <tr>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <img src="{{ asset('admin/' . $item['img']) }}" class="rounded me-3" style="width: 80px; height: 80px; object-fit: cover;">
-                                <div><h6 class="mb-0">{{ $item['name'] }}</h6></div>
-                            </div>
+                        <td style="vertical-align: middle;">
+                            @php
+                                $imgPath = $item['img'] ?? 'img/product01.png';
+                                $imgPath = ltrim(str_replace('\\', '/', $imgPath), '/');
+                                if (preg_match('#^https?://#', $imgPath)) {
+                                    $imgSrc = $imgPath;
+                                } elseif (str_starts_with($imgPath, 'public/')) {
+                                    $imgSrc = asset(substr($imgPath, 7));
+                                } elseif (str_starts_with($imgPath, 'img/') || str_starts_with($imgPath, 'image/') || str_starts_with($imgPath, 'admin/')) {
+                                    $imgSrc = asset($imgPath);
+                                } else {
+                                    $imgSrc = asset('image/' . $imgPath);
+                                }
+                            @endphp
+                            <img src="{{ $imgSrc }}" alt="{{ $item['name'] }}" style="width: 80px; height: 80px; object-fit: cover;" onerror="this.onerror=null;this.src='{{ asset('img/product01.png') }}';">
                         </td>
-                        <td class="text-center fw-bold text-success">{{ number_format($item['price']) }}₫</td>
-                        <td class="text-center">
-                            <form action="{{ route('cart.update') }}" method="POST" class="d-flex justify-content-center">
+                        <td style="vertical-align: middle;"><strong>{{ $item['name'] }}</strong></td>
+                        <td style="vertical-align: middle; color: #D10024; font-weight: bold;">{{ number_format($item['price']) }}₫</td>
+                        <td style="vertical-align: middle;">{{ $item['soLuong'] }}</td>
+                        <td style="vertical-align: middle; color: #D10024; font-weight: bold;">{{ number_format($item['price'] * $item['soLuong']) }}₫</td>
+                        <td style="vertical-align: middle;">
+                            <form action="{{ route('cart.remove', $item['id']) }}" method="POST">
                                 @csrf
-                                <input type="hidden" name="id" value="{{ $item['id'] }}">
-                                <input type="number" name="qty" min="1" value="{{ $item['soLuong'] }}" class="form-control text-center" style="width: 60px;">
-                                <button type="submit" class="btn btn-sm btn-outline-primary ms-2">Lưu</button>
+                                <button type="submit" class="btn btn-danger btn-sm"><i class="fa fa-trash"></i> Xóa</button>
                             </form>
                         </td>
-                        <td class="text-end fw-bold text-danger">{{ number_format($item['price'] * $item['soLuong']) }}₫</td>
                     </tr>
                     @endforeach
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="3" class="text-end fw-bold">Tổng tiền:</td>
-                        <td class="text-end fw-bold text-danger">{{ number_format($tongTien) }}₫</td>
-                        <td></td>
+                        <td colspan="4" class="text-right"><strong>Tổng thanh toán:</strong></td>
+                        <td colspan="2" class="text-left" style="color: #D10024; font-size: 20px; font-weight: bold;">{{ number_format($tongTien) }}₫</td>
                     </tr>
                 </tfoot>
             </table>
-        </div>
-    </div>
-    <div class="mt-4 text-end">
-        <a href="{{ route('checkout.show') }}" class="btn btn-primary btn-lg">Thanh Toán</a>
+            <div class="text-right">
+                <a href="{{ route('shop') }}" class="btn btn-default" style="padding: 10px 20px; font-weight: bold;">Tiếp tục mua hàng</a>
+                <a href="{{ route('checkout.show') }}" class="primary-btn" style="padding: 10px 20px;">Thanh toán ngay</a>
+            </div>
+        @else
+            <div class="alert alert-warning text-center">
+                Giỏ hàng của bạn đang trống! <a href="{{ route('home') }}">Quay lại cửa hàng</a>
+            </div>
+        @endif
     </div>
 </div>
 @endsection

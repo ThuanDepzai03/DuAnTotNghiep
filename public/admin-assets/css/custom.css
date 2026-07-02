@@ -1,0 +1,32 @@
+/* Custom overrides for AE Phoenic Store admin */
+body {
+    background-color: #f2f7ff;
+}
+
+.card {
+    border: 0;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+    border-radius: 1rem;
+}
+
+.card-header {
+    border-bottom: 1px solid #eef2f7;
+    background: transparent;
+}
+
+.table-responsive {
+    border-radius: 0.75rem;
+}
+
+.form-control, .form-select {
+    border-radius: 0.75rem;
+    border-color: #d9e2f0;
+}
+
+.btn {
+    border-radius: 0.75rem;
+}
+
+.page-heading {
+    margin-bottom: 1.5rem;
+}
