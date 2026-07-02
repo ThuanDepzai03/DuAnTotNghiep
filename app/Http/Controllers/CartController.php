@@ -2,7 +2,7 @@
 namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-
+use App\Models\ProductVariant;
 class CartController extends Controller
 {
     public function index() {
@@ -15,25 +15,30 @@ class CartController extends Controller
         return view('cart');
     }
 
-    public function add(Request $request) {
-        $id = $request->idsp;
-        $product = DB::table('sanpham')->where('id', $id)->first();
-        $cart = session()->get('cart', []);
+    public function add(Request $request)
+{
+    $variantId = $request->product_variant_id;
 
-        if(isset($cart[$id])) {
-            $cart[$id]['soLuong']++;
-        } else {
-            $cart[$id] = [
-                'id' => $product->id,
-                'name' => $product->name,
-                'price' => $product->price,
-                'img' => $product->img,
-                'soLuong' => 1
-            ];
-        }
-        session()->put('cart', $cart);
-        return redirect()->route('cart.index')->with('success', 'Đã thêm vào giỏ!');
+    $variant = ProductVariant::with('product')->findOrFail($variantId);
+
+    $cart = session()->get('cart', []);
+
+    if (isset($cart[$variantId])) {
+        $cart[$variantId]['quantity']++;
+    } else {
+                $cart[$variantId] = [
+            'variant_id' => $variant->id,
+            'name' => $variant->product->name ?? 'Sản phẩm',
+            'price' => $variant->sale_price ?? $variant->price,
+            'image' => $variant->image,
+            'quantity' => 1,
+        ];
     }
+
+    session()->put('cart', $cart);
+
+    return redirect()->route('cart.index')->with('success', 'Đã thêm vào giỏ!');
+}
 
     public function remove(Request $request)
     {

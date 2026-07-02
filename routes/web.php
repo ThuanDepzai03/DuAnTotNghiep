@@ -7,6 +7,7 @@ use App\Http\Controllers\Client\HomeController;
 use App\Http\Controllers\Client\ProductController as ClientProductController;
 use App\Http\Controllers\Client\CartController as ClientCartController;
 use App\Http\Controllers\Client\CheckoutController as ClientCheckoutController;
+use App\Http\Controllers\Client\PaymentController;
 
 // Admin Controllers cũ của nhóm
 use App\Http\Controllers\AdminController;
@@ -40,6 +41,11 @@ Route::get('/checkout/success', function () {
     return view('success');
 })->name('checkout.success');
 
+Route::get('/payment/vnpay/{order}', [PaymentController::class, 'vnpay'])
+    ->name('payment.vnpay');
+
+Route::get('/payment/vnpay-return', [PaymentController::class, 'vnpayReturn'])
+    ->name('payment.vnpay.return');
 
 
 Route::get('/about', [HomeController::class, 'about'])->name('about');
@@ -60,6 +66,7 @@ Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::get('/account/profile', [AuthController::class, 'profile'])->name('account.profile');
 Route::post('/account/profile', [AuthController::class, 'updateProfile'])->name('account.update');
+
 
 // ================= ADMIN =================
 
