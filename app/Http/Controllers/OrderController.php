@@ -3,48 +3,46 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use App\Models\Order;
+use App\Models\ProductVariant;
 
 class OrderController extends Controller
 {
     public function index()
     {
-        try {
-            $orders = DB::table('hoadon')->orderByDesc('id')->get();
-        } catch (\Throwable $e) {
-            $orders = collect();
-        }
+        $orders = Order::orderByDesc('id')->get();
 
         return view('admin.orders.index', compact('orders'));
     }
 
     public function show($id)
     {
-        try {
-            $order = DB::table('hoadon')->where('id', $id)->first();
-            $items = DB::table('chitiethoadon')
-                ->join('sanpham', 'chitiethoadon.id_sanpham', '=', 'sanpham.id')
-                ->select('chitiethoadon.*', 'sanpham.name as product_name', 'sanpham.img as product_image')
-                ->where('chitiethoadon.id_hoadon', $id)
-                ->get();
-        } catch (\Throwable $e) {
-            $order = null;
-            $items = collect();
-        }
+        $order = Order::with('items.variant.product')->findOrFail($id);
 
-        return view('admin.orders.show', compact('order', 'items'));
+        return view('admin.orders.show', compact('order'));
     }
 
     public function updateStatus(Request $request, $id)
     {
-        $request->validate(['trangthai' => 'required|integer']);
+        $request->validate([
+            'status' => 'required|in:pending,confirmed,shipping,completed,cancelled'
+        ]);
 
-        try {
-            DB::table('hoadon')->where('id', $id)->update(['trangthai' => $request->trangthai]);
-        } catch (\Throwable $e) {
-            // Ignore missing table issues in local/test environments.
+        $order = Order::with('items.variant')->findOrFail($id);
+
+        if ($order->status !== 'confirmed' && $request->status === 'confirmed') {
+            foreach ($order->items as $item) {
+                ProductVariant::where('id', $item->product_variant_id)
+                    ->decrement('stock', $item->quantity);
+            }
         }
 
-        return redirect()->route('admin.orders.show', $id);
+        $order->update([
+            'status' => $request->status
+        ]);
+
+        return redirect()
+            ->route('admin.orders.show', $order->id)
+            ->with('success', 'Cập nhật trạng thái đơn hàng thành công.');
     }
 }
