@@ -6,7 +6,13 @@ use Illuminate\Support\Facades\DB;
 class CartController extends Controller
 {
     public function index() {
-        return view('cart'); // Trả về file cart.blade.php
+        $customer = session('customer');
+
+        if (!$customer || (int) $customer['role'] !== 0) {
+            return redirect()->route('login');
+        }
+
+        return view('cart');
     }
 
     public function add(Request $request) {
@@ -27,5 +33,18 @@ class CartController extends Controller
         }
         session()->put('cart', $cart);
         return redirect()->route('cart.index')->with('success', 'Đã thêm vào giỏ!');
+    }
+
+    public function remove(Request $request)
+    {
+        $id = $request->id;
+        $cart = session()->get('cart', []);
+
+        if (isset($cart[$id])) {
+            unset($cart[$id]);
+            session()->put('cart', $cart);
+        }
+
+        return redirect()->route('cart.index')->with('success', 'Đã xóa sản phẩm khỏi giỏ hàng.');
     }
 }

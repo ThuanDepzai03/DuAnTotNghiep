@@ -48,7 +48,20 @@
                             <div class="product">
                                 <div class="product-img">
                                     <a href="{{ route('product.detail', $sp['id']) }}">
-                                        <img src="{{ asset('admin/' . ($sp['img'] ?? 'default.png')) }}" alt="{{ $sp['name'] }}">
+                                        @php
+                                            $imgPath = $sp['img'] ?? 'img/product01.png';
+                                            $imgPath = ltrim(str_replace('\\', '/', $imgPath), '/');
+                                            if (preg_match('#^https?://#', $imgPath)) {
+                                                $imgSrc = $imgPath;
+                                            } elseif (str_starts_with($imgPath, 'public/')) {
+                                                $imgSrc = asset(substr($imgPath, 7));
+                                            } elseif (str_starts_with($imgPath, 'img/') || str_starts_with($imgPath, 'image/') || str_starts_with($imgPath, 'admin/')) {
+                                                $imgSrc = asset($imgPath);
+                                            } else {
+                                                $imgSrc = asset('image/' . $imgPath);
+                                            }
+                                        @endphp
+                                        <img src="{{ $imgSrc }}" alt="{{ $sp['name'] }}" onerror="this.onerror=null;this.src='{{ asset('img/product01.png') }}';">
                                     </a>
                                     <div class="product-label"><span class="new">NEW</span></div>
                                 </div>
