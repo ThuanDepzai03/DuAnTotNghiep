@@ -29,9 +29,8 @@ return new class extends Migration
 
             $table->enum('payment_method',[
                 'cod',
-                'banking'
+                'vnpay'
             ]);
-
             $table->enum('status',[
                 'pending',
                 'confirmed',
