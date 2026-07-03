@@ -4,16 +4,15 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
     public function index()
     {
-        try {
-            $users = DB::table('nguoidung')->orderByDesc('id')->get();
-        } catch (\Throwable $e) {
-            $users = collect();
-        }
+        $users = DB::table('nguoidung')
+            ->orderByDesc('id')
+            ->get();
 
         return view('admin.users.index', compact('users'));
     }
@@ -25,72 +24,145 @@ class UserController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'user' => 'required|string|max:255',
-            'pass' => 'required|string|min:4',
-            'email' => 'nullable|email',
-            'address' => 'nullable|string',
-            'tel' => 'nullable|string',
-            'role' => 'required|integer',
+        $data = $request->validate([
+            'user' => [
+                'required',
+                'string',
+                'max:255',
+                'unique:nguoidung,user',
+            ],
+            'pass' => [
+                'required',
+                'string',
+                'min:4',
+            ],
+            'email' => [
+                'required',
+                'email',
+                'max:255',
+                'unique:nguoidung,email',
+            ],
+            'address' => [
+                'nullable',
+                'string',
+                'max:500',
+            ],
+            'tel' => [
+                'nullable',
+                'string',
+                'max:20',
+            ],
+            'role' => [
+                'required',
+                'in:0,1',
+            ],
+        ], [
+            'user.required' => 'Vui lòng nhập tên đăng nhập.',
+            'user.unique' => 'Tên đăng nhập đã tồn tại.',
+            'pass.required' => 'Vui lòng nhập mật khẩu.',
+            'pass.min' => 'Mật khẩu phải có ít nhất 4 ký tự.',
+            'email.required' => 'Vui lòng nhập email.',
+            'email.email' => 'Email không đúng định dạng.',
+            'email.unique' => 'Email này đã được sử dụng.',
         ]);
 
-        try {
-            DB::table('nguoidung')->insert([
-                'user' => $request->user,
-                'pass' => $request->pass,
-                'email' => $request->email,
-                'address' => $request->address,
-                'tel' => $request->tel,
-                'role' => $request->role,
-            ]);
-        } catch (\Throwable $e) {
-            // Ignore missing table issues in local/test environments.
-        }
+        DB::table('nguoidung')->insert([
+            'user' => trim($data['user']),
+            'pass' => $data['pass'],
+            'email' => trim($data['email']),
+            'address' => $data['address'] ?? null,
+            'tel' => $data['tel'] ?? null,
+            'role' => (int) $data['role'],
+        ]);
 
-        return redirect()->route('admin.users.index');
+        return redirect()
+            ->route('admin.users.index')
+            ->with('success', 'Thêm tài khoản thành công.');
     }
 
     public function edit($id)
     {
-        $user = DB::table('nguoidung')->where('id', $id)->first();
+        $user = DB::table('nguoidung')
+            ->where('id', $id)
+            ->first();
+
+        abort_if(!$user, 404, 'Tài khoản không tồn tại.');
+
         return view('admin.users.edit', compact('user'));
     }
 
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'user' => 'required|string|max:255',
-            'pass' => 'required|string|min:4',
-            'email' => 'nullable|email',
-            'address' => 'nullable|string',
-            'tel' => 'nullable|string',
-            'role' => 'required|integer',
+        $data = $request->validate([
+            'user' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('nguoidung', 'user')->ignore($id),
+            ],
+            'pass' => [
+                'nullable',
+                'string',
+                'min:4',
+            ],
+            'email' => [
+                'required',
+                'email',
+                'max:255',
+                Rule::unique('nguoidung', 'email')->ignore($id),
+            ],
+            'address' => [
+                'nullable',
+                'string',
+                'max:500',
+            ],
+            'tel' => [
+                'nullable',
+                'string',
+                'max:20',
+            ],
+            'role' => [
+                'required',
+                'in:0,1',
+            ],
+        ], [
+            'user.required' => 'Vui lòng nhập tên đăng nhập.',
+            'user.unique' => 'Tên đăng nhập đã tồn tại.',
+            'email.required' => 'Vui lòng nhập email.',
+            'email.email' => 'Email không đúng định dạng.',
+            'email.unique' => 'Email này đã được sử dụng.',
         ]);
 
-        try {
-            DB::table('nguoidung')->where('id', $id)->update([
-                'user' => $request->user,
-                'pass' => $request->pass,
-                'email' => $request->email,
-                'address' => $request->address,
-                'tel' => $request->tel,
-                'role' => $request->role,
-            ]);
-        } catch (\Throwable $e) {
-            // Ignore missing table issues in local/test environments.
+        $updateData = [
+            'user' => trim($data['user']),
+            'email' => trim($data['email']),
+            'address' => $data['address'] ?? null,
+            'tel' => $data['tel'] ?? null,
+            'role' => (int) $data['role'],
+        ];
+
+        // Không nhập mật khẩu mới thì giữ nguyên mật khẩu cũ.
+        if (!empty($data['pass'])) {
+            $updateData['pass'] = $data['pass'];
         }
 
-        return redirect()->route('admin.users.index');
+        DB::table('nguoidung')
+            ->where('id', $id)
+            ->update($updateData);
+
+        return redirect()
+            ->route('admin.users.index')
+            ->with('success', 'Cập nhật tài khoản thành công.');
     }
 
     public function destroy($id)
     {
-        try {
-            DB::table('nguoidung')->where('id', $id)->delete();
-        } catch (\Throwable $e) {
-            // Ignore missing table issues in local/test environments.
-        }
+        DB::table('nguoidung')
+            ->where('id', $id)
+            ->delete();
 
-        return redirect()->route('admin.users.index');
+        return redirect()
+            ->route('admin.users.index')
+            ->with('success', 'Đã xóa tài khoản.');
     }
 }

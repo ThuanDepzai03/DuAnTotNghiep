@@ -7,48 +7,140 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use App\Models\Attribute;
 
 class ProductController extends Controller
 {
     public function index(Request $request)
 {
-    $categories = Category::where('status', 1)->get();
-    $brands = Brand::where('status', 1)->get();
+    $categories = Category::where('status', 1)
+        ->orderBy('name')
+        ->get();
 
-    $query = Product::with([
-        'category',
-        'brand',
-        'variants',
-    ])->where('status', 1);
+    $brands = Brand::where('status', 1)
+        ->orderBy('name')
+        ->get();
 
+    // Lấy các cấu hình có trong database
+    $attributes = Attribute::with('values')
+        ->whereIn('name', ['Màu sắc', 'RAM', 'Bộ nhớ'])
+        ->get()
+        ->keyBy('name');
+
+    $colors = $attributes->get('Màu sắc')?->values ?? collect();
+    $rams = $attributes->get('RAM')?->values ?? collect();
+    $storages = $attributes->get('Bộ nhớ')?->values ?? collect();
+
+    // Các giá trị người dùng đã chọn
+    $selectedColors = collect((array) $request->input('colors', []))
+        ->filter()
+        ->map(fn ($id) => (int) $id)
+        ->values()
+        ->all();
+
+    $selectedRams = collect((array) $request->input('rams', []))
+        ->filter()
+        ->map(fn ($id) => (int) $id)
+        ->values()
+        ->all();
+
+    $selectedStorages = collect((array) $request->input('storages', []))
+        ->filter()
+        ->map(fn ($id) => (int) $id)
+        ->values()
+        ->all();
+
+    $minPrice = $request->filled('min_price')
+        ? (float) $request->min_price
+        : null;
+
+    $maxPrice = $request->filled('max_price')
+        ? (float) $request->max_price
+        : null;
+
+    $query = Product::with(['category', 'brand', 'variants'])
+        ->where('status', 1);
+
+    // Tìm kiếm tên sản phẩm
+    if ($request->filled('keyword')) {
+        $keyword = trim($request->keyword);
+
+        $query->where('name', 'like', '%' . $keyword . '%');
+    }
+
+    // Lọc danh mục
     if ($request->filled('category_id')) {
         $query->where('category_id', $request->category_id);
     }
 
+    // Lọc thương hiệu
     if ($request->filled('brand_id')) {
         $query->where('brand_id', $request->brand_id);
     }
 
-    if ($request->filled('keyword')) {
-        $query->where('name', 'like', '%' . $request->keyword . '%');
-    }
+    /*
+     * Giá + cấu hình đều kiểm tra trên CÙNG một biến thể.
+     * Ví dụ chọn Đen + 8GB + 256GB thì phải có đúng biến thể đó.
+     */
+    $hasVariantFilter =
+        $minPrice !== null ||
+        $maxPrice !== null ||
+        !empty($selectedColors) ||
+        !empty($selectedRams) ||
+        !empty($selectedStorages);
 
-    if ($request->filled('min_price') || $request->filled('max_price')) {
-        $query->whereHas('variants', function ($variantQuery) use ($request) {
+    if ($hasVariantFilter) {
+        $query->whereHas('variants', function ($variantQuery) use (
+            $minPrice,
+            $maxPrice,
+            $selectedColors,
+            $selectedRams,
+            $selectedStorages
+        ) {
             $variantQuery->where('status', 1);
 
-            if ($request->filled('min_price')) {
+            if ($minPrice !== null) {
                 $variantQuery->whereRaw(
                     'COALESCE(sale_price, price) >= ?',
-                    [(float) $request->min_price]
+                    [$minPrice]
                 );
             }
 
-            if ($request->filled('max_price')) {
+            if ($maxPrice !== null) {
                 $variantQuery->whereRaw(
                     'COALESCE(sale_price, price) <= ?',
-                    [(float) $request->max_price]
+                    [$maxPrice]
                 );
+            }
+
+            if (!empty($selectedColors)) {
+                $variantQuery->whereHas('attributeValues', function ($valueQuery) use ($selectedColors) {
+                    $valueQuery
+                        ->whereIn('attribute_values.id', $selectedColors)
+                        ->whereHas('attribute', function ($attributeQuery) {
+                            $attributeQuery->where('name', 'Màu sắc');
+                        });
+                });
+            }
+
+            if (!empty($selectedRams)) {
+                $variantQuery->whereHas('attributeValues', function ($valueQuery) use ($selectedRams) {
+                    $valueQuery
+                        ->whereIn('attribute_values.id', $selectedRams)
+                        ->whereHas('attribute', function ($attributeQuery) {
+                            $attributeQuery->where('name', 'RAM');
+                        });
+                });
+            }
+
+            if (!empty($selectedStorages)) {
+                $variantQuery->whereHas('attributeValues', function ($valueQuery) use ($selectedStorages) {
+                    $valueQuery
+                        ->whereIn('attribute_values.id', $selectedStorages)
+                        ->whereHas('attribute', function ($attributeQuery) {
+                            $attributeQuery->where('name', 'Bộ nhớ');
+                        });
+                });
             }
         });
     }
@@ -61,7 +153,13 @@ class ProductController extends Controller
     return view('client.shop', compact(
         'products',
         'categories',
-        'brands'
+        'brands',
+        'colors',
+        'rams',
+        'storages',
+        'selectedColors',
+        'selectedRams',
+        'selectedStorages'
     ));
 }
 
