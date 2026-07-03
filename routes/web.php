@@ -56,18 +56,13 @@ Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
 
 // ================= AUTH =================
 
-Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-Route::post('/login', [AuthController::class, 'login'])->name('login.post');
-
-Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-Route::post('/register', [AuthController::class, 'register'])->name('register.post');
-
-Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::post('/account/profile', [AuthController::class, 'updateProfile'])->name('account.update');
 
 Route::get('/account/profile', [AuthController::class, 'profile'])->name('account.profile');
 Route::post('/account/profile', [AuthController::class, 'updateProfile'])->name('account.update');
 
-
+Route::get('/account/orders', [AuthController::class, 'orders'])->name('account.orders');
+Route::get('/account/orders/{id}', [AuthController::class, 'orderDetail'])->name('account.order.detail');
 // ================= ADMIN =================
 
 Route::middleware(['web', 'admin'])
@@ -93,3 +88,4 @@ Route::middleware(['web', 'admin'])
 
         Route::resource('users', UserController::class);
     });
+

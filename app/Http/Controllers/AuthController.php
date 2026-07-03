@@ -95,7 +95,6 @@ class AuthController extends Controller
 
         return redirect()->route('account.profile');
     }
-
     public function profile()
     {
         $customer = session('customer');
@@ -116,13 +115,47 @@ class AuthController extends Controller
             ];
         }
 
+        return view('account.profile', compact('user'));
+    }
+
+    public function orders()
+    {
+        $customer = session('customer');
+        if (!$customer) return redirect()->route('login');
+
+        $user = DB::table('nguoidung')->where('id', $customer['id'])->first();
+
         $orders = DB::table('hoadon')
-            ->where('tenkhachhang', $user->user)
-            ->orWhere('sdt', $user->tel)
-            ->orderByDesc('id')
+            ->join('chitiethoadon', 'hoadon.id', '=', 'chitiethoadon.hoadon_id')
+            ->join('bien_the_san_pham', 'chitiethoadon.product_variant_id', '=', 'bien_the_san_pham.id')
+            ->select(
+                'hoadon.*', 
+                'bien_the_san_pham.hinh_anh as product_image'
+            )
+            ->where('hoadon.tenkhachhang', $user->user)
+            ->orWhere('hoadon.sdt', $user->tel)
+            ->orderByDesc('hoadon.id')
+            ->get()
+            ->unique('id'); // Lấy mỗi đơn hàng 1 lần, ảnh sẽ là của sản phẩm đầu tiên
+
+        return view('account.orders', compact('orders'));
+    }
+
+    public function orderDetail($id)
+    {
+        $customer = session('customer');
+        if (!$customer) return redirect()->route('login');
+
+        $order = DB::table('hoadon')->where('id', $id)->first();
+        if (!$order) abort(404);
+
+        $items = DB::table('chitiethoadon')
+            ->join('bien_the_san_pham', 'chitiethoadon.product_variant_id', '=', 'bien_the_san_pham.id')
+            ->where('hoadon_id', $id)
+            ->select('chitiethoadon.*', 'bien_the_san_pham.hinh_anh')
             ->get();
 
-        return view('account.profile', compact('user', 'orders'));
+        return view('account.order-detail', compact('order', 'items'));
     }
 
     public function updateProfile(Request $request)
@@ -157,4 +190,8 @@ class AuthController extends Controller
 
         return back()->with('success', 'Cập nhật thông tin thành công.');
     }
+    
+    
 }
+
+
