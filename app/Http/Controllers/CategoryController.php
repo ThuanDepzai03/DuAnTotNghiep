@@ -2,18 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class CategoryController extends Controller
 {
     public function index()
     {
-        try {
-            $categories = DB::table('danhmuc')->orderByDesc('id')->get();
-        } catch (\Throwable $e) {
-            $categories = collect();
-        }
+        $categories = Category::query()
+            ->orderByDesc('status')
+            ->orderBy('name')
+            ->get();
 
         return view('admin.categories.index', compact('categories'));
     }
@@ -25,55 +26,105 @@ class CategoryController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate(['name' => 'required|string|max:255']);
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255', 'unique:categories,name'],
+            'status' => ['required', 'in:0,1'],
+        ], [
+            'name.required' => 'Vui lòng nhập tên danh mục.',
+            'name.unique' => 'Danh mục này đã tồn tại.',
+        ]);
 
-        try {
-            DB::table('danhmuc')->insert(['name' => $request->name, 'deleted' => 0]);
-        } catch (\Throwable $e) {
-            // Ignore missing table issues in local/test environments.
-        }
+        Category::create([
+            'name' => trim($data['name']),
+            'slug' => $this->makeUniqueSlug($data['name']),
+            'status' => (int) $data['status'],
+        ]);
 
-        return redirect()->route('admin.categories.index');
+        return redirect()
+            ->route('admin.categories.index')
+            ->with('success', 'Thêm danh mục thành công.');
     }
 
-    public function edit($id)
+    public function show(Category $category)
     {
-        $category = DB::table('danhmuc')->where('id', $id)->first();
+        return redirect()->route('admin.categories.edit', $category->id);
+    }
+
+    public function edit(Category $category)
+    {
         return view('admin.categories.edit', compact('category'));
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, Category $category)
     {
-        $request->validate(['name' => 'required|string|max:255']);
+        $data = $request->validate([
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('categories', 'name')->ignore($category->id),
+            ],
+            'status' => ['required', 'in:0,1'],
+        ], [
+            'name.required' => 'Vui lòng nhập tên danh mục.',
+            'name.unique' => 'Danh mục này đã tồn tại.',
+        ]);
 
-        try {
-            DB::table('danhmuc')->where('id', $id)->update(['name' => $request->name]);
-        } catch (\Throwable $e) {
-            // Ignore missing table issues in local/test environments.
-        }
+        $category->update([
+            'name' => trim($data['name']),
+            'slug' => $this->makeUniqueSlug($data['name'], $category->id),
+            'status' => (int) $data['status'],
+        ]);
 
-        return redirect()->route('admin.categories.index');
+        return redirect()
+            ->route('admin.categories.index')
+            ->with('success', 'Cập nhật danh mục thành công.');
     }
 
-    public function destroy($id)
+    // Ẩn danh mục, không xóa hẳn
+    public function destroy(Category $category)
     {
-        try {
-            DB::table('danhmuc')->where('id', $id)->update(['deleted' => 1]);
-        } catch (\Throwable $e) {
-            // Ignore missing table issues in local/test environments.
-        }
+        $category->update([
+            'status' => 0,
+        ]);
 
-        return redirect()->route('admin.categories.index');
+        return redirect()
+            ->route('admin.categories.index')
+            ->with('success', 'Đã ẩn danh mục.');
     }
 
     public function restore($id)
     {
-        try {
-            DB::table('danhmuc')->where('id', $id)->update(['deleted' => 0]);
-        } catch (\Throwable $e) {
-            // Ignore missing table issues in local/test environments.
-        }
+        $category = Category::findOrFail($id);
 
-        return redirect()->route('admin.categories.index');
+        $category->update([
+            'status' => 1,
+        ]);
+
+        return redirect()
+            ->route('admin.categories.index')
+            ->with('success', 'Khôi phục danh mục thành công.');
+    }
+
+    private function makeUniqueSlug(string $name, ?int $ignoreId = null): string
+    {
+        $baseSlug = Str::slug($name) ?: 'danh-muc';
+        $slug = $baseSlug;
+        $number = 2;
+
+        while (true) {
+            $query = Category::where('slug', $slug);
+
+            if ($ignoreId) {
+                $query->where('id', '!=', $ignoreId);
+            }
+
+            if (!$query->exists()) {
+                return $slug;
+            }
+
+            $slug = $baseSlug . '-' . $number;
+            $number++;
+        }
     }
 }

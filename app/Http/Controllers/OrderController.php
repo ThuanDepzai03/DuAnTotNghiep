@@ -2,47 +2,126 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Models\ProductVariant;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class OrderController extends Controller
 {
     public function index()
     {
-        $orders = Order::orderByDesc('id')->get();
+        $orders = Order::withCount('items')
+            ->orderByDesc('id')
+            ->get();
 
         return view('admin.orders.index', compact('orders'));
     }
 
     public function show($id)
     {
-        $order = Order::with('items.variant.product')->findOrFail($id);
+        $order = Order::with([
+            'items.variant.product',
+            'items.variant.attributeValues.attribute',
+        ])->findOrFail($id);
 
         return view('admin.orders.show', compact('order'));
     }
 
     public function updateStatus(Request $request, $id)
     {
-        $request->validate([
-            'status' => 'required|in:pending,confirmed,shipping,completed,cancelled'
+        $data = $request->validate([
+            'status' => 'required|in:pending,confirmed,shipping,completed,cancelled',
+        ], [
+            'status.required' => 'Vui lòng chọn trạng thái đơn hàng.',
+            'status.in' => 'Trạng thái đơn hàng không hợp lệ.',
         ]);
 
-        $order = Order::with('items.variant')->findOrFail($id);
+        try {
+            $result = DB::transaction(function () use ($id, $data) {
+                $order = Order::with('items')
+                    ->lockForUpdate()
+                    ->findOrFail($id);
 
-        if ($order->status !== 'confirmed' && $request->status === 'confirmed') {
-            foreach ($order->items as $item) {
-                ProductVariant::where('id', $item->product_variant_id)
-                    ->decrement('stock', $item->quantity);
-            }
+                $oldStatus = $order->status;
+                $newStatus = $data['status'];
+
+                if ($oldStatus === $newStatus) {
+                    return 'same_status';
+                }
+
+                $allowedTransitions = [
+                    'pending' => ['confirmed', 'cancelled'],
+                    'confirmed' => ['shipping', 'cancelled'],
+                    'shipping' => ['completed', 'cancelled'],
+                    'completed' => [],
+                    'cancelled' => [],
+                ];
+
+                if (!in_array($newStatus, $allowedTransitions[$oldStatus] ?? [])) {
+                    throw ValidationException::withMessages([
+                        'status' => 'Không thể chuyển từ trạng thái này sang trạng thái đã chọn.',
+                    ]);
+                }
+
+                /*
+                 * Khi xác nhận đơn:
+                 * kiểm tra tồn kho rồi trừ kho đúng 1 lần.
+                 */
+                if ($oldStatus === 'pending' && $newStatus === 'confirmed') {
+                    foreach ($order->items as $item) {
+                        $variant = ProductVariant::with('product')
+                            ->lockForUpdate()
+                            ->findOrFail($item->product_variant_id);
+
+                        if ($variant->stock < $item->quantity) {
+                            $productName = $variant->product?->name ?? 'Sản phẩm';
+
+                            throw ValidationException::withMessages([
+                                'status' => "{$productName} không đủ tồn kho. Còn lại: {$variant->stock}.",
+                            ]);
+                        }
+
+                        $variant->decrement('stock', $item->quantity);
+                    }
+                }
+
+                /*
+                 * Khi hủy đơn sau lúc đã xác nhận/giao:
+                 * cộng lại số lượng đã trừ.
+                 */
+                if (
+                    in_array($oldStatus, ['confirmed', 'shipping'])
+                    && $newStatus === 'cancelled'
+                ) {
+                    foreach ($order->items as $item) {
+                        ProductVariant::where('id', $item->product_variant_id)
+                            ->lockForUpdate()
+                            ->increment('stock', $item->quantity);
+                    }
+                }
+
+                $order->update([
+                    'status' => $newStatus,
+                ]);
+
+                return 'updated';
+            });
+
+            $message = $result === 'same_status'
+                ? 'Đơn hàng đang ở trạng thái này.'
+                : 'Cập nhật trạng thái đơn hàng thành công.';
+
+            return redirect()
+                ->route('admin.orders.show', $id)
+                ->with('success', $message);
+
+        } catch (ValidationException $e) {
+            return redirect()
+                ->back()
+                ->withErrors($e->errors())
+                ->withInput();
         }
-
-        $order->update([
-            'status' => $request->status
-        ]);
-
-        return redirect()
-            ->route('admin.orders.show', $order->id)
-            ->with('success', 'Cập nhật trạng thái đơn hàng thành công.');
     }
 }

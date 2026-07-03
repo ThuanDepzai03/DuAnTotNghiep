@@ -96,7 +96,7 @@
                     <p>2025 © AE Phoenic Store</p>
                 </div>
                 <div class="float-end">
-                    <p>Facebook admin <span class="text-danger"><i class="bi bi-heart"></i></span> : <a href="https://www.facebook.com/Theplay.Hacker.ss">Thuận</a></p>
+                    <p>Facebook admin <span class="text-danger"><i class="bi bi-heart"></i></span> : <a href="https://www.facebook.com/sad.boiz.see.tynk">Sơn Bùi</a></p>
                 </div>
             </div>
         </footer>
