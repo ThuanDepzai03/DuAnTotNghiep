@@ -82,9 +82,7 @@
             </a>
         </header>
 
-        <div class="page-heading">
-            <h3 class="mb-4">Hệ thống AE STORE</h3>
-        </div>
+
 
         <div class="page-content">
             @yield('content')
