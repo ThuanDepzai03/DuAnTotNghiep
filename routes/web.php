@@ -67,6 +67,12 @@ Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/account/profile', [AuthController::class, 'profile'])->name('account.profile');
 Route::post('/account/profile', [AuthController::class, 'updateProfile'])->name('account.update');
 
+Route::get('/account/orders/{id}', [AuthController::class, 'orderDetail'])
+    ->name('account.order.detail');
+
+Route::put('/account/orders/{id}/cancel', [AuthController::class, 'cancelOrder'])
+    ->name('account.order.cancel');
+
 
 // ================= ADMIN =================
 
@@ -92,4 +98,7 @@ Route::middleware(['web', 'admin'])
         Route::put('/orders/{id}/status', [OrderController::class, 'updateStatus'])->name('orders.updateStatus');
 
         Route::resource('users', UserController::class);
+
+        Route::get('/statistics/revenue', [OrderController::class, 'revenue'])
+    ->name('statistics.revenue');
     });

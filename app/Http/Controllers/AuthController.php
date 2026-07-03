@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
-
+use App\Models\Order;
 class AuthController extends Controller
 {
     public function showLogin()
@@ -70,7 +70,7 @@ class AuthController extends Controller
 
     $customer = $customerQuery->first();
 
-    if (!$customer || !Hash::check($password, $customer->pass)) {
+    if (!$customer || $password !== $customer->pass) {
     return back()
         ->withErrors([
             'user' => 'Tài khoản, email hoặc mật khẩu không đúng.',
@@ -182,11 +182,11 @@ class AuthController extends Controller
             ];
         }
 
-        $orders = DB::table('hoadon')
-            ->where('tenkhachhang', $user->user)
-            ->orWhere('sdt', $user->tel)
-            ->orderByDesc('id')
-            ->get();
+        $orders = DB::table('orders')
+    ->where('phone', $user->tel)
+    ->orWhere('email', $user->email)
+    ->orderByDesc('id')
+    ->get();
 
         return view('account.profile', compact('user', 'orders'));
     }
@@ -223,4 +223,64 @@ class AuthController extends Controller
 
         return back()->with('success', 'Cập nhật thông tin thành công.');
     }
+    public function orderDetail($id)
+{
+    $customer = session('customer');
+
+    if (!$customer) {
+
+        return redirect()->route('login');
+
+    }
+
+    $order = Order::with('items.variant.product')
+        ->findOrFail($id);
+
+    if (
+        $order->phone != $customer['tel']
+        &&
+        $order->email != $customer['email']
+    ) {
+
+        abort(403);
+
+    }
+
+    return view(
+        'account.order-detail',
+        compact('order')
+    );
+}
+public function cancelOrder($id)
+{
+    $customer = session('customer');
+
+    $order = Order::findOrFail($id);
+
+    if (
+        $order->phone != $customer['tel']
+        &&
+        $order->email != $customer['email']
+    ) {
+
+        abort(403);
+
+    }
+
+    if ($order->status != 'pending') {
+
+        return back()
+            ->with('error',
+                'Đơn hàng đã được xử lý, không thể hủy.');
+
+    }
+
+    $order->update([
+        'status'=>'cancelled'
+    ]);
+
+    return back()
+        ->with('success',
+            'Đã hủy đơn hàng thành công.');
+}
 }

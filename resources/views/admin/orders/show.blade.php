@@ -1,280 +1,86 @@
 @extends('admin.layout')
 
 @section('content')
-@php
-    $statusLabels = [
-        'pending' => [
-            'text' => 'Chờ xác nhận',
-            'class' => 'bg-warning text-dark',
-            'icon' => 'bi-hourglass-split',
-        ],
-        'confirmed' => [
-            'text' => 'Đã xác nhận',
-            'class' => 'bg-info text-dark',
-            'icon' => 'bi-check-circle',
-        ],
-        'shipping' => [
-            'text' => 'Đang giao',
-            'class' => 'bg-primary',
-            'icon' => 'bi-truck',
-        ],
-        'completed' => [
-            'text' => 'Hoàn thành',
-            'class' => 'bg-success',
-            'icon' => 'bi-check2-circle',
-        ],
-        'cancelled' => [
-            'text' => 'Đã hủy',
-            'class' => 'bg-danger',
-            'icon' => 'bi-x-circle',
-        ],
-    ];
-
-    $pendingCount = $orders->where('status', 'pending')->count();
-    $confirmedCount = $orders->where('status', 'confirmed')->count();
-    $shippingCount = $orders->where('status', 'shipping')->count();
-    $completedCount = $orders->where('status', 'completed')->count();
-@endphp
-
 <div class="page-heading">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div>
-            <h3 class="mb-1">Quản lý đơn hàng</h3>
-            <p class="text-subtitle text-muted mb-0">
-                Theo dõi thông tin khách hàng, sản phẩm và trạng thái giao hàng.
-            </p>
+            <h3 class="mb-1">Chi tiết đơn hàng #{{ $order->id }}</h3>
+            <p class="text-subtitle text-muted mb-0">Xem chi tiết và cập nhật trạng thái đơn hàng.</p>
         </div>
 
-        <div class="text-muted">
-            Tổng số đơn: <strong>{{ $orders->count() }}</strong>
-        </div>
+        <a href="{{ route('admin.orders.index') }}" class="btn btn-outline-secondary">
+            Quay lại
+        </a>
     </div>
 </div>
 
 <div class="page-content">
-    {{-- Thống kê đơn hàng --}}
-    <section class="row mb-4">
-        <div class="col-md-3 col-sm-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body d-flex align-items-center gap-3">
-                    <div class="rounded-circle bg-warning bg-opacity-25 text-warning p-3">
-                        <i class="bi bi-hourglass-split fs-4"></i>
-                    </div>
-                    <div>
-                        <small class="text-muted d-block">Chờ xác nhận</small>
-                        <h4 class="mb-0">{{ $pendingCount }}</h4>
-                    </div>
-                </div>
-            </div>
+    @if(session('success'))
+        <div class="alert alert-success">
+            {{ session('success') }}
         </div>
-
-        <div class="col-md-3 col-sm-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body d-flex align-items-center gap-3">
-                    <div class="rounded-circle bg-info bg-opacity-25 text-info p-3">
-                        <i class="bi bi-check-circle fs-4"></i>
-                    </div>
-                    <div>
-                        <small class="text-muted d-block">Đã xác nhận</small>
-                        <h4 class="mb-0">{{ $confirmedCount }}</h4>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3 col-sm-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body d-flex align-items-center gap-3">
-                    <div class="rounded-circle bg-primary bg-opacity-25 text-primary p-3">
-                        <i class="bi bi-truck fs-4"></i>
-                    </div>
-                    <div>
-                        <small class="text-muted d-block">Đang giao</small>
-                        <h4 class="mb-0">{{ $shippingCount }}</h4>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3 col-sm-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body d-flex align-items-center gap-3">
-                    <div class="rounded-circle bg-success bg-opacity-25 text-success p-3">
-                        <i class="bi bi-check2-circle fs-4"></i>
-                    </div>
-                    <div>
-                        <small class="text-muted d-block">Hoàn thành</small>
-                        <h4 class="mb-0">{{ $completedCount }}</h4>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+    @endif
 
     <section class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-3">
-                    <h4 class="card-title mb-0">
-                        Danh sách đơn hàng
-                        <span class="badge bg-light-primary text-primary ms-2">
-                            {{ $orders->count() }}
-                        </span>
-                    </h4>
-
-                    <div class="input-group" style="max-width: 280px;">
-                        <span class="input-group-text bg-white">
-                            <i class="bi bi-search"></i>
-                        </span>
-
-                        <input
-                            type="text"
-                            id="order-search"
-                            class="form-control"
-                            placeholder="Tìm mã đơn, tên, SĐT..."
-                        >
-                    </div>
+        <div class="col-12 col-lg-7">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">Thông tin khách hàng</h4>
                 </div>
 
                 <div class="card-body">
-                    @if(session('success'))
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            <i class="bi bi-check-circle me-1"></i>
-                            {{ session('success') }}
+                    <p><strong>Khách hàng:</strong> {{ $order->customer_name }}</p>
+                    <p><strong>Số điện thoại:</strong> {{ $order->phone }}</p>
+                    <p><strong>Email:</strong> {{ $order->email ?? 'Không có' }}</p>
+                    <p><strong>Địa chỉ:</strong> {{ $order->address }}</p>
+                    <p><strong>Ghi chú:</strong> {{ $order->note ?? 'Không có' }}</p>
+                    <p><strong>Ngày đặt:</strong> {{ $order->created_at->format('d/m/Y H:i') }}</p>
+                </div>
+            </div>
 
-                            <button
-                                type="button"
-                                class="btn-close"
-                                data-bs-dismiss="alert"
-                            ></button>
-                        </div>
-                    @endif
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">Sản phẩm trong đơn</h4>
+                </div>
 
+                <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle" id="orders-table">
+                        <table class="table table-hover align-middle">
                             <thead>
                                 <tr>
-                                    <th width="100">Mã đơn</th>
-                                    <th>Khách hàng</th>
-                                    <th>Liên hệ</th>
                                     <th>Sản phẩm</th>
-                                    <th>Tổng tiền</th>
-                                    <th>Thanh toán</th>
-                                    <th>Trạng thái</th>
-                                    <th>Ngày đặt</th>
-                                    <th width="130">Thao tác</th>
+                                    <th>SKU</th>
+                                    <th>Số lượng</th>
+                                    <th>Đơn giá</th>
+                                    <th>Thành tiền</th>
                                 </tr>
                             </thead>
 
                             <tbody>
-                                @forelse($orders as $order)
+                                @forelse($order->items as $item)
                                     @php
-                                        $status = $statusLabels[$order->status] ?? [
-                                            'text' => 'Không xác định',
-                                            'class' => 'bg-secondary',
-                                            'icon' => 'bi-question-circle',
-                                        ];
-
-                                        $paymentText = match ($order->payment_method) {
-                                            'cod' => 'Thanh toán khi nhận hàng',
-                                            'banking' => 'Chuyển khoản',
-                                            default => $order->payment_method ?? 'Chưa xác định',
-                                        };
+                                        $variant = $item->variant;
+                                        $product = $variant?->product;
+                                        $lineTotal = $item->quantity * $item->price;
                                     @endphp
 
-                                    <tr class="order-row">
+                                    <tr>
                                         <td>
-                                            <strong class="text-primary">
-                                                #DH{{ str_pad($order->id, 5, '0', STR_PAD_LEFT) }}
-                                            </strong>
+                                            <strong>{{ $product->name ?? 'Sản phẩm không tồn tại' }}</strong>
                                         </td>
 
-                                        <td>
-                                            <strong class="d-block">
-                                                {{ $order->customer_name }}
-                                            </strong>
+                                        <td>{{ $variant->sku ?? 'Không có' }}</td>
 
-                                            @if($order->email)
-                                                <small class="text-muted">
-                                                    {{ $order->email }}
-                                                </small>
-                                            @endif
-                                        </td>
+                                        <td>{{ $item->quantity }}</td>
 
-                                        <td>
-                                            <a
-                                                href="tel:{{ $order->phone }}"
-                                                class="text-decoration-none"
-                                            >
-                                                <i class="bi bi-telephone me-1"></i>
-                                                {{ $order->phone }}
-                                            </a>
-                                        </td>
+                                        <td>{{ number_format($item->price, 0, ',', '.') }} ₫</td>
 
-                                        <td>
-                                            <span class="badge bg-light-secondary text-secondary">
-                                                <i class="bi bi-box me-1"></i>
-                                                {{ $order->items_count }} sản phẩm
-                                            </span>
-                                        </td>
-
-                                        <td>
-                                            <strong class="text-danger">
-                                                {{ number_format($order->total_price, 0, ',', '.') }} ₫
-                                            </strong>
-                                        </td>
-
-                                        <td>
-                                            @if($order->payment_method === 'cod')
-                                                <span class="badge bg-light-warning text-warning">
-                                                    <i class="bi bi-cash-coin me-1"></i>
-                                                    COD
-                                                </span>
-                                            @elseif($order->payment_method === 'banking')
-                                                <span class="badge bg-light-info text-info">
-                                                    <i class="bi bi-bank me-1"></i>
-                                                    Chuyển khoản
-                                                </span>
-                                            @else
-                                                <small class="text-muted">{{ $paymentText }}</small>
-                                            @endif
-                                        </td>
-
-                                        <td>
-                                            <span class="badge {{ $status['class'] }}">
-                                                <i class="bi {{ $status['icon'] }} me-1"></i>
-                                                {{ $status['text'] }}
-                                            </span>
-                                        </td>
-
-                                        <td>
-                                            <small class="d-block">
-                                                {{ $order->created_at?->format('d/m/Y') }}
-                                            </small>
-
-                                            <small class="text-muted">
-                                                {{ $order->created_at?->format('H:i') }}
-                                            </small>
-                                        </td>
-
-                                        <td>
-                                            <a
-                                                href="{{ route('admin.orders.show', $order->id) }}"
-                                                class="btn btn-sm btn-outline-primary"
-                                            >
-                                                <i class="bi bi-eye me-1"></i>
-                                                Chi tiết
-                                            </a>
-                                        </td>
+                                        <td>{{ number_format($lineTotal, 0, ',', '.') }} ₫</td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="9" class="text-center py-5">
-                                            <i class="bi bi-receipt fs-1 text-muted d-block mb-3"></i>
-                                            <strong>Chưa có đơn hàng nào</strong>
-                                            <p class="text-muted mb-0">
-                                                Đơn đặt hàng của khách sẽ hiển thị tại đây.
-                                            </p>
+                                        <td colspan="5" class="text-center">
+                                            Không có sản phẩm trong đơn hàng.
                                         </td>
                                     </tr>
                                 @endforelse
@@ -282,44 +88,104 @@
                         </table>
                     </div>
 
-                    <div id="no-search-result" class="text-center py-4 d-none">
-                        <i class="bi bi-search fs-3 text-muted d-block mb-2"></i>
-                        Không tìm thấy đơn hàng phù hợp.
+                    <div class="text-end mt-3">
+                        <h5>
+                            Tổng tiền:
+                            <strong class="text-danger">
+                                {{ number_format($order->total_price, 0, ',', '.') }} ₫
+                            </strong>
+                        </h5>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-5">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">Thanh toán</h4>
+                </div>
+
+                <div class="card-body">
+                    <p><strong>Phương thức:</strong> {{ strtoupper($order->payment_method) }}</p>
+                    <p><strong>Mã giao dịch:</strong> {{ $order->transaction_no ?? 'Chưa có' }}</p>
+                    <p><strong>Ngân hàng:</strong> {{ $order->bank_code ?? 'Chưa có' }}</p>
+                    <p><strong>Thời gian thanh toán:</strong>
+                        {{ $order->paid_at ? \Carbon\Carbon::parse($order->paid_at)->format('d/m/Y H:i') : 'Chưa thanh toán' }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">Cập nhật trạng thái</h4>
+                </div>
+
+                <div class="card-body">
+                    <p>
+                        <strong>Trạng thái hiện tại:</strong>
+
+                        @switch($order->status)
+                            @case('pending')
+                                <span class="badge bg-warning">Nhận đơn</span>
+                                @break
+
+                            @case('confirmed')
+                                <span class="badge bg-info">Đã xác nhận</span>
+                                @break
+
+                            @case('shipping')
+                                <span class="badge bg-primary">Đang giao</span>
+                                @break
+
+                            @case('completed')
+                                <span class="badge bg-success">Hoàn thành</span>
+                                @break
+
+                            @case('cancelled')
+                                <span class="badge bg-danger">Đã hủy</span>
+                                @break
+
+                            @default
+                                <span class="badge bg-secondary">{{ $order->status }}</span>
+                        @endswitch
+                    </p>
+
+                    <form method="POST" action="{{ route('admin.orders.updateStatus', $order->id) }}">
+                        @csrf
+                        @method('PUT')
+
+                        <label class="form-label">Chọn trạng thái mới</label>
+
+                        <select name="status" class="form-select mb-3" required>
+                            <option value="pending" {{ $order->status == 'pending' ? 'selected' : '' }}>
+                                Nhận đơn
+                            </option>
+
+                            <option value="confirmed" {{ $order->status == 'confirmed' ? 'selected' : '' }}>
+                                Đã xác nhận
+                            </option>
+
+                            <option value="shipping" {{ $order->status == 'shipping' ? 'selected' : '' }}>
+                                Đang giao
+                            </option>
+
+                            <option value="completed" {{ $order->status == 'completed' ? 'selected' : '' }}>
+                                Hoàn thành
+                            </option>
+
+                            <option value="cancelled" {{ $order->status == 'cancelled' ? 'selected' : '' }}>
+                                Đã hủy
+                            </option>
+                        </select>
+
+                        <button type="submit" class="btn btn-primary w-100">
+                            Lưu trạng thái
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
     </section>
 </div>
-
-<script>
-    const searchInput = document.getElementById('order-search');
-    const orderRows = document.querySelectorAll('.order-row');
-    const noResult = document.getElementById('no-search-result');
-
-    if (searchInput) {
-        searchInput.addEventListener('input', function () {
-            const keyword = this.value.toLowerCase().trim();
-            let visibleCount = 0;
-
-            orderRows.forEach(function (row) {
-                const content = row.innerText.toLowerCase();
-                const matched = content.includes(keyword);
-
-                row.style.display = matched ? '' : 'none';
-
-                if (matched) {
-                    visibleCount++;
-                }
-            });
-
-            if (noResult) {
-                noResult.classList.toggle(
-                    'd-none',
-                    visibleCount > 0 || keyword === ''
-                );
-            }
-        });
-    }
-</script>
 @endsection
