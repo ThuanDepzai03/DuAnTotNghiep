@@ -8,7 +8,7 @@ use App\Http\Controllers\Client\ProductController as ClientProductController;
 use App\Http\Controllers\Client\CartController as ClientCartController;
 use App\Http\Controllers\Client\CheckoutController as ClientCheckoutController;
 use App\Http\Controllers\Client\PaymentController;
-
+use App\Http\Controllers\ProductVariantController;
 // Admin Controllers cũ của nhóm
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CategoryController;
@@ -73,7 +73,6 @@ Route::get('/account/orders/{id}', [AuthController::class, 'orderDetail'])
 Route::put('/account/orders/{id}/cancel', [AuthController::class, 'cancelOrder'])
     ->name('account.order.cancel');
 
-
 // ================= ADMIN =================
 
 Route::middleware(['web', 'admin'])
@@ -84,6 +83,26 @@ Route::middleware(['web', 'admin'])
         Route::get('/', [AdminController::class, 'index'])->name('dashboard');
 
         Route::resource('categories', CategoryController::class);
+
+        Route::get(
+            '/products/{product}/variants',
+            [ProductVariantController::class, 'index']
+        )->name('products.variants.index');
+
+        Route::post(
+            '/products/{product}/variants',
+            [ProductVariantController::class, 'store']
+        )->name('products.variants.store');
+
+        Route::put(
+            '/products/{product}/variants/{variant}',
+            [ProductVariantController::class, 'update']
+        )->name('products.variants.update');
+
+        Route::delete(
+            '/products/{product}/variants/{variant}',
+            [ProductVariantController::class, 'destroy']
+        )->name('products.variants.destroy');
 
         Route::post('/categories/{id}/restore', [CategoryController::class, 'restore'])
             ->name('categories.restore');

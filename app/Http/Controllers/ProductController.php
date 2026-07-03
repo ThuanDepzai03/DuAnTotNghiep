@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use App\Models\Attribute;
 
 class ProductController extends Controller
 {
@@ -36,7 +37,15 @@ class ProductController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('admin.products.create', compact('categories', 'brands'));
+        $attributes = Attribute::with('values')
+            ->orderBy('id')
+            ->get();
+
+        return view('admin.products.create', compact(
+            'categories',
+            'brands',
+            'attributes'
+));
     }
 
     public function store(Request $request)
@@ -44,7 +53,8 @@ class ProductController extends Controller
         $data = $request->validate([
             'category_id' => ['required', 'exists:categories,id'],
             'brand_id' => ['nullable', 'exists:brands,id'],
-
+            'attribute_value_ids' => ['nullable', 'array'],
+            'attribute_value_ids.*' => ['nullable', 'integer', 'exists:attribute_values,id'],
             'name' => ['required', 'string', 'max:255'],
             'sku' => ['nullable', 'string', 'max:100', 'unique:products,sku'],
             'description' => ['nullable', 'string'],
@@ -69,8 +79,14 @@ class ProductController extends Controller
             'sale_price.lte' => 'Giá khuyến mãi phải nhỏ hơn hoặc bằng giá gốc.',
             'stock.required' => 'Vui lòng nhập số lượng tồn kho.',
         ]);
+        $attributeValueIds = collect($data['attribute_value_ids'] ?? [])
+            ->filter()
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
 
-        DB::transaction(function () use ($request, $data) {
+       DB::transaction(function () use ($request, $data, $attributeValueIds) {
             $thumbnailPath = null;
             $variantImagePath = null;
 
@@ -99,7 +115,7 @@ class ProductController extends Controller
                 'status' => (int) $data['status'],
             ]);
 
-            ProductVariant::create([
+            $variant = ProductVariant::create([
                 'product_id' => $product->id,
                 'sku' => $data['variant_sku'],
                 'price' => $data['price'],
@@ -108,6 +124,7 @@ class ProductController extends Controller
                 'image' => $variantImagePath ?? $thumbnailPath,
                 'status' => (int) $data['status'],
             ]);
+            $variant->attributeValues()->sync($attributeValueIds);
         });
 
         return redirect()
@@ -134,10 +151,24 @@ class ProductController extends Controller
 
         $firstVariant = $product->variants->first();
 
-        return view(
-            'admin.products.edit',
-            compact('product', 'categories', 'brands', 'firstVariant')
-        );
+        $attributes = Attribute::with('values')
+            ->orderBy('id')
+            ->get();
+
+        $selectedAttributeValueIds = $firstVariant
+            ? $firstVariant->attributeValues()
+                ->pluck('attribute_values.id')
+                ->all()
+            : [];
+
+        return view('admin.products.edit', compact(
+            'product',
+            'categories',
+            'brands',
+            'firstVariant',
+            'attributes',
+            'selectedAttributeValueIds'
+        ));
     }
 
     public function update(Request $request, Product $product)
@@ -147,6 +178,9 @@ class ProductController extends Controller
         $data = $request->validate([
             'category_id' => ['required', 'exists:categories,id'],
             'brand_id' => ['nullable', 'exists:brands,id'],
+
+            'attribute_value_ids' => ['nullable', 'array'],
+            'attribute_value_ids.*' => ['nullable', 'integer', 'exists:attribute_values,id'],
 
             'name' => ['required', 'string', 'max:255'],
             'sku' => [
@@ -171,7 +205,19 @@ class ProductController extends Controller
             'variant_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ]);
 
-        DB::transaction(function () use ($request, $product, $firstVariant, $data) {
+        $attributeValueIds = collect($data['attribute_value_ids'] ?? [])
+            ->filter()
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
+
+        DB::transaction(function () use (
+                $request,
+                $product,
+                $firstVariant,
+                $data,
+                $attributeValueIds) {
             $thumbnailPath = $product->thumbnail;
             $variantImagePath = $firstVariant?->image;
 
@@ -220,6 +266,30 @@ class ProductController extends Controller
                     'status' => (int) $data['status'],
                 ]);
             }
+            if ($firstVariant) {
+    $firstVariant->update([
+        'sku' => $data['variant_sku'],
+        'price' => $data['price'],
+        'sale_price' => $data['sale_price'] ?? null,
+        'stock' => $data['stock'],
+        'image' => $variantImagePath ?? $thumbnailPath,
+        'status' => (int) $data['status'],
+    ]);
+
+    $variant = $firstVariant;
+} else {
+    $variant = ProductVariant::create([
+        'product_id' => $product->id,
+        'sku' => $data['variant_sku'],
+        'price' => $data['price'],
+        'sale_price' => $data['sale_price'] ?? null,
+        'stock' => $data['stock'],
+        'image' => $variantImagePath ?? $thumbnailPath,
+        'status' => (int) $data['status'],
+    ]);
+}
+
+$variant->attributeValues()->sync($attributeValueIds);
         });
 
         return redirect()

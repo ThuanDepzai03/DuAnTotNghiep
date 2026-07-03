@@ -227,7 +227,43 @@
                         <div class="alert alert-light-primary">
                             Mỗi sản phẩm cần ít nhất một biến thể để có giá bán và số lượng tồn kho.
                         </div>
+                        <div class="row mb-3">
+    <div class="col-12">
+        <label class="form-label fw-bold">
+            Thuộc tính biến thể
+        </label>
 
+        <div class="row">
+            @foreach($attributes as $attribute)
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">
+                        {{ $attribute->name }}
+                    </label>
+
+                    <select name="attribute_value_ids[]" class="form-select">
+                        <option value="">
+                            -- Chọn {{ $attribute->name }} --
+                        </option>
+
+                        @foreach($attribute->values as $value)
+                            <option
+                                value="{{ $value->id }}"
+                                {{ in_array($value->id, old('attribute_value_ids', [])) ? 'selected' : '' }}
+                            >
+                                {{ $value->value }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            @endforeach
+        </div>
+
+        <small class="text-muted">
+            Ví dụ điện thoại: chọn Màu sắc + RAM + Bộ nhớ.
+            Tai nghe chỉ cần chọn Màu sắc.
+        </small>
+    </div>
+</div>
                         <div class="row">
                             <div class="col-md-4">
                                 <div class="mb-3">
