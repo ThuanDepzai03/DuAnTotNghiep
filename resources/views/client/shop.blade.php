@@ -100,6 +100,76 @@
                             @endforeach
                         </select>
                     </div>
+                    {{-- Lọc theo cấu hình --}}
+<div class="shop-filter-group config-filter-group">
+    <h3 class="shop-filter-title">Cấu hình</h3>
+
+    {{-- Màu sắc --}}
+    @if($colors->isNotEmpty())
+        <div class="config-filter-item">
+            <strong>Màu sắc</strong>
+
+            <div class="config-options">
+                @foreach($colors as $color)
+                    <label class="config-option">
+                        <input
+                            type="checkbox"
+                            name="colors[]"
+                            value="{{ $color->id }}"
+                            {{ in_array($color->id, $selectedColors) ? 'checked' : '' }}
+                        >
+
+                        <span>{{ $color->value }}</span>
+                    </label>
+                @endforeach
+            </div>
+        </div>
+    @endif
+
+    {{-- RAM --}}
+    @if($rams->isNotEmpty())
+        <div class="config-filter-item">
+            <strong>RAM</strong>
+
+            <div class="config-options">
+                @foreach($rams as $ram)
+                    <label class="config-option">
+                        <input
+                            type="checkbox"
+                            name="rams[]"
+                            value="{{ $ram->id }}"
+                            {{ in_array($ram->id, $selectedRams) ? 'checked' : '' }}
+                        >
+
+                        <span>{{ $ram->value }}</span>
+                    </label>
+                @endforeach
+            </div>
+        </div>
+    @endif
+
+    {{-- Bộ nhớ --}}
+    @if($storages->isNotEmpty())
+        <div class="config-filter-item">
+            <strong>Bộ nhớ</strong>
+
+            <div class="config-options">
+                @foreach($storages as $storage)
+                    <label class="config-option">
+                        <input
+                            type="checkbox"
+                            name="storages[]"
+                            value="{{ $storage->id }}"
+                            {{ in_array($storage->id, $selectedStorages) ? 'checked' : '' }}
+                        >
+
+                        <span>{{ $storage->value }}</span>
+                    </label>
+                @endforeach
+            </div>
+        </div>
+    @endif
+</div>
 
                     <button
                         type="submit"
@@ -319,6 +389,68 @@
         font-weight: 500;
         cursor: pointer;
         margin: 0;
+    }
+</style>
+<style>
+    .config-filter-group {
+        margin-top: 20px;
+        padding-top: 5px;
+        border-top: 1px solid #eeeeee;
+    }
+
+    .config-filter-item {
+        margin-bottom: 18px;
+    }
+
+    .config-filter-item > strong {
+        display: block;
+        margin-bottom: 9px;
+        color: #2b2d42;
+        font-size: 14px;
+    }
+
+    .config-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        max-height: 125px;
+        overflow-y: auto;
+        padding-right: 4px;
+    }
+
+    .config-option {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin: 0;
+        padding: 6px 9px;
+        border: 1px solid #e5e5e5;
+        border-radius: 4px;
+        background: #fff;
+        color: #555;
+        font-size: 13px;
+        cursor: pointer;
+        transition: 0.2s ease;
+    }
+
+    .config-option:hover {
+        border-color: #d10024;
+        color: #d10024;
+    }
+
+    .config-option input {
+        width: 14px;
+        height: 14px;
+        margin: 0;
+        accent-color: #d10024;
+        cursor: pointer;
+    }
+
+    .config-option:has(input:checked) {
+        border-color: #d10024;
+        background: #fff1f3;
+        color: #d10024;
+        font-weight: 600;
     }
 </style>
 @endsection
