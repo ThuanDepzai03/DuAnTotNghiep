@@ -70,6 +70,12 @@ Route::post('/account/profile', [AuthController::class, 'updateProfile'])->name(
 Route::get('/account/orders/{id}', [AuthController::class, 'orderDetail'])
     ->name('account.order.detail');
 
+Route::get('/orders/tracking', [App\Http\Controllers\Client\OrderTrackingController::class, 'index'])
+    ->name('orders.tracking');
+
+Route::get('/orders/tracking/{id}', [App\Http\Controllers\Client\OrderTrackingController::class, 'show'])
+    ->name('orders.tracking.show');
+
 Route::put('/account/orders/{id}/cancel', [AuthController::class, 'cancelOrder'])
     ->name('account.order.cancel');
 

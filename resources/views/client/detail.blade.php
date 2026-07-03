@@ -110,6 +110,7 @@
                             type="hidden"
                             name="product_variant_id"
                             id="selected-variant-id"
+                            value=""
                         >
 
                         <div class="add-to-cart">
@@ -278,6 +279,7 @@ document.addEventListener('DOMContentLoaded', function () {
             messageElement.textContent = 'Hãy chọn đầy đủ thuộc tính sản phẩm.';
             variantInput.value = '';
             addToCartButton.disabled = true;
+            addToCartButton.setAttribute('aria-disabled', 'true');
             return;
         }
 
@@ -303,11 +305,14 @@ document.addEventListener('DOMContentLoaded', function () {
             messageElement.textContent = 'Sản phẩm đang có sẵn.';
             messageElement.style.color = 'green';
             addToCartButton.disabled = false;
+            addToCartButton.removeAttribute('disabled');
+            addToCartButton.setAttribute('aria-disabled', 'false');
         } else {
             stockElement.textContent = 'Hết hàng';
             messageElement.textContent = 'Sản phẩm này hiện đã hết hàng.';
             messageElement.style.color = '#d10024';
             addToCartButton.disabled = true;
+            addToCartButton.setAttribute('aria-disabled', 'true');
         }
 
         if (variant.image) {
@@ -347,6 +352,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     updateAvailableOptions();
+    updateVariantInformation();
 });
 </script>
 @endsection

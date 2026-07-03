@@ -95,7 +95,7 @@ class PaymentController extends Controller
                 $item->variant()->decrement('stock', $item->quantity);
             }
 
-            session()->forget('cart');
+            $this->clearCartItems();
 
             return redirect()->route('checkout.success');
         }

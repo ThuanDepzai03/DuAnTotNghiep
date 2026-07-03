@@ -23,10 +23,11 @@
                 </ul>
                 <ul class="header-links pull-right">
                     @php $customer = session('customer'); @endphp
+                    <li><a href="{{ route('cart.index') }}"><i class="fa fa-shopping-cart"></i> Giỏ hàng</a></li>
                     @if($customer)
                         @if((int) $customer['role'] === 0)
-                            <li><a href="{{ route('cart.index') }}"><i class="fa fa-shopping-cart"></i> Giỏ hàng</a></li>
                             <li><a href="{{ route('account.profile') }}"><i class="fa fa-user"></i> Tài khoản</a></li>
+                            <li><a href="{{ route('orders.tracking') }}"><i class="fa fa-map-marker"></i> Theo dõi đơn hàng</a></li>
                             <li><a href="{{ route('account.profile') }}"><i class="fa fa-clipboard"></i> Đơn hàng</a></li>
                         @else
                             <li><a href="{{ route('admin.dashboard') }}"><i class="fa fa-cogs"></i> Quản trị</a></li>
