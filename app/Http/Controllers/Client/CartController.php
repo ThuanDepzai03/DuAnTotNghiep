@@ -10,7 +10,7 @@ class CartController extends Controller
 {
     public function index()
     {
-        $cart = session()->get('cart', []);
+        $cart = $this->getCartItems();
 
         $totalQuantity = collect($cart)->sum('quantity');
 
@@ -49,7 +49,7 @@ class CartController extends Controller
             return back()->with('error', 'Biến thể này hiện đã hết hàng.');
         }
 
-        $cart = session()->get('cart', []);
+        $cart = $this->getCartItems();
         $variantId = (string) $variant->id;
 
         $currentQuantity = $cart[$variantId]['quantity'] ?? 0;
@@ -87,7 +87,7 @@ class CartController extends Controller
             ];
         }
 
-        session()->put('cart', $cart);
+        $this->saveCartItems($cart);
 
         return redirect()
             ->route('cart.index')
@@ -101,7 +101,7 @@ class CartController extends Controller
             'quantities.*' => ['nullable', 'integer', 'min:0'],
         ]);
 
-        $cart = session()->get('cart', []);
+        $cart = $this->getCartItems();
         $variantIds = array_keys($request->quantities);
 
         $variants = ProductVariant::whereIn('id', $variantIds)
@@ -131,7 +131,7 @@ class CartController extends Controller
             $cart[$variantId]['stock'] = $variant->stock;
         }
 
-        session()->put('cart', $cart);
+        $this->saveCartItems($cart);
 
         return redirect()
             ->route('cart.index')
@@ -144,11 +144,11 @@ class CartController extends Controller
             'product_variant_id' => ['required', 'integer'],
         ]);
 
-        $cart = session()->get('cart', []);
+        $cart = $this->getCartItems();
 
         unset($cart[(string) $request->product_variant_id]);
 
-        session()->put('cart', $cart);
+        $this->saveCartItems($cart);
 
         return redirect()
             ->route('cart.index')

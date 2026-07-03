@@ -7,12 +7,20 @@
     </div>
 @endif
 @php
-$cart = session('cart', []);
+$customer = session('customer');
+$cartKey = $customer && !empty($customer['id']) ? 'cart.' . $customer['id'] : 'cart.guest';
+$cart = session($cartKey, []);
 $totalPrice = 0;
 
 foreach ($cart as $item) {
-    $totalPrice += $item['price'] * $item['quantity'];
+    $price = isset($item['price']) ? (float) $item['price'] : 0;
+    $quantity = isset($item['quantity']) ? (int) $item['quantity'] : 0;
+    $totalPrice += $price * $quantity;
 }
+
+$customerName = old('customer_name', $defaultCustomer['customer_name'] ?? '');
+$customerAddress = old('address', $defaultCustomer['address'] ?? '');
+$customerPhone = old('phone', $defaultCustomer['phone'] ?? '');
 @endphp
 
 <div class="section">
@@ -23,9 +31,9 @@ foreach ($cart as $item) {
                 <div class="col-md-7">
                     <div class="billing-details">
                         <div class="section-title"><h3 class="title">Địa chỉ giao hàng</h3></div>
-                        <div class="form-group"><input class="input" type="text" name="customer_name" placeholder="Họ và tên" required></div>
-                        <div class="form-group"><input class="input" type="text" name="address" placeholder="Địa chỉ" required></div>
-                        <div class="form-group"><input class="input" type="tel" name="phone" placeholder="Số điện thoại" required></div>
+                        <div class="form-group"><input class="input" type="text" name="customer_name" placeholder="Họ và tên" value="{{ $customerName }}" required></div>
+                        <div class="form-group"><input class="input" type="text" name="address" placeholder="Địa chỉ" value="{{ $customerAddress }}" required></div>
+                        <div class="form-group"><input class="input" type="tel" name="phone" placeholder="Số điện thoại" value="{{ $customerPhone }}" required></div>
                     </div>
                 </div>
 
@@ -38,9 +46,13 @@ foreach ($cart as $item) {
                         </div>
                         <div class="order-products">
                             @foreach($cart as $item)
+                                @php
+                                    $price = isset($item['price']) ? (float) $item['price'] : 0;
+                                    $quantity = isset($item['quantity']) ? (int) $item['quantity'] : 0;
+                                @endphp
                                 <div class="order-col">
-                                    <div>{{ $item['name'] }} x {{ $item['quantity'] }}</div>
-                                    <div>{{ number_format($item['price'] * $item['quantity'], 0, ',', '.') }}₫</div>
+                                    <div>{{ $item['name'] ?? 'Sản phẩm' }} x {{ $quantity }}</div>
+                                    <div>{{ number_format($price * $quantity, 0, ',', '.') }}₫</div>
                                 </div>
                             @endforeach
                         </div>

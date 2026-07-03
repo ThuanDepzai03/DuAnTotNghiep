@@ -25,6 +25,16 @@ class AuthAndProfileTest extends TestCase
             });
         }
 
+        if (!Schema::hasTable('admins')) {
+            Schema::create('admins', function ($table) {
+                $table->id();
+                $table->string('name');
+                $table->string('email')->unique();
+                $table->string('password');
+                $table->timestamps();
+            });
+        }
+
         if (!Schema::hasTable('hoadon')) {
             Schema::create('hoadon', function ($table) {
                 $table->id();
@@ -39,6 +49,7 @@ class AuthAndProfileTest extends TestCase
         }
 
         DB::table('nguoidung')->delete();
+        DB::table('admins')->delete();
         DB::table('hoadon')->delete();
     }
 
@@ -101,5 +112,44 @@ class AuthAndProfileTest extends TestCase
         ]);
 
         $response->assertRedirect('/account/profile');
+    }
+
+    public function test_default_admin_can_login_and_access_admin_dashboard(): void
+    {
+        $response = $this->post('/login', [
+            'user' => 'admin',
+            'pass' => '123123123',
+        ]);
+
+        $response->assertRedirect('/admin');
+        $this->assertEquals(1, session('customer.role'));
+        $this->assertEquals('admin', session('customer.user'));
+    }
+
+    public function test_guest_can_see_cart_link_in_header(): void
+    {
+        $response = $this->get('/');
+
+        $response->assertStatus(200)
+            ->assertSee('Giỏ hàng');
+    }
+
+    public function test_checkout_prefills_customer_info_for_logged_in_customer(): void
+    {
+        session(['customer' => [
+            'id' => 1,
+            'user' => 'khachhang1',
+            'email' => 'khachhang1@example.com',
+            'address' => '123 Nguyễn Văn Cừ',
+            'tel' => '0909123456',
+            'role' => 0,
+        ]]);
+
+        $response = $this->get('/checkout');
+
+        $response->assertStatus(200)
+            ->assertSee('value="khachhang1"', false)
+            ->assertSee('value="123 Nguyễn Văn Cừ"', false)
+            ->assertSee('value="0909123456"', false);
     }
 }

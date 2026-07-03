@@ -4,10 +4,10 @@
 <div class="page-heading">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div>
-            <h3 class="mb-1">Quản lý khách hàng</h3>
+            <h3 class="mb-1">Quản lý danh sách tài khoản</h3>
             <p class="text-subtitle text-muted mb-0">Danh sách tài khoản khách hàng và quản trị viên.</p>
         </div>
-        <a href="{{ route('admin.users.create') }}" class="btn btn-primary">+ Thêm khách hàng</a>
+        <a href="{{ route('admin.users.create') }}" class="btn btn-primary">+ Thêm tài khoản</a>
     </div>
 </div>
 

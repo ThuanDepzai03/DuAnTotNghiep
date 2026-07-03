@@ -13,13 +13,21 @@ class CheckoutController extends Controller
     // Hiển thị trang checkout
     public function index()
     {
-        return view('checkout');
+        $customer = session('customer');
+
+        $defaultCustomer = [
+            'customer_name' => $customer['user'] ?? '',
+            'address' => $customer['address'] ?? '',
+            'phone' => $customer['tel'] ?? '',
+        ];
+
+        return view('checkout', compact('defaultCustomer'));
     }
 
     // Xử lý đặt hàng
     public function store(Request $request)
         {
-    $cart = session('cart', []);
+    $cart = $this->getCartItems();
 
     if (empty($cart)) {
         return redirect()->route('cart.index')
@@ -75,7 +83,7 @@ try {
 }
     
     if ($request->payment_method === 'cod') {
-    session()->forget('cart');
+    $this->clearCartItems();
     return redirect()->route('checkout.success');
 }
 

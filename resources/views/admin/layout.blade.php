@@ -15,15 +15,16 @@
     <link rel="stylesheet" href="{{ asset('admin-assets/css/custom.css') }}">
     <link rel="shortcut icon" href="{{ asset('admin-assets/images/favicon.svg') }}" type="image/x-icon">
 </head>
-<body>
+<body class="theme-dark">
 <div id="app">
     <div id="sidebar" class="active">
         <div class="sidebar-wrapper active">
             <div class="sidebar-header">
                 <div class="d-flex justify-content-between">
                     <div class="logo">
-                        <a href="{{ route('admin.dashboard') }}">
-                            <img src="{{ asset('admin-assets/images/logo/logo.png') }}" alt="Logo" onerror="this.style.display='none'">
+                        <a href="{{ route('admin.dashboard') }}" class="d-flex align-items-center text-decoration-none">
+                            <img src="{{ asset('img/logo.png') }}" alt="AE Phoenic" style="height: 42px; width: auto;">
+                            <span class="ms-2 fw-bold text-white">AE PHOENIC</span>
                         </a>
                     </div>
                     <div class="toggler">
@@ -67,6 +68,13 @@
                         <a href="{{ route('admin.orders.index') }}" class="sidebar-link">
                             <i class="bi bi-receipt"></i>
                             <span>Đơn hàng</span>
+                        </a>
+                    </li>
+
+                    <li class="sidebar-item {{ request()->routeIs('admin.statistics.revenue') ? 'active' : '' }}">
+                        <a href="{{ route('admin.statistics.revenue') }}" class="sidebar-link">
+                            <i class="bi bi-bar-chart-line-fill"></i>
+                            <span>Thống kê doanh thu</span>
                         </a>
                     </li>
                 </ul>

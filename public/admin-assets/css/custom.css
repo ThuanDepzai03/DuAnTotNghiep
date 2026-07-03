@@ -1,32 +1,69 @@
 /* Custom overrides for AE Phoenic Store admin */
-body {
-    background-color: #f2f7ff;
+body.theme-dark {
+    background-color: #0f172a;
+    color: #e2e8f0;
 }
 
-.card {
+body.theme-dark .card,
+body.theme-dark .table-responsive,
+body.theme-dark .form-control,
+body.theme-dark .form-select,
+body.theme-dark .btn,
+body.theme-dark .page-heading {
+    border-color: #334155;
+}
+
+body.theme-dark .card {
+    background-color: #111827;
     border: 0;
-    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+    box-shadow: 0 10px 30px rgba(2, 6, 23, 0.45);
     border-radius: 1rem;
 }
 
-.card-header {
-    border-bottom: 1px solid #eef2f7;
+body.theme-dark .card-header {
+    border-bottom: 1px solid #334155;
     background: transparent;
+    color: #f8fafc;
 }
 
-.table-responsive {
+body.theme-dark .table-responsive {
     border-radius: 0.75rem;
 }
 
-.form-control, .form-select {
+body.theme-dark .form-control,
+body.theme-dark .form-select {
     border-radius: 0.75rem;
-    border-color: #d9e2f0;
+    border-color: #475569;
+    background-color: #0f172a;
+    color: #f8fafc;
 }
 
-.btn {
+body.theme-dark .btn {
     border-radius: 0.75rem;
 }
 
-.page-heading {
+body.theme-dark .page-heading {
     margin-bottom: 1.5rem;
+    color: #f8fafc;
+}
+
+body.theme-dark #main {
+    background-color: #0f172a;
+}
+
+body.theme-dark .sidebar-wrapper {
+    background-color: #111827;
+}
+
+body.theme-dark .sidebar-link {
+    color: #cbd5e1;
+}
+
+body.theme-dark .sidebar-item.active > .sidebar-link {
+    background-color: #1d4ed8;
+    color: #fff;
+}
+
+body.theme-dark .footer {
+    color: #94a3b8;
 }
