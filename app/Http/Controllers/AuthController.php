@@ -234,17 +234,18 @@ class AuthController extends Controller
     }
 
     $order = Order::with('items.variant.product')
-        ->findOrFail($id);
+    ->findOrFail($id);
 
-    if (
-        $order->phone != $customer['tel']
-        &&
-        $order->email != $customer['email']
-    ) {
+$customerPhone = $customer['tel'] ?? null;
+$customerEmail = $customer['email'] ?? null;
 
-        abort(403);
-
-    }
+if (
+    $order->phone != $customerPhone
+    &&
+    $order->email != $customerEmail
+) {
+    abort(403);
+}
 
     return view(
         'account.order-detail',
