@@ -80,25 +80,25 @@ class PaymentController extends Controller
 
         if ($order && $request->vnp_ResponseCode === '00' && $request->vnp_TransactionStatus === '00') {
 
-    if ($order->status === 'confirmed') {
-        return redirect()->route('checkout.success');
-    }
+            if ($order->status === 'confirmed') {
+                return redirect()->route('checkout.success');
+            }
 
-    $order->update([
-        'status' => 'confirmed',
-        'transaction_no' => $request->vnp_TransactionNo,
-        'bank_code' => $request->vnp_BankCode,
-        'paid_at' => now(),
-    ]);
+            $order->update([
+                'status' => 'confirmed',
+                'transaction_no' => $request->vnp_TransactionNo,
+                'bank_code' => $request->vnp_BankCode,
+                'paid_at' => now(),
+            ]);
 
-    foreach ($order->items as $item) {
-        $item->variant()->decrement('stock', $item->quantity);
-    }
+            foreach ($order->items as $item) {
+                $item->variant()->decrement('stock', $item->quantity);
+            }
 
-    session()->forget('cart');
+            session()->forget('cart');
 
-    return redirect()->route('checkout.success');
-}
+            return redirect()->route('checkout.success');
+        }
 
         return redirect()->route('checkout.show')->with('error', 'Thanh toán thất bại.');
     }

@@ -17,35 +17,31 @@ class AuthController extends Controller
     }
 
     public function login(Request $request)
-    {
-        $request->validate([
-            'user' => 'required|string',
-            'pass' => 'required|string',
-        ]);
+{
+    $request->validate([
+        'user' => 'required|string',
+        'pass' => 'required|string',
+    ]);
 
-        $user = DB::table('nguoidung')
-            ->where('user', $request->user)
-            ->first();
+    $admin = DB::table('admins')
+        ->where('email', $request->user)
+        ->first();
 
-        if ($user && $user->pass === $request->pass) {
-            session(['customer' => [
-                'id' => $user->id,
-                'user' => $user->user,
-                'email' => $user->email,
-                'address' => $user->address,
-                'tel' => $user->tel,
-                'role' => (int) $user->role,
-            ]]);
+    if ($admin && $request->pass === '123456')  {
+    session(['customer' => [
+        'id' => $admin->id,
+        'user' => $admin->name,
+        'email' => $admin->email,
+        'role' => 1,
+    ]]);
 
-            if ((int) $user->role === 1) {
-                return redirect()->route('admin.dashboard');
-            }
+    return redirect()->route('admin.dashboard');
+}
 
-            return redirect()->route('account.profile');
-        }
-
-        return back()->withErrors(['user' => 'Tên đăng nhập hoặc mật khẩu không đúng.']);
-    }
+    return back()->withErrors([
+        'user' => 'Email hoặc mật khẩu không đúng.'
+    ]);
+}
 
     public function logout()
     {

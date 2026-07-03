@@ -31,20 +31,72 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($orders as $order)
-                                <tr>
-                                    <td>#{{ $order->id }}</td>
-                                    <td>{{ $order->tenkhachhang }}</td>
-                                    <td>{{ $order->sdt }}</td>
-                                    <td>{{ number_format($order->tongtien) }} ₫</td>
-                                    <td>
-                                        <span class="badge bg-light-primary text-primary">{{ $order->trangthai }}</span>
-                                    </td>
-                                    <td>
-                                        <a href="{{ route('admin.orders.show', $order->id) }}" class="btn btn-sm btn-outline-secondary">Chi tiết</a>
-                                    </td>
-                                </tr>
-                                @endforeach
+                            @forelse($orders as $order)
+                            <tr>
+
+                                <td>#{{ $order->id }}</td>
+
+                                <td>{{ $order->customer_name }}</td>
+
+                                <td>{{ $order->phone }}</td>
+
+                                <td>
+                                    {{ number_format($order->total_price) }} ₫
+                                </td>
+
+                                <td>
+
+                                    @switch($order->status)
+
+                                        @case('pending')
+                                            <span class="badge bg-warning">Nhận đơn</span>
+                                            @break
+
+                                        @case('confirmed')
+                                            <span class="badge bg-info">Đã xác nhận</span>
+                                            @break
+
+                                        @case('shipping')
+                                            <span class="badge bg-primary">Đang giao</span>
+                                            @break
+
+                                        @case('completed')
+                                            <span class="badge bg-success">Hoàn thành</span>
+                                            @break
+
+                                        @case('cancelled')
+                                            <span class="badge bg-danger">Đã hủy</span>
+                                            @break
+
+                                    @endswitch
+
+                                </td>
+
+                                <td>
+
+                                    <a href="{{ route('admin.orders.show',$order->id) }}"
+                                        class="btn btn-primary btn-sm">
+
+                                        Chi tiết
+
+                                    </a>
+
+                                </td>
+
+                            </tr>
+                            @empty
+
+                            <tr>
+
+                                <td colspan="6" class="text-center">
+
+                                    Chưa có đơn hàng
+
+                                </td>
+
+                            </tr>
+
+                            @endforelse
                             </tbody>
                         </table>
                     </div>
