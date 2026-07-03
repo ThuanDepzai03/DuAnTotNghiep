@@ -18,29 +18,99 @@ class AuthController extends Controller
 
     public function login(Request $request)
 {
-    $request->validate([
+    $data = $request->validate([
         'user' => 'required|string',
         'pass' => 'required|string',
+    ], [
+        'user.required' => 'Vui lòng nhập tài khoản hoặc email.',
+        'pass.required' => 'Vui lòng nhập mật khẩu.',
     ]);
 
+    $loginValue = trim($data['user']);
+    $password = $data['pass'];
+
+    /*
+    |--------------------------------------------------------------------------
+    | 1. Đăng nhập Admin
+    |--------------------------------------------------------------------------
+    | Giữ nguyên cách admin hiện tại của dự án:
+    | Email admin + mật khẩu 123456
+    */
     $admin = DB::table('admins')
-        ->where('email', $request->user)
+        ->where('email', $loginValue)
         ->first();
 
-    if ($admin && $request->pass === '123456')  {
-    session(['customer' => [
-        'id' => $admin->id,
-        'user' => $admin->name,
-        'email' => $admin->email,
-        'role' => 1,
-    ]]);
+    if ($admin && $password === '123456') {
+        $request->session()->regenerate();
 
-    return redirect()->route('admin.dashboard');
+        session([
+            'customer' => [
+                'id' => $admin->id,
+                'user' => $admin->name,
+                'email' => $admin->email,
+                'role' => 1,
+            ],
+        ]);
+
+        return redirect()->route('admin.dashboard');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | 2. Đăng nhập Khách hàng
+    |--------------------------------------------------------------------------
+    | Có thể dùng tên đăng nhập hoặc email.
+    */
+    $customerQuery = DB::table('nguoidung')
+        ->where('user', $loginValue);
+
+    if (Schema::hasColumn('nguoidung', 'email')) {
+        $customerQuery->orWhere('email', $loginValue);
+    }
+
+    $customer = $customerQuery->first();
+
+    if (!$customer || !Hash::check($password, $customer->pass)) {
+    return back()
+        ->withErrors([
+            'user' => 'Tài khoản, email hoặc mật khẩu không đúng.',
+        ])
+        ->withInput();
 }
 
-    return back()->withErrors([
-        'user' => 'Email hoặc mật khẩu không đúng.'
+    // Nếu tài khoản bị khóa thì không được đăng nhập.
+    if (
+        Schema::hasColumn('nguoidung', 'status') &&
+        isset($customer->status) &&
+        (int) $customer->status !== 1
+    ) {
+        return back()
+            ->withErrors([
+                'user' => 'Tài khoản của bạn hiện đang bị khóa.',
+            ])
+            ->withInput();
+    }
+
+    $request->session()->regenerate();
+
+    session([
+        'customer' => [
+            'id' => $customer->id,
+            'user' => $customer->user,
+            'email' => $customer->email ?? null,
+            'address' => $customer->address ?? null,
+            'tel' => $customer->tel ?? null,
+            'role' => (int) ($customer->role ?? 0),
+        ],
     ]);
+
+    // Nếu tài khoản trong nguoidung có role = 1 thì cho vào admin.
+    if ((int) ($customer->role ?? 0) === 1) {
+        return redirect()->route('admin.dashboard');
+    }
+
+    // Khách hàng đăng nhập xong quay về trang chủ.
+    return redirect()->intended(route('home'));
 }
 
     public function logout()
