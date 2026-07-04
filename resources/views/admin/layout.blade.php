@@ -35,7 +35,12 @@
             <div class="sidebar-menu">
                 <ul class="menu">
                     <li class="sidebar-title">Menu</li>
-
+                    <li class="sidebar-item">
+                        <a href="{{ route('home') }}" class="sidebar-link">
+                            <i class="bi bi-shop"></i>
+                            <span>Cửa hàng</span>
+                        </a>
+                    </li>
                     <li class="sidebar-item {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                         <a href="{{ route('admin.dashboard') }}" class="sidebar-link">
                             <i class="bi bi-grid-fill"></i>

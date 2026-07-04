@@ -271,7 +271,38 @@
                             {{ $firstVariant ? 'Đang chỉnh sửa biến thể đầu tiên' : 'Chưa có biến thể' }}
                         </span>
                     </div>
+                    <div class="row mb-3">
+    <div class="col-12">
+        <label class="form-label fw-bold">
+            Thuộc tính biến thể
+        </label>
 
+        <div class="row">
+            @foreach($attributes as $attribute)
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">
+                        {{ $attribute->name }}
+                    </label>
+
+                    <select name="attribute_value_ids[]" class="form-select">
+                        <option value="">
+                            -- Chọn {{ $attribute->name }} --
+                        </option>
+
+                        @foreach($attribute->values as $value)
+                            <option
+                                value="{{ $value->id }}"
+                                {{ in_array($value->id, old('attribute_value_ids', $selectedAttributeValueIds)) ? 'selected' : '' }}
+                            >
+                                {{ $value->value }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            @endforeach
+        </div>
+    </div>
+</div>
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-4">

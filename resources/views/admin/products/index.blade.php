@@ -177,6 +177,13 @@
 
                                         <td>
                                             <div class="d-flex gap-2 flex-wrap">
+                                                 <a
+                                                    href="{{ route('admin.products.variants.index', $product->id) }}"
+                                                    class="btn btn-sm btn-outline-dark"
+                                                >
+                                                    <i class="bi bi-layers"></i>
+                                                    Biến thể ({{ $product->variants->count() }})
+                                                </a>
                                                 <a
                                                     href="{{ route('admin.products.edit', $product->id) }}"
                                                     class="btn btn-sm btn-outline-primary"
