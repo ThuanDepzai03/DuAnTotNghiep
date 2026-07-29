@@ -2,7 +2,7 @@
 /* function kết nối database */
 function pdo_get_connection()
 {
-    $dburl = "mysql:host=localhost;dbname=duantotnghiep;charset=utf8";
+    $dburl = "mysql:host=localhost;dbname=duandienthoai;charset=utf8";
     $username = 'root';
     $password = '';
 
