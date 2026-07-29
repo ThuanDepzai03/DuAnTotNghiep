@@ -36,6 +36,7 @@
     $completedCount = $orders->where('status', 'completed')->count();
 @endphp
 
+
 <div class="page-heading">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div>
@@ -110,7 +111,23 @@
             </div>
         </div>
     </section>
-
+<form method="GET" action="{{ route('admin.orders.index') }}" class="mb-3 row g-2">
+    <div class="col-md-3">
+        <select name="status" class="form-select" onchange="this.form.submit()">
+            <option value="">-- Tất cả trạng thái --</option>
+            <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Chờ xác nhận (Mới)</option>
+            <option value="confirmed" {{ request('status') == 'confirmed' ? 'selected' : '' }}>Đã xác nhận</option>
+            <option value="shipping" {{ request('status') == 'shipping' ? 'selected' : '' }}>Đang giao hàng</option>
+            <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Đã hoàn thành</option>
+            <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Đã hủy</option>
+        </select>
+    </div>
+    @if(request('status'))
+        <div class="col-md-2">
+            <a href="{{ route('admin.orders.index') }}" class="btn btn-secondary">Bỏ lọc</a>
+        </div>
+    @endif
+</form>
     <section class="row">
         <div class="col-12">
             <div class="card">
