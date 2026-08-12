@@ -24,7 +24,7 @@
                     <div class="logo">
                         <a href="{{ route('admin.dashboard') }}" class="d-flex align-items-center text-decoration-none">
                             <img src="{{ asset('img/logo.png') }}" alt="AE Phoenic" style="height: 42px; width: auto;">
-                            <span class="ms-2 fw-bold text-white">AE PHOENIC</span>
+                            <span class="ms-2 fw-bold">AE PHOENIC</span>
                         </a>
                     </div>
                     <div class="toggler">
@@ -89,10 +89,20 @@
     </div>
 
     <div id="main">
-        <header class="mb-3">
+        <header class="mb-3 d-flex justify-content-between align-items-center px-3">
             <a href="#" class="burger-btn d-block d-xl-none">
                 <i class="bi bi-justify fs-3"></i>
             </a>
+
+            <button type="button" class="theme-switch-btn" id="theme-toggle-btn" aria-label="Chuyển sang chế độ sáng">
+                <span class="theme-switch-track">
+                    <span class="theme-switch-thumb">
+                        <i class="bi bi-sun-fill icon-light" aria-hidden="true"></i>
+                        <i class="bi bi-moon-stars-fill icon-dark" aria-hidden="true"></i>
+                    </span>
+                </span>
+                <span class="theme-switch-text" id="theme-label">Dark</span>
+            </button>
         </header>
 
 
