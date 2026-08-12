@@ -77,7 +77,7 @@
                     </li>
 <li class="sidebar-item {{ request()->routeIs('admin.vouchers.*') ? 'active' : '' }}">
     <a href="{{ route('admin.vouchers.index') }}" class="sidebar-link">
-        <i class="bi bi-ticket-perforated-fill"></i>
+        <i class="bi bi-tag-fill"></i>
         <span>Voucher</span>
     </a>
 </li>
