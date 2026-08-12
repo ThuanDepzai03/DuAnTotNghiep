@@ -29,7 +29,7 @@
 
             @if (count($cart) > 0)
                 <div class="col-md-8">
-                    <form action="{{ route('cart.update') }}" method="POST">
+                    <form action="{{ route('cart.update') }}" method="POST" id="cart-update-form">
                         @csrf
 
                         <div class="table-responsive">
@@ -79,7 +79,7 @@
                                             </td>
 
                                             <td>
-                                                <strong style="color: #D10024;">
+                                                <strong style="color: #D10024;" class="item-price" data-price="{{ $item['price'] }}">
                                                     {{ number_format($item['price'], 0, ',', '.') }} ₫
                                                 </strong>
 
@@ -91,19 +91,26 @@
                                                 @endif
                                             </td>
 
-                                            <td style="width: 120px;">
-                                                <input
-                                                    type="number"
-                                                    min="0"
-                                                    max="{{ $item['stock'] }}"
-                                                    name="quantities[{{ $item['variant_id'] }}]"
-                                                    value="{{ $item['quantity'] }}"
-                                                    class="form-control"
-                                                >
+                                            <td style="width: 160px;">
+                                                <div class="input-number" style="width: 120px;">
+                                                    <input
+                                                        type="number"
+                                                        min="1"
+                                                        max="{{ $item['stock'] }}"
+                                                        name="quantities[{{ $item['variant_id'] }}]"
+                                                        value="{{ $item['quantity'] }}"
+                                                        class="form-control qty-input"
+                                                        data-stock="{{ $item['stock'] }}"
+                                                        data-variant-id="{{ $item['variant_id'] }}"
+                                                        data-price="{{ $item['price'] }}"
+                                                    >
+                                                    <span class="qty-up" data-variant-id="{{ $item['variant_id'] }}" data-stock="{{ $item['stock'] }}">+</span>
+                                                    <span class="qty-down" data-variant-id="{{ $item['variant_id'] }}" data-stock="{{ $item['stock'] }}">-</span>
+                                                </div>
                                             </td>
 
                                             <td>
-                                                <strong>
+                                                <strong class="item-subtotal" data-variant-id="{{ $item['variant_id'] }}">
                                                     {{ number_format($item['price'] * $item['quantity'], 0, ',', '.') }} ₫
                                                 </strong>
                                             </td>
@@ -182,4 +189,42 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const qtyInputs = document.querySelectorAll('.qty-input');
+    
+    function updateCartTotals() {
+        let totalAmount = 0;
+        let totalQuantity = 0;
+        
+        qtyInputs.forEach(input => {
+            const quantity = parseInt(input.value) || 0;
+            const price = parseFloat(input.getAttribute('data-price')) || 0;
+            const variantId = input.getAttribute('data-variant-id');
+            
+            const subtotal = price * quantity;
+            const subtotalElement = document.querySelector(`.item-subtotal[data-variant-id="${variantId}"]`);
+            
+            if (subtotalElement) {
+                subtotalElement.textContent = new Intl.NumberFormat('vi-VN').format(Math.floor(subtotal)) + ' ₫';
+            }
+            
+            totalAmount += subtotal;
+            totalQuantity += quantity;
+        });
+        
+        const totalPriceDisplay = document.querySelector('.aside strong[style*="color"]') || 
+                                  document.querySelector('.aside strong');
+        if (totalPriceDisplay) {
+            totalPriceDisplay.textContent = new Intl.NumberFormat('vi-VN').format(Math.floor(totalAmount)) + ' ₫';
+        }
+    }
+    
+    qtyInputs.forEach(input => {
+        input.addEventListener('change', updateCartTotals);
+        input.addEventListener('input', updateCartTotals);
+    });
+});
+</script>
 @endsection

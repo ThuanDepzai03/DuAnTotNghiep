@@ -36,9 +36,27 @@
                             <label class="form-label">Số điện thoại</label>
                             <input type="text" name="tel" class="form-control">
                         </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Tỉnh/Thành phố</label>
+                            <select name="city" id="register-city" class="form-select" required>
+                                <option value="">-- Chọn tỉnh/thành --</option>
+                                @foreach ($cityOptions ?? [] as $city)
+                                    <option value="{{ $city }}">{{ $city }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Phường/Xã</label>
+                            <select name="ward" id="register-ward" class="form-select" required>
+                                <option value="">-- Chọn phường/xã --</option>
+                            </select>
+                        </div>
+
                         <div class="col-12">
-                            <label class="form-label">Địa chỉ</label>
-                            <input type="text" name="address" class="form-control">
+                            <label class="form-label">Địa chỉ chi tiết</label>
+                            <input type="text" name="address_detail" class="form-control" placeholder="Số nhà, tên đường..." required>
                         </div>
                     </div>
                     @if($errors->any())
@@ -46,6 +64,27 @@
                     @endif
                     <button class="btn btn-primary w-100 mt-4">Đăng ký</button>
                 </form>
+
+                <script>
+                    const registerCityMap = @json($wardOptions ?? []);
+                    const registerCity = document.getElementById('register-city');
+                    const registerWard = document.getElementById('register-ward');
+
+                    if (registerCity && registerWard) {
+                        registerCity.addEventListener('change', function () {
+                            const city = this.value;
+                            const wards = registerCityMap[city] || [];
+
+                            registerWard.innerHTML = '<option value="">-- Chọn phường/xã --</option>';
+                            wards.forEach(function (ward) {
+                                const option = document.createElement('option');
+                                option.value = ward;
+                                option.textContent = ward;
+                                registerWard.appendChild(option);
+                            });
+                        });
+                    }
+                </script>
                 <div class="mt-3 text-center">
                     <a href="{{ route('login') }}">Đã có tài khoản? Đăng nhập</a>
                 </div>

@@ -26,8 +26,18 @@
             </div>
 
             <div class="mb-3">
-                <label class="form-label">Địa chỉ</label>
-                <input type="text" name="address" class="form-control" value="{{ $user->address }}">
+                <label class="form-label">Tỉnh/Thành phố</label>
+                <input type="text" name="city" class="form-control" value="{{ $user->city ?? '' }}">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Phường/Xã</label>
+                <input type="text" name="ward" class="form-control" value="{{ $user->ward ?? '' }}">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Địa chỉ chi tiết</label>
+                <input type="text" name="address_detail" class="form-control" value="{{ $user->address_detail ?? '' }}">
             </div>
 
             @if(session('success'))

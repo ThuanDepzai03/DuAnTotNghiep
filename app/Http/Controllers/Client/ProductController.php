@@ -11,6 +11,18 @@ use App\Models\Attribute;
 
 class ProductController extends Controller
 {
+    protected function trackRecentlyViewedProduct(int $productId): void
+    {
+        $recent = session()->get('recently_viewed', []);
+
+        $recent = array_values(array_filter($recent, fn ($id) => (int) $id !== $productId));
+        array_unshift($recent, $productId);
+
+        $recent = array_slice(array_unique($recent), 0, 8);
+
+        session()->put('recently_viewed', $recent);
+    }
+
     public function index(Request $request)
 {
     $categories = Category::where('status', 1)
@@ -173,6 +185,18 @@ class ProductController extends Controller
         ->where('status', 1)
         ->findOrFail($id);
 
+    $this->trackRecentlyViewedProduct((int) $product->id);
+
+    $recentProductIds = array_values(array_unique(session()->get('recently_viewed', [])));
+    $recentProducts = Product::with('variants')
+        ->whereIn('id', $recentProductIds)
+        ->where('status', 1)
+        ->get()
+        ->sortBy(function ($item) use ($recentProductIds) {
+            return array_search($item->id, $recentProductIds, true);
+        })
+        ->values();
+
     $variants = $product->variants
         ->where('status', 1)
         ->values();
@@ -235,7 +259,8 @@ class ProductController extends Controller
         'variants',
         'attributeGroups',
         'variantData',
-        'relatedProducts'
+        'relatedProducts',
+        'recentProducts'
     ));
 }
 }
