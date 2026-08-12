@@ -60,7 +60,7 @@ class ProductVariantController extends Controller
             }
 
             $variant = $product->variants()->create([
-                'sku' => $data['sku'],
+                'sku' => $this->generateVariantSku($product, $attributeValueIds),
                 'price' => $data['price'],
                 'sale_price' => $data['sale_price'] ?? null,
                 'stock' => $data['stock'],
@@ -101,7 +101,7 @@ class ProductVariantController extends Controller
             }
 
             $variant->update([
-                'sku' => $data['sku'],
+                // SKU is not editable
                 'price' => $data['price'],
                 'sale_price' => $data['sale_price'] ?? null,
                 'stock' => $data['stock'],
@@ -135,14 +135,8 @@ class ProductVariantController extends Controller
         Request $request,
         ?ProductVariant $variant = null
     ): array {
-        $skuRule = Rule::unique('product_variants', 'sku');
-
-        if ($variant) {
-            $skuRule->ignore($variant->id);
-        }
-
         return $request->validate([
-            'sku' => ['required', 'string', 'max:191', $skuRule],
+            // SKU is generated automatically; do not accept from user
             'price' => ['required', 'numeric', 'min:0'],
             'sale_price' => ['nullable', 'numeric', 'min:0', 'lte:price'],
             'stock' => ['required', 'integer', 'min:0'],
@@ -156,8 +150,6 @@ class ProductVariantController extends Controller
                 'exists:attribute_values,id',
             ],
         ], [
-            'sku.required' => 'Vui lòng nhập mã biến thể.',
-            'sku.unique' => 'Mã biến thể đã tồn tại.',
             'price.required' => 'Vui lòng nhập giá gốc.',
             'sale_price.lte' => 'Giá khuyến mãi không được lớn hơn giá gốc.',
             'stock.required' => 'Vui lòng nhập tồn kho.',
@@ -172,6 +164,18 @@ class ProductVariantController extends Controller
             ->unique()
             ->values()
             ->all();
+    }
+
+    private function generateVariantSku(Product $product, array $attributeValueIds = []): string
+    {
+        $base = $product->sku ?? ('PR' . $product->id);
+
+        do {
+            $suffix = strtoupper(Str::random(4));
+            $sku = $base . '-' . $suffix;
+        } while (ProductVariant::where('sku', $sku)->exists());
+
+        return $sku;
     }
 
     private function uploadImage($file): string

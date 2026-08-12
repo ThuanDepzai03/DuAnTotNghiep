@@ -88,15 +88,12 @@
 
                                     <input
                                         type="text"
-                                        name="sku"
-                                        value="{{ old('sku', $product->sku) }}"
+                                        readonly
                                         class="form-control @error('sku') is-invalid @enderror"
-                                        placeholder="Ví dụ: IP16PM"
+                                        value="{{ old('sku', $product->sku) }}"
                                     >
 
-                                    @error('sku')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
+                                    <div class="form-text">Mã sản phẩm được tạo tự động và không thể chỉnh sửa.</div>
                                 </div>
                             </div>
                         </div>
@@ -307,21 +304,16 @@
                         <div class="row">
                             <div class="col-md-4">
                                 <div class="mb-3">
-                                    <label class="form-label">
-                                        Mã biến thể <span class="text-danger">*</span>
-                                    </label>
+                                    <label class="form-label">Mã biến thể</label>
 
                                     <input
                                         type="text"
-                                        name="variant_sku"
-                                        value="{{ old('variant_sku', $firstVariant?->sku) }}"
+                                        readonly
                                         class="form-control @error('variant_sku') is-invalid @enderror"
-                                        placeholder="Ví dụ: IP16PM-256-BLACK"
+                                        value="{{ old('variant_sku', $firstVariant?->sku) }}"
                                     >
 
-                                    @error('variant_sku')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
+                                    <div class="form-text">Mã biến thể được tạo tự động và không thể chỉnh sửa.</div>
                                 </div>
                             </div>
 
