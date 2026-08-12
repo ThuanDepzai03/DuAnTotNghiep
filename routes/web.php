@@ -9,6 +9,8 @@ use App\Http\Controllers\Client\CartController as ClientCartController;
 use App\Http\Controllers\Client\CheckoutController as ClientCheckoutController;
 use App\Http\Controllers\Client\PaymentController;
 use App\Http\Controllers\ProductVariantController;
+use App\Http\Controllers\VoucherController;
+use App\Http\Controllers\Admin\BrandController;
 // Admin Controllers cũ của nhóm
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CategoryController;
@@ -16,7 +18,6 @@ use App\Http\Controllers\ProductController as AdminProductController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthController;
-
 // ================= CLIENT =================
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -123,7 +124,8 @@ Route::middleware(['web', 'admin'])
         Route::put('/orders/{id}/status', [OrderController::class, 'updateStatus'])->name('orders.updateStatus');
 
         Route::resource('users', UserController::class);
-
+        Route::resource('brands', BrandController::class);
+        Route::resource('vouchers', VoucherController::class);
         Route::get('/statistics/revenue', [OrderController::class, 'revenue'])
-    ->name('statistics.revenue');
+            ->name('statistics.revenue');
     });
