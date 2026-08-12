@@ -72,17 +72,27 @@
                         @endif
 
                         <div class="mb-3">
-                            <label class="form-label">
-                                Mã biến thể <span class="text-danger">*</span>
-                            </label>
+                            <label class="form-label">Mã biến thể</label>
 
-                            <input
-                                type="text"
-                                name="sku"
-                                value="{{ old('sku', $editingVariant?->sku) }}"
-                                class="form-control @error('sku') is-invalid @enderror"
-                                placeholder="Ví dụ: AP3-WHITE"
-                            >
+                            @if($isEditing)
+                                <input
+                                    type="text"
+                                    readonly
+                                    class="form-control @error('sku') is-invalid @enderror"
+                                    value="{{ old('sku', $editingVariant?->sku) }}"
+                                >
+
+                                <div class="form-text">Mã biến thể không thể chỉnh sửa.</div>
+                            @else
+                                <input
+                                    type="text"
+                                    readonly
+                                    class="form-control-plaintext"
+                                    value="Mã sẽ được sinh tự động khi thêm"
+                                >
+
+                                <div class="form-text">Mã biến thể được tạo tự động.</div>
+                            @endif
 
                             @error('sku')
                                 <div class="invalid-feedback">{{ $message }}</div>
