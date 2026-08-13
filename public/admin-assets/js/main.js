@@ -38,6 +38,34 @@ document.querySelector('.sidebar-hide').addEventListener('click', () => {
 
 })
 
+const themeToggleBtn = document.getElementById('theme-toggle-btn');
+const themeLabel = document.getElementById('theme-label');
+
+function applyTheme(theme) {
+    const isDark = theme === 'dark';
+    document.body.classList.toggle('theme-dark', isDark);
+    document.body.classList.toggle('theme-light', !isDark);
+
+    if (themeLabel) {
+        themeLabel.textContent = isDark ? 'Chế độ tối' : 'Chế độ sáng';
+    }
+
+    if (themeToggleBtn) {
+        themeToggleBtn.setAttribute('aria-label', isDark ? 'Chuyển sang chế độ sáng' : 'Chuyển sang chế độ tối');
+    }
+
+    localStorage.setItem('admin-theme', theme);
+}
+
+if (themeToggleBtn) {
+    const savedTheme = localStorage.getItem('admin-theme') || 'dark';
+    applyTheme(savedTheme);
+
+    themeToggleBtn.addEventListener('click', () => {
+        const nextTheme = document.body.classList.contains('theme-dark') ? 'light' : 'dark';
+        applyTheme(nextTheme);
+    });
+}
 
 // Perfect Scrollbar Init
 if(typeof PerfectScrollbar == 'function') {
@@ -48,4 +76,7 @@ if(typeof PerfectScrollbar == 'function') {
 }
 
 // Scroll into active sidebar
-document.querySelector('.sidebar-item.active').scrollIntoView(false)
+const activeSidebarItem = document.querySelector('.sidebar-item.active');
+if (activeSidebarItem) {
+    activeSidebarItem.scrollIntoView(false);
+}

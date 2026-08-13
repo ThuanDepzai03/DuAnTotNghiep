@@ -110,18 +110,22 @@
 		down = $this.find('.qty-down');
 
 		down.on('click', function () {
+			var max = parseInt($input.attr('max')) || 999;
 			var value = parseInt($input.val()) - 1;
 			value = value < 1 ? 1 : value;
+			if (value > max) value = max;
 			$input.val(value);
-			$input.change();
-			updatePriceSlider($this , value)
+			$input.trigger('change');
+			$input.trigger('input');
 		})
 
 		up.on('click', function () {
+			var max = parseInt($input.attr('max')) || 999;
 			var value = parseInt($input.val()) + 1;
+			if (value > max) value = max;
 			$input.val(value);
-			$input.change();
-			updatePriceSlider($this , value)
+			$input.trigger('change');
+			$input.trigger('input');
 		})
 	});
 

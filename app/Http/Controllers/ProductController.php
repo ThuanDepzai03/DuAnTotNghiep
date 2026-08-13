@@ -56,12 +56,10 @@ class ProductController extends Controller
             'attribute_value_ids' => ['nullable', 'array'],
             'attribute_value_ids.*' => ['nullable', 'integer', 'exists:attribute_values,id'],
             'name' => ['required', 'string', 'max:255'],
-            'sku' => ['nullable', 'string', 'max:100', 'unique:products,sku'],
             'description' => ['nullable', 'string'],
             'thumbnail' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'status' => ['required', 'in:0,1'],
 
-            'variant_sku' => ['required', 'string', 'max:100', 'unique:product_variants,sku'],
             'price' => ['required', 'numeric', 'min:0'],
             'sale_price' => ['nullable', 'numeric', 'min:0', 'lte:price'],
             'stock' => ['required', 'integer', 'min:0'],
@@ -72,8 +70,7 @@ class ProductController extends Controller
 
             'name.required' => 'Vui lòng nhập tên sản phẩm.',
 
-            'variant_sku.required' => 'Vui lòng nhập mã biến thể.',
-            'variant_sku.unique' => 'Mã biến thể đã tồn tại.',
+            // SKUs are generated automatically and not editable by user
 
             'price.required' => 'Vui lòng nhập giá sản phẩm.',
             'sale_price.lte' => 'Giá khuyến mãi phải nhỏ hơn hoặc bằng giá gốc.',
@@ -109,7 +106,7 @@ class ProductController extends Controller
                 'brand_id' => $data['brand_id'] ?? null,
                 'name' => trim($data['name']),
                 'slug' => $this->makeUniqueSlug($data['name']),
-                'sku' => $data['sku'] ?? null,
+                'sku' => $this->generateProductSku($data['name']),
                 'description' => $data['description'] ?? null,
                 'thumbnail' => $thumbnailPath,
                 'status' => (int) $data['status'],
@@ -117,7 +114,7 @@ class ProductController extends Controller
 
             $variant = ProductVariant::create([
                 'product_id' => $product->id,
-                'sku' => $data['variant_sku'],
+                'sku' => $this->generateVariantSku($product, $attributeValueIds),
                 'price' => $data['price'],
                 'sale_price' => $data['sale_price'] ?? null,
                 'stock' => $data['stock'],
@@ -183,22 +180,10 @@ class ProductController extends Controller
             'attribute_value_ids.*' => ['nullable', 'integer', 'exists:attribute_values,id'],
 
             'name' => ['required', 'string', 'max:255'],
-            'sku' => [
-                'nullable',
-                'string',
-                'max:100',
-                Rule::unique('products', 'sku')->ignore($product->id),
-            ],
             'description' => ['nullable', 'string'],
             'thumbnail' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'status' => ['required', 'in:0,1'],
 
-            'variant_sku' => [
-                'required',
-                'string',
-                'max:100',
-                Rule::unique('product_variants', 'sku')->ignore($firstVariant?->id),
-            ],
             'price' => ['required', 'numeric', 'min:0'],
             'sale_price' => ['nullable', 'numeric', 'min:0', 'lte:price'],
             'stock' => ['required', 'integer', 'min:0'],
@@ -240,7 +225,6 @@ class ProductController extends Controller
                 'brand_id' => $data['brand_id'] ?? null,
                 'name' => trim($data['name']),
                 'slug' => $this->makeUniqueSlug($data['name'], $product->id),
-                'sku' => $data['sku'] ?? null,
                 'description' => $data['description'] ?? null,
                 'thumbnail' => $thumbnailPath,
                 'status' => (int) $data['status'],
@@ -248,17 +232,18 @@ class ProductController extends Controller
 
             if ($firstVariant) {
                 $firstVariant->update([
-                    'sku' => $data['variant_sku'],
                     'price' => $data['price'],
                     'sale_price' => $data['sale_price'] ?? null,
                     'stock' => $data['stock'],
                     'image' => $variantImagePath ?? $thumbnailPath,
                     'status' => (int) $data['status'],
                 ]);
+
+                $variant = $firstVariant;
             } else {
-                ProductVariant::create([
+                $variant = ProductVariant::create([
                     'product_id' => $product->id,
-                    'sku' => $data['variant_sku'],
+                    'sku' => $this->generateVariantSku($product, $attributeValueIds),
                     'price' => $data['price'],
                     'sale_price' => $data['sale_price'] ?? null,
                     'stock' => $data['stock'],
@@ -266,30 +251,8 @@ class ProductController extends Controller
                     'status' => (int) $data['status'],
                 ]);
             }
-            if ($firstVariant) {
-    $firstVariant->update([
-        'sku' => $data['variant_sku'],
-        'price' => $data['price'],
-        'sale_price' => $data['sale_price'] ?? null,
-        'stock' => $data['stock'],
-        'image' => $variantImagePath ?? $thumbnailPath,
-        'status' => (int) $data['status'],
-    ]);
 
-    $variant = $firstVariant;
-} else {
-    $variant = ProductVariant::create([
-        'product_id' => $product->id,
-        'sku' => $data['variant_sku'],
-        'price' => $data['price'],
-        'sale_price' => $data['sale_price'] ?? null,
-        'stock' => $data['stock'],
-        'image' => $variantImagePath ?? $thumbnailPath,
-        'status' => (int) $data['status'],
-    ]);
-}
-
-$variant->attributeValues()->sync($attributeValueIds);
+            $variant->attributeValues()->sync($attributeValueIds);
         });
 
         return redirect()
@@ -354,5 +317,29 @@ $variant->attributeValues()->sync($attributeValueIds);
         );
 
         return 'image/' . $folder . '/' . $fileName;
+    }
+
+    private function generateProductSku(string $name): string
+    {
+        $base = strtoupper(Str::slug($name, '')) ?: 'PR';
+
+        do {
+            $suffix = strtoupper(Str::random(4));
+            $sku = $base . '-' . $suffix;
+        } while (Product::where('sku', $sku)->exists());
+
+        return $sku;
+    }
+
+    private function generateVariantSku(Product $product, array $attributeValueIds = []): string
+    {
+        $base = $product->sku ?? ('PR' . $product->id);
+
+        do {
+            $suffix = strtoupper(Str::random(4));
+            $sku = $base . '-' . $suffix;
+        } while (ProductVariant::where('sku', $sku)->exists());
+
+        return $sku;
     }
 }

@@ -166,6 +166,42 @@
                     {!! nl2br(e($product->description ?? 'Thông tin sản phẩm đang được cập nhật.')) !!}
                 </div>
             </div>
+
+            @if(!empty($recentProducts) && $recentProducts->count())
+                <div class="col-md-12" style="margin-top: 35px;">
+                    <div class="section-title">
+                        <h3 class="title">Sản phẩm đã xem</h3>
+                    </div>
+
+                    <div class="row">
+                        @foreach($recentProducts as $recentProduct)
+                            @php
+                                $recentActiveVariants = $recentProduct->variants->where('status', 1)->sortBy(fn($variant) => $variant->sale_price ?? $variant->price)->values();
+                                $recentVariant = $recentActiveVariants->first();
+                                $recentPrice = $recentVariant ? ($recentVariant->sale_price ?? $recentVariant->price) : 0;
+                                $recentImg = $recentProduct->thumbnail ?? 'img/product01.png';
+                                $recentImg = ltrim(str_replace('\\', '/', $recentImg), '/');
+                                $recentImgSrc = preg_match('#^https?://#', $recentImg) ? $recentImg : asset($recentImg);
+                            @endphp
+
+                            <div class="col-md-3 col-sm-6">
+                                <div class="product">
+                                    <div class="product-img">
+                                        <a href="{{ route('product.detail', ['id' => $recentProduct->id]) }}">
+                                            <img src="{{ $recentImgSrc }}" alt="{{ $recentProduct->name }}" style="width:100%; height:220px; object-fit:cover;">
+                                        </a>
+                                    </div>
+                                    <div class="product-body">
+                                        <p class="product-category">{{ $recentProduct->category?->name ?? 'Sản phẩm' }}</p>
+                                        <h3 class="product-name"><a href="{{ route('product.detail', ['id' => $recentProduct->id]) }}">{{ $recentProduct->name }}</a></h3>
+                                        <h4 class="product-price">{{ number_format($recentPrice, 0, ',', '.') }} ₫</h4>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 </div>
