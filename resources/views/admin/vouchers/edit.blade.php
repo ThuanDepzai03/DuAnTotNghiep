@@ -115,23 +115,23 @@
                 </div>
 
 
-                <div class="mb-3">
-                    <label class="form-label">Trạng thái</label>
+               <div class="mb-3">
+    <label class="form-label">Trạng thái</label>
 
-                    <select name="status" class="form-select">
+    <select name="status" class="form-select">
 
-                        <option value="active"
-                            {{ $voucher->status == 'active' ? 'selected' : '' }}>
-                            Hoạt động
-                        </option>
+        <option value="1"
+            {{ old('status', $voucher->status) == 1 ? 'selected' : '' }}>
+            Hoạt động
+        </option>
 
-                        <option value="inactive"
-                            {{ $voucher->status == 'inactive' ? 'selected' : '' }}>
-                            Không hoạt động
-                        </option>
+        <option value="0"
+            {{ old('status', $voucher->status) == 0 ? 'selected' : '' }}>
+            Tạm khóa
+        </option>
 
-                    </select>
-                </div>
+    </select>
+</div>
 
 
                 <div class="d-flex gap-2">

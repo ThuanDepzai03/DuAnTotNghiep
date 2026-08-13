@@ -33,11 +33,9 @@ class VoucherController extends Controller
         $request->validate([
             'code' => 'required|unique:vouchers,code',
             'name' => 'required',
-            'discount_type' => 'required',
-            'discount_value' => 'required|numeric',
-            'max_discount' => 'nullable|numeric',
-            'min_order' => 'required|numeric',
-            'quantity' => 'required|integer',
+            'discount_value' => 'required|numeric|min:1|max:100',
+            'max_discount' => 'nullable|numeric|min:0',
+            'quantity' => 'required|integer|min:1',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'status' => 'required',
@@ -46,10 +44,9 @@ class VoucherController extends Controller
         Voucher::create([
             'code' => $request->code,
             'name' => $request->name,
-            'discount_type' => $request->discount_type,
+            'discount_type' => 'percent',
             'discount_value' => $request->discount_value,
             'max_discount' => $request->max_discount,
-            'min_order' => $request->min_order,
             'quantity' => $request->quantity,
             'used_quantity' => 0,
             'start_date' => $request->start_date,
@@ -90,17 +87,34 @@ class VoucherController extends Controller
         $voucher = Voucher::findOrFail($id);
 
         $request->validate([
-            'code' => 'required',
+            'code' => 'required|unique:vouchers,code,' . $id,
             'name' => 'required',
-            'discount_type' => 'required',
-            'discount_value' => 'required'
+            'discount_value' => 'required|numeric|min:1|max:100',
+            'max_discount' => 'nullable|numeric|min:0',
+            'quantity' => 'required|integer|min:1',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'status' => 'required',
         ]);
 
-        $voucher->update($request->all());
+        $voucher->update([
+            'code' => $request->code,
+            'name' => $request->name,
+
+            // Database của bạn dùng "percent"
+            'discount_type' => 'percent',
+
+            'discount_value' => $request->discount_value,
+            'max_discount' => $request->max_discount,
+            'quantity' => $request->quantity,
+            'start_date' => $request->start_date,
+            'end_date' => $request->end_date,
+            'status' => $request->status,
+        ]);
 
         return redirect()
             ->route('admin.vouchers.index')
-            ->with('success', 'Cập nhật thành công');
+            ->with('success', 'Cập nhật Voucher thành công!');
     }
 
     /**

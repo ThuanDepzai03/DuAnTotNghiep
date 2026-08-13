@@ -3,149 +3,210 @@
 @section('content')
 
 <div class="page-heading">
-
     <h3>Quản lý Voucher</h3>
-
 </div>
 
 <div class="page-content">
 
-<div class="card">
+    <div class="card">
+
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">Danh sách Voucher</h4>
 
-<div class="card-header">
+            <a href="{{ route('admin.vouchers.create') }}"
+               class="btn btn-success">
+                <i class="bi bi-plus-circle"></i>
+                Thêm Voucher
+            </a>
+        </div>
 
-<a href="{{ route('admin.vouchers.create') }}"
-class="btn btn-success">
+        <div class="card-body">
 
-+ Thêm Voucher
+            @if(session('success'))
+                <div class="alert alert-success">
+                    {{ session('success') }}
+                </div>
+            @endif
 
-</a>
+            <div class="table-responsive">
 
-</div>
+                <table class="table table-bordered table-hover">
 
-<div class="card-body">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Mã</th>
+                            <th>Tên</th>
+                            <th>Loại</th>
+                            <th>Giảm (%)</th>
+                            <th>Giảm tối đa</th>
+                            <th>Số lượng</th>
+                            <th>Đã dùng</th>
+                            <th>Ngày bắt đầu</th>
+                            <th>Ngày kết thúc</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
 
-@if(session('success'))
+                    <tbody>
 
-<div class="alert alert-success">
+                        @forelse($vouchers as $voucher)
 
-{{ session('success') }}
+                            <tr>
 
-</div>
+                                {{-- ID --}}
+                                <td>
+                                    {{ $voucher->id }}
+                                </td>
 
-@endif
 
-<table class="table table-bordered">
+                                {{-- Mã --}}
+                                <td>
+                                    <strong>
+                                        {{ $voucher->code }}
+                                    </strong>
+                                </td>
 
-<thead>
 
-<tr>
+                                {{-- Tên --}}
+                                <td>
+                                    {{ $voucher->name }}
+                                </td>
 
-<th>ID</th>
 
-<th>Mã</th>
+                                {{-- Loại --}}
+                                <td>
+                                    <span class="badge bg-info">
+                                        Giảm theo %
+                                    </span>
+                                </td>
 
-<th>Tên</th>
 
-<th>Loại</th>
+                                {{-- Phần trăm giảm --}}
+                                <td>
+                                    <strong>
+                                        {{ $voucher->discount_value }}%
+                                    </strong>
+                                </td>
 
-<th>Giảm</th>
 
-<th>Đơn tối thiểu</th>
+                                {{-- Giảm tối đa --}}
+                                <td>
+                                    @if($voucher->max_discount)
+                                        {{ number_format($voucher->max_discount, 0, ',', '.') }}đ
+                                    @else
+                                        Không giới hạn
+                                    @endif
+                                </td>
 
-<th>Số lượng</th>
 
-<th>Trạng thái</th>
+                                {{-- Số lượng --}}
+                                <td>
+                                    {{ $voucher->quantity }}
+                                </td>
 
-<th>Thao tác</th>
 
-</tr>
+                                {{-- Đã sử dụng --}}
+                                <td>
+                                    {{ $voucher->used_quantity }}
+                                </td>
 
-</thead>
 
-<tbody>
+                                {{-- Ngày bắt đầu --}}
+                                <td>
+                                    {{ \Carbon\Carbon::parse($voucher->start_date)->format('d/m/Y') }}
+                                </td>
 
-@foreach($vouchers as $voucher)
 
-<tr>
+                                {{-- Ngày kết thúc --}}
+                                <td>
+                                    {{ \Carbon\Carbon::parse($voucher->end_date)->format('d/m/Y') }}
+                                </td>
 
-<td>{{ $voucher->id }}</td>
 
-<td>{{ $voucher->code }}</td>
+                                {{-- Trạng thái --}}
+                                <td>
 
-<td>{{ $voucher->name }}</td>
+                                    @if($voucher->status == 1)
 
-<td>{{ $voucher->discount_type }}</td>
+                                        <span class="badge bg-success">
+                                            Hoạt động
+                                        </span>
 
-<td>{{ $voucher->discount_value }}</td>
+                                    @else
 
-<td>{{ number_format($voucher->min_order) }}</td>
+                                        <span class="badge bg-danger">
+                                            Tạm khóa
+                                        </span>
 
-<td>{{ $voucher->quantity }}</td>
+                                    @endif
 
-<td>
+                                </td>
 
-@if($voucher->status)
 
-<span class="badge bg-success">
+                                {{-- Thao tác --}}
+                                <td>
 
-Hoạt động
+                                    <div class="d-flex gap-1">
 
-</span>
+                                        <a href="{{ route('admin.vouchers.edit', $voucher->id) }}"
+                                           class="btn btn-warning btn-sm">
 
-@else
+                                            <i class="bi bi-pencil-square"></i>
+                                            Sửa
 
-<span class="badge bg-danger">
+                                        </a>
 
-Ngừng
 
-</span>
+                                        <form
+                                            action="{{ route('admin.vouchers.destroy', $voucher->id) }}"
+                                            method="POST"
+                                            onsubmit="return confirm('Bạn có chắc muốn xóa voucher này?')">
 
-@endif
+                                            @csrf
+                                            @method('DELETE')
 
-</td>
+                                            <button type="submit"
+                                                    class="btn btn-danger btn-sm">
 
-<td>
+                                                <i class="bi bi-trash"></i>
+                                                Xóa
 
-<a
-href="{{ route('admin.vouchers.edit',$voucher->id) }}"
-class="btn btn-warning btn-sm">
+                                            </button>
 
-Sửa
+                                        </form>
 
-</a>
+                                    </div>
 
-<form
-action="{{ route('admin.vouchers.destroy',$voucher->id) }}"
-method="POST"
-style="display:inline;">
+                                </td>
 
-@csrf
+                            </tr>
 
-@method('DELETE')
+                        @empty
 
-<button
-class="btn btn-danger btn-sm">
+                            <tr>
 
-Xóa
+                                <td colspan="12"
+                                    class="text-center">
 
-</button>
+                                    Chưa có Voucher nào.
 
-</form>
+                                </td>
 
-</td>
+                            </tr>
 
-</tr>
+                        @endforelse
 
-@endforeach
+                    </tbody>
 
-</tbody>
+                </table>
 
-</table>
+            </div>
 
-</div>
+        </div>
 
-</div>
+    </div>
 
 </div>
 

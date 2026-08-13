@@ -1,99 +1,917 @@
 @extends('layouts.master')
 
 @section('content')
-@if(session('error'))
-    <div class="alert alert-danger">
-        {{ session('error') }}
-    </div>
-@endif
+
 @php
-$customer = session('customer');
-$cartKey = $customer && !empty($customer['id']) ? 'cart.' . $customer['id'] : 'cart.guest';
-$cart = session($cartKey, []);
-$totalPrice = 0;
 
-foreach ($cart as $item) {
-    $price = isset($item['price']) ? (float) $item['price'] : 0;
-    $quantity = isset($item['quantity']) ? (int) $item['quantity'] : 0;
-    $totalPrice += $price * $quantity;
-}
+    /*
+    |--------------------------------------------------------------------------
+    | CUSTOMER
+    |--------------------------------------------------------------------------
+    */
 
-$customerName = old('customer_name', $defaultCustomer['customer_name'] ?? '');
-$customerAddress = old('address', $defaultCustomer['address'] ?? '');
-$customerPhone = old('phone', $defaultCustomer['phone'] ?? '');
+    $customer = session('customer');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | CART
+    |--------------------------------------------------------------------------
+    */
+
+    $cartKey = ($customer && !empty($customer['id']))
+        ? 'cart.' . $customer['id']
+        : 'cart.guest';
+
+    $cart = session($cartKey, []);
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | TỔNG TIỀN
+    |--------------------------------------------------------------------------
+    */
+
+    $totalPrice = 0;
+
+    foreach ($cart as $item) {
+
+        $price = isset($item['price'])
+            ? (float) $item['price']
+            : 0;
+
+        $quantity = isset($item['quantity'])
+            ? (int) $item['quantity']
+            : 0;
+
+        $totalPrice += $price * $quantity;
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | THÔNG TIN KHÁCH HÀNG
+    |--------------------------------------------------------------------------
+    */
+
+    $customerName = old(
+        'customer_name',
+        $defaultCustomer['customer_name'] ?? ''
+    );
+
+    $customerAddress = old(
+        'address',
+        $defaultCustomer['address'] ?? ''
+    );
+
+    $customerPhone = old(
+        'phone',
+        $defaultCustomer['phone'] ?? ''
+    );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | VOUCHER
+    |--------------------------------------------------------------------------
+    */
+
+    $voucher = session('voucher');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | TÍNH GIẢM
+    |--------------------------------------------------------------------------
+    */
+
+    $discountAmount = 0;
+
+    if ($voucher) {
+
+        $discountValue = (float) $voucher['discount_value'];
+
+        /*
+        | Chỉ giảm %
+        */
+        $discountAmount =
+            $totalPrice * ($discountValue / 100);
+
+
+        /*
+        | Giảm tối đa
+        */
+        if (
+            !empty($voucher['max_discount']) &&
+            $discountAmount > (float) $voucher['max_discount']
+        ) {
+
+            $discountAmount =
+                (float) $voucher['max_discount'];
+        }
+
+
+        /*
+        | Không vượt quá tiền hàng
+        */
+        if ($discountAmount > $totalPrice) {
+
+            $discountAmount = $totalPrice;
+        }
+
+
+        $discountAmount = round($discountAmount);
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | TỔNG CUỐI
+    |--------------------------------------------------------------------------
+    */
+
+    $finalTotal =
+        $totalPrice - $discountAmount;
+
 @endphp
 
+
+{{-- =========================================================
+    THÔNG BÁO
+========================================================= --}}
+
+<div class="container">
+
+    @if(session('error'))
+
+        <div class="alert alert-danger mt-3">
+            {{ session('error') }}
+        </div>
+
+    @endif
+
+
+    @if(session('voucher_success'))
+
+        <div class="alert alert-success mt-3">
+            {{ session('voucher_success') }}
+        </div>
+
+    @endif
+
+
+    @if(session('voucher_error'))
+
+        <div class="alert alert-danger mt-3">
+            {{ session('voucher_error') }}
+        </div>
+
+    @endif
+
+
+    @if($errors->any())
+
+        <div class="alert alert-danger mt-3">
+
+            <ul class="mb-0">
+
+                @foreach($errors->all() as $error)
+
+                    <li>{{ $error }}</li>
+
+                @endforeach
+
+            </ul>
+
+        </div>
+
+    @endif
+
+</div>
+
+
+
+{{-- =========================================================
+    CHECKOUT
+========================================================= --}}
+
 <div class="section">
+
     <div class="container">
-        <div class="row">
-            <form action="{{ route('checkout.submit') }}" method="POST" class="col-md-12" style="display:flex; gap:30px;">
-                @csrf
-                <div class="col-md-7">
+
+        <form
+            action="{{ route('checkout.submit') }}"
+            method="POST"
+        >
+
+            @csrf
+
+
+            <div
+                class="row"
+                style="
+                    display:flex;
+                    flex-wrap:wrap;
+                    align-items:flex-start;
+                "
+            >
+
+
+                {{-- =================================================
+                    ĐỊA CHỈ GIAO HÀNG
+                ================================================== --}}
+
+                <div
+                    class="col-md-7"
+                    style="padding-right:15px;"
+                >
+
                     <div class="billing-details">
-                        <div class="section-title"><h3 class="title">Địa chỉ giao hàng</h3></div>
-                        <div class="form-group"><input class="input" type="text" name="customer_name" placeholder="Họ và tên" value="{{ $customerName }}" required></div>
-                        <div class="form-group"><input class="input" type="text" name="address" placeholder="Địa chỉ" value="{{ $customerAddress }}" required></div>
-                        <div class="form-group"><input class="input" type="tel" name="phone" placeholder="Số điện thoại" value="{{ $customerPhone }}" required></div>
-                    </div>
-                </div>
 
-                <div class="col-md-5 order-details">
-                    <div class="section-title text-center"><h3 class="title">Đơn hàng của bạn</h3></div>
-                    <div class="order-summary">
-                        <div class="order-col">
-                            <div><strong>Sản phẩm</strong></div>
-                            <div><strong>Số tiền</strong></div>
-                        </div>
-                        <div class="order-products">
-                            @foreach($cart as $item)
-                                @php
-                                    $price = isset($item['price']) ? (float) $item['price'] : 0;
-                                    $quantity = isset($item['quantity']) ? (int) $item['quantity'] : 0;
-                                @endphp
-                                <div class="order-col">
-                                    <div>{{ $item['name'] ?? 'Sản phẩm' }} x {{ $quantity }}</div>
-                                    <div>{{ number_format($price * $quantity, 0, ',', '.') }}₫</div>
-                                </div>
-                            @endforeach
-                        </div>
-                        <div class="order-col">
-                            <div><strong>Tổng tiền</strong></div>
-                            <div><strong class="order-total">{{ number_format($totalPrice) }}₫</strong></div>
-                        </div>
-                    </div>
-                    <div class="payment-method">
+                        <div class="section-title">
 
-                        <div class="input-radio">
+                            <h3 class="title">
+                                Địa chỉ giao hàng
+                            </h3>
+
+                        </div>
+
+
+                        <div class="form-group">
+
                             <input
-                                type="radio"
-                                id="payment-vnpay"
-                                name="payment_method"
-                                value="vnpay"
+                                class="input"
+                                type="text"
+                                name="customer_name"
+                                placeholder="Họ và tên"
+                                value="{{ $customerName }}"
                                 required
                             >
-                            <label for="payment-vnpay">
-                                <span></span>
-                                Thanh toán VNPay
-                            </label>
+
                         </div>
 
-                        <div class="input-radio">
+
+                        <div class="form-group">
+
                             <input
-                                type="radio"
-                                id="payment-cod"
-                                name="payment_method"
-                                value="cod"
+                                class="input"
+                                type="text"
+                                name="address"
+                                placeholder="Địa chỉ"
+                                value="{{ $customerAddress }}"
+                                required
                             >
-                            <label for="payment-cod">
-                                <span></span>
-                                Thanh toán khi nhận hàng
-                            </label>
+
                         </div>
+
+
+                        <div class="form-group">
+
+                            <input
+                                class="input"
+                                type="tel"
+                                name="phone"
+                                placeholder="Số điện thoại"
+                                value="{{ $customerPhone }}"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <input
+                                class="input"
+                                type="email"
+                                name="email"
+                                placeholder="Email"
+                                value="{{ old('email') }}"
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <textarea
+                                class="input"
+                                name="note"
+                                rows="5"
+                                placeholder="Ghi chú đơn hàng (không bắt buộc)"
+                            >{{ old('note') }}</textarea>
+
+                        </div>
+
                     </div>
-                    <button type="submit" class="primary-btn order-submit" style="width:100%;">Xác nhận Đặt hàng</button>
+
                 </div>
-            </form>
-        </div>
+
+
+
+                {{-- =================================================
+                    ĐƠN HÀNG
+                ================================================== --}}
+
+                <div
+                    class="col-md-5"
+                    style="padding-left:15px;"
+                >
+
+                    <div class="order-details">
+
+                        <div class="section-title text-center">
+
+                            <h3 class="title">
+                                Đơn hàng của bạn
+                            </h3>
+
+                        </div>
+
+
+                        <div class="order-summary">
+
+
+                            {{-- HEADER --}}
+
+                            <div class="order-col">
+
+                                <div>
+                                    <strong>Sản phẩm</strong>
+                                </div>
+
+                                <div>
+                                    <strong>Số tiền</strong>
+                                </div>
+
+                            </div>
+
+
+                            {{-- SẢN PHẨM --}}
+
+                            <div class="order-products">
+
+                                @foreach($cart as $item)
+
+                                    @php
+
+                                        $price = isset($item['price'])
+                                            ? (float) $item['price']
+                                            : 0;
+
+                                        $quantity = isset($item['quantity'])
+                                            ? (int) $item['quantity']
+                                            : 0;
+
+                                    @endphp
+
+                                    <div class="order-col">
+
+                                        <div>
+
+                                            {{ $item['name'] ?? 'Sản phẩm' }}
+
+                                            x {{ $quantity }}
+
+                                        </div>
+
+                                        <div>
+
+                                            {{ number_format(
+                                                $price * $quantity,
+                                                0,
+                                                ',',
+                                                '.'
+                                            ) }}₫
+
+                                        </div>
+
+                                    </div>
+
+                                @endforeach
+
+                            </div>
+
+
+
+                            {{-- =================================================
+                                VOUCHER
+                            ================================================== --}}
+
+                            <div
+                                style="
+                                    margin-top:20px;
+                                    margin-bottom:20px;
+                                    padding:15px;
+                                    border:1px solid #ddd;
+                                    border-radius:6px;
+                                "
+                            >
+
+                                <h4
+                                    style="
+                                        font-size:17px;
+                                        margin-bottom:15px;
+                                    "
+                                >
+                                    🎟 Mã giảm giá
+                                </h4>
+
+
+                                {{-- VOUCHER ĐÃ ÁP DỤNG --}}
+
+                                @if($voucher)
+
+                                    <div
+                                        style="
+                                            padding:12px;
+                                            border:1px solid #28a745;
+                                            background:#f0fff4;
+                                            border-radius:6px;
+                                            margin-bottom:12px;
+                                        "
+                                    >
+
+                                        <div
+                                            style="
+                                                display:flex;
+                                                justify-content:space-between;
+                                                align-items:center;
+                                            "
+                                        >
+
+                                            <div>
+
+                                                <strong
+                                                    style="
+                                                        color:#28a745;
+                                                        font-size:16px;
+                                                    "
+                                                >
+                                                    {{ $voucher['code'] }}
+                                                </strong>
+
+                                                <br>
+
+                                                <small>
+                                                    {{ $voucher['name'] }}
+                                                </small>
+
+                                                <br>
+
+                                                <small>
+                                                    Giảm
+                                                    {{ $voucher['discount_value'] }}%
+                                                </small>
+
+                                            </div>
+
+
+                                            <button
+                                                type="submit"
+                                                form="remove-voucher-form"
+                                                class="btn btn-danger btn-sm"
+                                            >
+                                                Bỏ mã
+                                            </button>
+
+                                        </div>
+
+                                    </div>
+
+                                @endif
+
+
+
+                                {{-- NHẬP MÃ --}}
+
+                                <div
+                                    style="
+                                        display:flex;
+                                        gap:8px;
+                                    "
+                                >
+
+                                    <input
+                                        type="text"
+                                        id="voucher-code"
+                                        class="input"
+                                        placeholder="Nhập mã voucher"
+                                        value="{{ old(
+                                            'voucher_code',
+                                            $voucher['code'] ?? ''
+                                        ) }}"
+                                        style="
+                                            height:45px;
+                                            flex:1;
+                                        "
+                                    >
+
+
+                                    <button
+                                        type="button"
+                                        class="primary-btn"
+                                        onclick="applyVoucher()"
+                                        style="
+                                            height:45px;
+                                            white-space:nowrap;
+                                        "
+                                    >
+                                        Áp dụng
+                                    </button>
+
+                                </div>
+
+
+
+                                {{-- =================================================
+                                    DANH SÁCH VOUCHER
+                                ================================================== --}}
+
+                                @if(isset($vouchers) && $vouchers->count() > 0)
+
+                                    <div style="margin-top:18px;">
+
+                                        <strong>
+                                            Voucher khả dụng
+                                        </strong>
+
+
+                                        <div
+                                            style="
+                                                margin-top:10px;
+                                                max-height:220px;
+                                                overflow-y:auto;
+                                            "
+                                        >
+
+                                            @foreach($vouchers as $item)
+
+                                                <div
+                                                    style="
+                                                        display:flex;
+                                                        justify-content:space-between;
+                                                        align-items:center;
+                                                        gap:10px;
+                                                        padding:10px;
+                                                        margin-bottom:8px;
+                                                        border:1px dashed #ccc;
+                                                        border-radius:6px;
+                                                    "
+                                                >
+
+                                                    <div>
+
+                                                        <strong>
+                                                            {{ $item->code }}
+                                                        </strong>
+
+                                                        <br>
+
+                                                        <small>
+                                                            {{ $item->name }}
+                                                        </small>
+
+                                                        <br>
+
+                                                        <small
+                                                            style="
+                                                                color:#dc3545;
+                                                            "
+                                                        >
+
+                                                            Giảm
+                                                            {{ $item->discount_value }}%
+
+                                                            @if($item->max_discount)
+
+                                                                - tối đa
+                                                                {{ number_format(
+                                                                    $item->max_discount,
+                                                                    0,
+                                                                    ',',
+                                                                    '.'
+                                                                ) }}₫
+
+                                                            @endif
+
+                                                        </small>
+
+                                                    </div>
+
+
+                                                    <button
+                                                        type="button"
+                                                        class="btn btn-outline-primary btn-sm"
+                                                        onclick="chooseVoucher('{{ $item->code }}')"
+                                                    >
+                                                        Chọn
+                                                    </button>
+
+                                                </div>
+
+                                            @endforeach
+
+                                        </div>
+
+                                    </div>
+
+                                @else
+
+                                    <small
+                                        style="
+                                            display:block;
+                                            margin-top:12px;
+                                            color:#888;
+                                        "
+                                    >
+                                        Không có voucher khả dụng.
+                                    </small>
+
+                                @endif
+
+                            </div>
+
+
+
+                            {{-- TẠM TÍNH --}}
+
+                            <div class="order-col">
+
+                                <div>
+                                    <strong>Tạm tính</strong>
+                                </div>
+
+                                <div>
+
+                                    {{ number_format(
+                                        $totalPrice,
+                                        0,
+                                        ',',
+                                        '.'
+                                    ) }}₫
+
+                                </div>
+
+                            </div>
+
+
+
+                            {{-- GIẢM GIÁ --}}
+
+                            @if($discountAmount > 0)
+
+                                <div class="order-col">
+
+                                    <div>
+                                        <strong>
+                                            Giảm giá Voucher
+                                        </strong>
+                                    </div>
+
+                                    <div
+                                        style="
+                                            color:#dc3545;
+                                            font-weight:bold;
+                                        "
+                                    >
+
+                                        -{{ number_format(
+                                            $discountAmount,
+                                            0,
+                                            ',',
+                                            '.'
+                                        ) }}₫
+
+                                    </div>
+
+                                </div>
+
+                            @endif
+
+
+
+                            {{-- TỔNG THANH TOÁN --}}
+
+                            <div
+                                class="order-col"
+                                style="
+                                    border-top:1px solid #ddd;
+                                    padding-top:15px;
+                                    margin-top:10px;
+                                "
+                            >
+
+                                <div>
+
+                                    <strong>
+                                        Tổng thanh toán
+                                    </strong>
+
+                                </div>
+
+                                <div>
+
+                                    <strong
+                                        class="order-total"
+                                        style="font-size:20px;"
+                                    >
+
+                                        {{ number_format(
+                                            $finalTotal,
+                                            0,
+                                            ',',
+                                            '.'
+                                        ) }}₫
+
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+
+                        {{-- =================================================
+                            PHƯƠNG THỨC THANH TOÁN
+                        ================================================== --}}
+
+                        <div
+                            class="payment-method"
+                            style="margin-top:20px;"
+                        >
+
+                            <div class="input-radio">
+
+                                <input
+                                    type="radio"
+                                    id="payment-vnpay"
+                                    name="payment_method"
+                                    value="vnpay"
+                                    required
+                                >
+
+                                <label for="payment-vnpay">
+
+                                    <span></span>
+
+                                    Thanh toán VNPay
+
+                                </label>
+
+                            </div>
+
+
+                            <div class="input-radio">
+
+                                <input
+                                    type="radio"
+                                    id="payment-cod"
+                                    name="payment_method"
+                                    value="cod"
+                                >
+
+                                <label for="payment-cod">
+
+                                    <span></span>
+
+                                    Thanh toán khi nhận hàng
+
+                                </label>
+
+                            </div>
+
+                        </div>
+
+
+
+                        {{-- ĐẶT HÀNG --}}
+
+                        <button
+                            type="submit"
+                            class="primary-btn order-submit"
+                            style="
+                                width:100%;
+                                margin-top:15px;
+                            "
+                        >
+                            Xác nhận Đặt hàng
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </form>
+
     </div>
+
 </div>
+
+
+
+{{-- =========================================================
+    FORM ÁP DỤNG VOUCHER
+========================================================= --}}
+
+<form
+    id="voucher-form"
+    action="{{ route('checkout.applyVoucher') }}"
+    method="POST"
+    style="display:none;"
+>
+
+    @csrf
+
+    <input
+        type="hidden"
+        name="voucher_code"
+        id="voucher-code-hidden"
+    >
+
+</form>
+
+
+
+{{-- =========================================================
+    FORM BỎ VOUCHER
+========================================================= --}}
+
+<form
+    id="remove-voucher-form"
+    action="{{ route('checkout.removeVoucher') }}"
+    method="POST"
+    style="display:none;"
+>
+
+    @csrf
+
+</form>
+
+
+
+{{-- =========================================================
+    JAVASCRIPT
+========================================================= --}}
+
+<script>
+
+function chooseVoucher(code)
+{
+    const input = document.getElementById('voucher-code');
+
+    if (input) {
+
+        input.value = code;
+
+        input.focus();
+    }
+}
+
+
+function applyVoucher()
+{
+    const input =
+        document.getElementById('voucher-code');
+
+    const hiddenInput =
+        document.getElementById('voucher-code-hidden');
+
+    const form =
+        document.getElementById('voucher-form');
+
+
+    if (!input || !hiddenInput || !form) {
+
+        alert('Không tìm thấy form voucher.');
+
+        return;
+    }
+
+
+    const code =
+        input.value.trim();
+
+
+    if (code === '') {
+
+        alert('Vui lòng nhập mã voucher.');
+
+        input.focus();
+
+        return;
+    }
+
+
+    hiddenInput.value = code;
+
+    form.submit();
+}
+
+</script>
+
 @endsection
