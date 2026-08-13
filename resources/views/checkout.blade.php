@@ -133,25 +133,32 @@
     $finalTotal =
         $totalPrice - $discountAmount;
 
-<<<<<<< HEAD
-=======
-$customerName = old('customer_name', $defaultCustomer['customer_name'] ?? '');
-$customerPhone = old('phone', $defaultCustomer['phone'] ?? '');
-$customerCity = old('city', $defaultCustomer['city'] ?? '');
-$customerWard = old('ward', $defaultCustomer['ward'] ?? '');
-$customerAddressDetail = old('address_detail', $defaultCustomer['address_detail'] ?? '');
-$cityOptions = ['Hà Nội', 'Hải Phòng', 'Đà Nẵng', 'Hồ Chí Minh', 'Bình Dương', 'Đồng Nai', 'Khánh Hòa', 'Cần Thơ'];
-$wardOptions = [
-    'Hà Nội' => ['Phường Cống Vị', 'Phường Đội Cấn', 'Phường Liễu Giai', 'Phường Kim Liên', 'Phường Thanh Xuân Trung'],
-    'Hải Phòng' => ['Phường Máy Chai', 'Phường Hạ Long', 'Phường Lê Chân', 'Phường Tràng Cát', 'Phường Đồng Hoà'],
-    'Đà Nẵng' => ['Phường Hòa Cường Bắc', 'Phường Thanh Khê Đông', 'Phường Hải Châu I', 'Phường Nam Dương', 'Phường An Khê'],
-    'Hồ Chí Minh' => ['Phường Bến Nghé', 'Phường Tân Bình', 'Phường 7', 'Phường Phú Nhuận', 'Phường Thủ Đức'],
-    'Bình Dương' => ['Phường Thủ Dầu Một', 'Phường Chánh Nghĩa', 'Phường Hiệp An', 'Phường Bình Chuẩn', 'Phường Phú Hòa'],
-    'Đồng Nai' => ['Phường Tân Biên', 'Phường Long Bình', 'Phường Trảng Dài', 'Phường Long Tân', 'Phường Xuân Hòa'],
-    'Khánh Hòa' => ['Phường Lộc Thọ', 'Phường Vĩnh Hải', 'Phường Ngọc Hiển', 'Phường Xuân Hà', 'Phường Nha Trang'],
-    'Cần Thơ' => ['Phường Cái Khế', 'Phường Bãi H L', 'Phường Tân An', 'Phường Ninh Kiều', 'Phường Hưng Lợi'],
-];
->>>>>>> origin/main
+    $defaultCustomer = [
+        'customer_name' => $customer['user'] ?? '',
+        'phone' => $customer['tel'] ?? '',
+        'city' => $customer['city'] ?? '',
+        'ward' => $customer['ward'] ?? '',
+        'address_detail' => $customer['address_detail'] ?? $customer['address'] ?? '',
+    ];
+
+    $customerName = old('customer_name', $defaultCustomer['customer_name'] ?? '');
+    $customerPhone = old('phone', $defaultCustomer['phone'] ?? '');
+    $customerCity = old('city', $defaultCustomer['city'] ?? '');
+    $customerWard = old('ward', $defaultCustomer['ward'] ?? '');
+    $customerAddressDetail = old('address_detail', $defaultCustomer['address_detail'] ?? '');
+    $cityOptions = [
+        'Hà Nội', 'Hải Phòng', 'Đà Nẵng', 'Hồ Chí Minh', 'Bình Dương', 'Đồng Nai', 'Khánh Hòa', 'Cần Thơ'
+    ];
+    $wardOptions = [
+        'Hà Nội' => ['Phường Cống Vị', 'Phường Đội Cấn', 'Phường Liễu Giai', 'Phường Kim Liên', 'Phường Thanh Xuân Trung'],
+        'Hải Phòng' => ['Phường Máy Chai', 'Phường Hạ Long', 'Phường Lê Chân', 'Phường Tràng Cát', 'Phường Đồng Hoà'],
+        'Đà Nẵng' => ['Phường Hòa Cường Bắc', 'Phường Thanh Khê Đông', 'Phường Hải Châu I', 'Phường Nam Dương', 'Phường An Khê'],
+        'Hồ Chí Minh' => ['Phường Bến Nghé', 'Phường Tân Bình', 'Phường 7', 'Phường Phú Nhuận', 'Phường Thủ Đức'],
+        'Bình Dương' => ['Phường Thủ Dầu Một', 'Phường Chánh Nghĩa', 'Phường Hiệp An', 'Phường Bình Chuẩn', 'Phường Phú Hòa'],
+        'Đồng Nai' => ['Phường Tân Biên', 'Phường Long Bình', 'Phường Trảng Dài', 'Phường Long Tân', 'Phường Xuân Hòa'],
+        'Khánh Hòa' => ['Phường Lộc Thọ', 'Phường Vĩnh Hải', 'Phường Ngọc Hiển', 'Phường Xuân Hà', 'Phường Nha Trang'],
+        'Cần Thơ' => ['Phường Cái Khế', 'Phường Bãi H L', 'Phường Tân An', 'Phường Ninh Kiều', 'Phường Hưng Lợi'],
+    ];
 @endphp
 
 
@@ -246,22 +253,18 @@ $wardOptions = [
                 >
 
                     <div class="billing-details">
-<<<<<<< HEAD
 
                         <div class="section-title">
-
-                            <h3 class="title">
-                                Địa chỉ giao hàng
-                            </h3>
-
+                            <h3 class="title">Địa chỉ giao hàng</h3>
                         </div>
 
+                        <div class="form-group">
+                            <input class="input" type="text" name="customer_name" placeholder="Họ và tên" value="{{ $customerName }}" required>
+                        </div>
 
                         <div class="form-group">
-=======
-                        <div class="section-title"><h3 class="title">Địa chỉ giao hàng</h3></div>
-                        <div class="form-group"><input class="input" type="text" name="customer_name" placeholder="Họ và tên" value="{{ $customerName }}" required></div>
-                        <div class="form-group"><input class="input" type="tel" name="phone" placeholder="Số điện thoại" value="{{ $customerPhone }}" required></div>
+                            <input class="input" type="tel" name="phone" placeholder="Số điện thoại" value="{{ $customerPhone }}" required>
+                        </div>
 
                         <div class="form-group">
                             <select class="input" name="city" id="checkout-city" required>
@@ -283,105 +286,6 @@ $wardOptions = [
 
                         <div class="form-group">
                             <input class="input" type="text" name="address_detail" placeholder="Địa chỉ chi tiết (Số nhà, tên đường...)" value="{{ $customerAddressDetail }}" required>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-5 order-details">
-                    <div class="section-title text-center"><h3 class="title">Đơn hàng của bạn</h3></div>
-                    <div class="order-summary">
-                        <div class="order-col">
-                            <div><strong>Sản phẩm</strong></div>
-                            <div><strong>Số tiền</strong></div>
-                        </div>
-                        <div class="order-products">
-                            @foreach($cart as $item)
-                                @php
-                                    $price = isset($item['price']) ? (float) $item['price'] : 0;
-                                    $quantity = isset($item['quantity']) ? (int) $item['quantity'] : 0;
-                                @endphp
-                                <div class="order-col">
-                                    <div>{{ $item['name'] ?? 'Sản phẩm' }} x {{ $quantity }}</div>
-                                    <div>{{ number_format($price * $quantity, 0, ',', '.') }}₫</div>
-                                </div>
-                            @endforeach
-                        </div>
-                        <div class="order-col">
-                            <div><strong>Tổng tiền</strong></div>
-                            <div><strong class="order-total">{{ number_format($totalPrice) }}₫</strong></div>
-                        </div>
-                    </div>
-                    <div class="payment-method">
-                        <div class="form-group" style="margin-bottom:15px;">
-                            <label for="voucher-code" style="display:block; font-weight:600; margin-bottom:8px;">Mã giảm giá</label>
-                            <div style="display:flex; gap:8px;">
-                                <input class="input" type="text" id="voucher-code" name="voucher_code" placeholder="Nhập mã voucher" value="{{ old('voucher_code') }}">
-                            </div>
-                        </div>
->>>>>>> origin/main
-
-                            <input
-                                class="input"
-                                type="text"
-                                name="customer_name"
-                                placeholder="Họ và tên"
-                                value="{{ $customerName }}"
-                                required
-                            >
-
-                        </div>
-
-
-                        <div class="form-group">
-
-                            <input
-                                class="input"
-                                type="text"
-                                name="address"
-                                placeholder="Địa chỉ"
-                                value="{{ $customerAddress }}"
-                                required
-                            >
-
-                        </div>
-
-
-                        <div class="form-group">
-
-                            <input
-                                class="input"
-                                type="tel"
-                                name="phone"
-                                placeholder="Số điện thoại"
-                                value="{{ $customerPhone }}"
-                                required
-                            >
-
-                        </div>
-
-
-                        <div class="form-group">
-
-                            <input
-                                class="input"
-                                type="email"
-                                name="email"
-                                placeholder="Email"
-                                value="{{ old('email') }}"
-                            >
-
-                        </div>
-
-
-                        <div class="form-group">
-
-                            <textarea
-                                class="input"
-                                name="note"
-                                rows="5"
-                                placeholder="Ghi chú đơn hàng (không bắt buộc)"
-                            >{{ old('note') }}</textarea>
-
                         </div>
 
                     </div>
@@ -893,7 +797,6 @@ $wardOptions = [
 
 </div>
 
-<<<<<<< HEAD
 
 
 {{-- =========================================================
@@ -906,22 +809,9 @@ $wardOptions = [
     method="POST"
     style="display:none;"
 >
-
     @csrf
-
-    <input
-        type="hidden"
-        name="voucher_code"
-        id="voucher-code-hidden"
-    >
-
+    <input type="hidden" name="voucher_code" id="voucher-code-hidden">
 </form>
-
-
-
-{{-- =========================================================
-    FORM BỎ VOUCHER
-========================================================= --}}
 
 <form
     id="remove-voucher-form"
@@ -929,74 +819,9 @@ $wardOptions = [
     method="POST"
     style="display:none;"
 >
-
     @csrf
-
 </form>
 
-
-
-{{-- =========================================================
-    JAVASCRIPT
-========================================================= --}}
-
-<script>
-
-function chooseVoucher(code)
-{
-    const input = document.getElementById('voucher-code');
-
-    if (input) {
-
-        input.value = code;
-
-        input.focus();
-    }
-}
-
-
-function applyVoucher()
-{
-    const input =
-        document.getElementById('voucher-code');
-
-    const hiddenInput =
-        document.getElementById('voucher-code-hidden');
-
-    const form =
-        document.getElementById('voucher-form');
-
-
-    if (!input || !hiddenInput || !form) {
-
-        alert('Không tìm thấy form voucher.');
-
-        return;
-    }
-
-
-    const code =
-        input.value.trim();
-
-
-    if (code === '') {
-
-        alert('Vui lòng nhập mã voucher.');
-
-        input.focus();
-
-        return;
-    }
-
-
-    hiddenInput.value = code;
-
-    form.submit();
-}
-
-</script>
-
-=======
 <script>
     const cityMap = @json($wardOptions);
     const citySelect = document.getElementById('checkout-city');
@@ -1016,6 +841,34 @@ function applyVoucher()
             });
         });
     }
+
+    function chooseVoucher(code) {
+        const input = document.getElementById('voucher-code');
+        if (input) {
+            input.value = code;
+            input.focus();
+        }
+    }
+
+    function applyVoucher() {
+        const input = document.getElementById('voucher-code');
+        const hiddenInput = document.getElementById('voucher-code-hidden');
+        const form = document.getElementById('voucher-form');
+
+        if (!input || !hiddenInput || !form) {
+            alert('Không tìm thấy form voucher.');
+            return;
+        }
+
+        const code = input.value.trim();
+        if (code === '') {
+            alert('Vui lòng nhập mã voucher.');
+            input.focus();
+            return;
+        }
+
+        hiddenInput.value = code;
+        form.submit();
+    }
 </script>
->>>>>>> origin/main
 @endsection

@@ -160,6 +160,7 @@
                                 name="end_date"
                                 class="form-control"
                                 value="{{ old('end_date') }}"
+                                min="{{ old('start_date') ?? '' }}"
                                 required
                             >
                         </div>
@@ -205,5 +206,39 @@
         </div>
     </section>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const startInput = document.querySelector('input[name="start_date"]');
+        const endInput = document.querySelector('input[name="end_date"]');
+
+        if (!startInput || !endInput) {
+            return;
+        }
+
+        const syncEndDate = function () {
+            const startValue = startInput.value;
+            if (startValue) {
+                endInput.min = startValue;
+                if (endInput.value && endInput.value <= startValue) {
+                    endInput.value = '';
+                }
+            } else {
+                endInput.min = '';
+            }
+        };
+
+        startInput.addEventListener('change', syncEndDate);
+        endInput.addEventListener('change', function () {
+            if (startInput.value && endInput.value && endInput.value <= startInput.value) {
+                endInput.setCustomValidity('Ngày kết thúc phải lớn hơn ngày bắt đầu.');
+            } else {
+                endInput.setCustomValidity('');
+            }
+        });
+
+        syncEndDate();
+    });
+</script>
 
 @endsection
