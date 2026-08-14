@@ -9,10 +9,13 @@ class AdminAuth
 {
     public function handle(Request $request, Closure $next)
     {
+        $admin = session('admin');
         $customer = session('customer');
 
-        if (!$customer || (int) $customer['role'] !== 1) {
-            return redirect()->route('login');
+        $isAdmin = !empty($admin) || (!empty($customer) && (int) ($customer['role'] ?? 0) === 1);
+
+        if (!$isAdmin) {
+            return redirect()->route('admin.login');
         }
 
         return $next($request);

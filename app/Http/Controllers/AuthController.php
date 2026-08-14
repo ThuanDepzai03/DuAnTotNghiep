@@ -105,12 +105,22 @@ class AuthController extends Controller
     $customer = $customerQuery->first();
 
     if (!$customer || $password !== $customer->pass) {
-    return back()
-        ->withErrors([
-            'user' => 'Tài khoản, email hoặc mật khẩu không đúng.',
-        ])
-        ->withInput();
-}
+        $errorMessage = 'Tài khoản, email hoặc mật khẩu không đúng.';
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => false,
+                'message' => $errorMessage,
+                'errors' => ['user' => [$errorMessage]],
+            ], 422);
+        }
+
+        return back()
+            ->withErrors([
+                'user' => $errorMessage,
+            ])
+            ->withInput();
+    }
 
     // Nếu tài khoản bị khóa thì không được đăng nhập.
     if (
@@ -118,9 +128,19 @@ class AuthController extends Controller
         isset($customer->status) &&
         (int) $customer->status !== 1
     ) {
+        $errorMessage = 'Tài khoản của bạn hiện đang bị khóa.';
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => false,
+                'message' => $errorMessage,
+                'errors' => ['user' => [$errorMessage]],
+            ], 422);
+        }
+
         return back()
             ->withErrors([
-                'user' => 'Tài khoản của bạn hiện đang bị khóa.',
+                'user' => $errorMessage,
             ])
             ->withInput();
     }
@@ -142,10 +162,26 @@ class AuthController extends Controller
 
     // Nếu tài khoản trong nguoidung có role = 1 thì cho vào admin.
     if ((int) ($customer->role ?? 0) === 1) {
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'redirect' => route('admin.dashboard'),
+                'message' => 'Đăng nhập thành công.',
+            ]);
+        }
+
         return redirect()->route('admin.dashboard');
     }
 
     // Khách hàng đăng nhập xong quay về trang chủ.
+    if ($request->expectsJson()) {
+        return response()->json([
+            'success' => true,
+            'redirect' => route('home'),
+            'message' => 'Đăng nhập thành công.',
+        ]);
+    }
+
     return redirect()->intended(route('home'));
 }
 
@@ -227,6 +263,14 @@ class AuthController extends Controller
         ]]);
 
         $this->migrateGuestCartToCustomer();
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'redirect' => route('account.profile'),
+                'message' => 'Đăng ký tài khoản thành công.',
+            ]);
+        }
 
         return redirect()->route('account.profile');
     }
