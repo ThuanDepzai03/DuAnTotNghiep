@@ -514,3 +514,256 @@ body {
         max-width: 1400px;
     }
 }
+
+/* =========================================================
+   BUTTONS - GLOW & SHINE EFFECTS
+   ========================================================= */
+
+.btn,
+.primary-btn,
+.shop-btn,
+.qty-btn,
+.main-btn,
+button[type="submit"],
+.btn-primary {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-weight: 700;
+    border: none;
+    border-radius: 12px;
+    padding: 11px 18px;
+    cursor: pointer;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+}
+
+.primary-btn,
+.main-btn,
+.btn-primary,
+button[type="submit"] {
+    background: linear-gradient(135deg, #d10024, #e11d48);
+    color: #fff;
+    box-shadow: 0 8px 16px rgba(209, 0, 36, 0.18);
+}
+
+.primary-btn::before,
+.main-btn::before,
+.btn-primary::before,
+button[type="submit"]::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s ease;
+    z-index: 1;
+}
+
+.primary-btn:hover::before,
+.main-btn:hover::before,
+.btn-primary:hover::before,
+button[type="submit"]:hover::before {
+    left: 100%;
+}
+
+.primary-btn:hover,
+.main-btn:hover,
+.btn-primary:hover,
+button[type="submit"]:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(209, 0, 36, 0.28), 0 0 20px rgba(209, 0, 36, 0.15);
+}
+
+.primary-btn:active,
+.main-btn:active,
+.btn-primary:active,
+button[type="submit"]:active {
+    transform: scale(0.98);
+}
+
+/* =========================================================
+   CARDS - GLOW EFFECT
+   ========================================================= */
+
+.product,
+.product-card,
+.product-item,
+.panel,
+.card,
+.widget,
+.filter-box,
+.checkout-box,
+.summary-box {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    padding: 20px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    position: relative;
+}
+
+.product::after,
+.product-card::after,
+.product-item::after,
+.card::after,
+.widget::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    background: radial-gradient(circle at 50% 0%, rgba(209, 0, 36, 0.1), transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.product:hover,
+.product-card:hover,
+.product-item:hover,
+.card:hover,
+.widget:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08), 0 0 30px rgba(209, 0, 36, 0.12);
+    border-color: rgba(209, 0, 36, 0.2);
+}
+
+.product:hover::after,
+.product-card:hover::after,
+.product-item:hover::after,
+.card:hover::after,
+.widget:hover::after {
+    opacity: 1;
+}
+
+.product img,
+.product-card img,
+.product-item img,
+.card img,
+.product-img img {
+    transition: transform 0.4s ease, filter 0.3s ease;
+}
+
+.product:hover img,
+.product-card:hover img,
+.product-item:hover img,
+.card:hover img,
+.product-img:hover img {
+    transform: scale(1.08);
+    filter: brightness(1.05);
+}
+
+/* =========================================================
+   LINKS - GLOW EFFECT
+   ========================================================= */
+
+a:not(.brand-logo):not(.header-links a) {
+    transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+a:hover:not(.brand-logo):not(.header-links a) {
+    text-shadow: 0 0 8px rgba(209, 0, 36, 0.3);
+}
+
+.header-links a {
+    position: relative;
+    transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+.header-links a:hover {
+    color: #ffffff;
+    text-shadow: 0 0 12px rgba(255, 255, 255, 0.2);
+}
+
+/* =========================================================
+   ANIMATIONS & KEYFRAMES
+   ========================================================= */
+
+@keyframes glow-pulse {
+    0%, 100% {
+        box-shadow: 0 0 15px rgba(209, 0, 36, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 25px rgba(209, 0, 36, 0.5), 0 0 40px rgba(209, 0, 36, 0.2);
+    }
+}
+
+@keyframes shine-sweep {
+    0% {
+        left: -100%;
+    }
+    100% {
+        left: 100%;
+    }
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.glow-text {
+    animation: glow-pulse 2s ease-in-out infinite;
+    color: #d10024;
+    font-weight: 700;
+}
+
+/* =========================================================
+   REVEAL & SKELETON
+   ========================================================= */
+
+.reveal {
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity 0.45s ease, transform 0.45s ease;
+}
+
+.reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.skeleton {
+    position: relative;
+    overflow: hidden;
+    background: rgba(226, 232, 240, 0.9);
+    border-radius: 12px;
+}
+
+.skeleton::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.7) 40%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    animation: shimmer 1.4s infinite;
+}
+
+.skeleton-text {
+    height: 14px;
+    margin-bottom: 10px;
+}
+
+.skeleton-image {
+    height: 220px;
+}
+
+@keyframes shimmer {
+    100% {
+        transform: translateX(100%);
+    }
+}

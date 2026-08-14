@@ -1,14 +1,43 @@
 document.addEventListener('DOMContentLoaded', function () {
     const header = document.querySelector('header');
+    const siteHeader = document.querySelector('.site-header');
+    let lastScrollY = 0;
+    let ticking = false;
 
-    if (header) {
+    if (header || siteHeader) {
+        const target = siteHeader || header;
+        
         const updateHeaderState = () => {
             const scrolled = window.scrollY > 16;
-            header.classList.toggle('is-scrolled', scrolled);
+            const isScrollingDown = window.scrollY > lastScrollY + 5;
+            const isScrollingUp = window.scrollY < lastScrollY - 5;
+            
+            // Thêm class blur/shadow khi scroll
+            target.classList.toggle('is-scrolled', scrolled);
+            
+            // Smart header: ẩn khi cuộn xuống, hiện khi cuộn lên
+            if (scrolled) {
+                if (isScrollingDown) {
+                    target.classList.add('header-hidden');
+                } else if (isScrollingUp) {
+                    target.classList.remove('header-hidden');
+                }
+            } else {
+                target.classList.remove('header-hidden');
+            }
+            
+            lastScrollY = window.scrollY;
+            ticking = false;
         };
-
+        
+        window.addEventListener('scroll', () => {
+            if (!ticking) {
+                window.requestAnimationFrame(updateHeaderState);
+                ticking = true;
+            }
+        }, { passive: true });
+        
         updateHeaderState();
-        window.addEventListener('scroll', updateHeaderState, { passive: true });
     }
 
     document.body.classList.add('is-ready');
