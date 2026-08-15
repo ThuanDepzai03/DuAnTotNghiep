@@ -65,25 +65,23 @@
                         <div class="mb-3">
                             <label class="form-label">Loại giảm giá</label>
 
-                            <input
-                                type="text"
-                                class="form-control"
-                                value="Giảm theo %"
-                                readonly
-                            >
-
-                            {{-- Database lưu là percent --}}
-                            <input
-                                type="hidden"
-                                name="discount_type"
-                                value="percent"
-                            >
+                            <select name="discount_type" class="form-select" id="voucher-discount-type" required>
+                                <option value="percent" {{ old('discount_type', 'percent') == 'percent' ? 'selected' : '' }}>
+                                    Giảm theo %
+                                </option>
+                                <option value="fixed" {{ old('discount_type') == 'fixed' ? 'selected' : '' }}>
+                                    Giảm theo số tiền
+                                </option>
+                                <option value="free_shipping" {{ old('discount_type') == 'free_shipping' ? 'selected' : '' }}>
+                                    Miễn phí vận chuyển
+                                </option>
+                            </select>
                         </div>
 
 
                         {{-- Phần trăm giảm --}}
-                        <div class="mb-3">
-                            <label class="form-label">Phần trăm giảm (%)</label>
+                        <div class="mb-3" id="discount-value-wrapper">
+                            <label class="form-label" id="discount-value-label">Phần trăm giảm (%)</label>
 
                             <input
                                 type="number"
@@ -96,7 +94,7 @@
                                 required
                             >
 
-                            <small class="text-muted">
+                            <small class="text-muted" id="discount-value-help">
                                 Nhập từ 1% đến 100%.
                             </small>
                         </div>
@@ -211,6 +209,34 @@
     document.addEventListener('DOMContentLoaded', function () {
         const startInput = document.querySelector('input[name="start_date"]');
         const endInput = document.querySelector('input[name="end_date"]');
+        const typeSelect = document.getElementById('voucher-discount-type');
+        const discountValueInput = document.querySelector('input[name="discount_value"]');
+        const discountValueLabel = document.getElementById('discount-value-label');
+        const discountValueHelp = document.getElementById('discount-value-help');
+
+        const syncDiscountType = function () {
+            if (!typeSelect || !discountValueInput || !discountValueLabel || !discountValueHelp) {
+                return;
+            }
+
+            const type = typeSelect.value;
+
+            if (type === 'free_shipping') {
+                discountValueInput.value = 0;
+                discountValueInput.setAttribute('min', '0');
+                discountValueInput.setAttribute('max', '0');
+                discountValueInput.setAttribute('readonly', 'readonly');
+                discountValueLabel.textContent = 'Giá trị giảm';
+                discountValueHelp.textContent = 'Voucher miễn phí vận chuyển sẽ tự động áp dụng 0đ giảm cho đơn hàng.';
+                return;
+            }
+
+            discountValueInput.removeAttribute('readonly');
+            discountValueInput.setAttribute('min', type === 'fixed' ? '1' : '1');
+            discountValueInput.setAttribute('max', type === 'fixed' ? '1000000000' : '100');
+            discountValueLabel.textContent = type === 'fixed' ? 'Số tiền giảm (đ)' : 'Phần trăm giảm (%)';
+            discountValueHelp.textContent = type === 'fixed' ? 'Nhập số tiền giảm trực tiếp, ví dụ: 50000.' : 'Nhập từ 1% đến 100%.';
+        };
 
         if (!startInput || !endInput) {
             return;
@@ -237,6 +263,8 @@
             }
         });
 
+        typeSelect.addEventListener('change', syncDiscountType);
+        syncDiscountType();
         syncEndDate();
     });
 </script>

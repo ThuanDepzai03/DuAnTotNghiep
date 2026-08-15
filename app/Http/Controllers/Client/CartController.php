@@ -133,6 +133,20 @@ class CartController extends Controller
 
         $this->saveCartItems($cart);
 
+        $totalQuantity = collect($cart)->sum('quantity');
+        $totalPrice = collect($cart)->sum(function ($item) {
+            return ($item['price'] ?? 0) * ($item['quantity'] ?? 0);
+        });
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Đã cập nhật giỏ hàng.',
+                'totalQuantity' => $totalQuantity,
+                'totalPrice' => (float) $totalPrice,
+            ]);
+        }
+
         return redirect()
             ->route('cart.index')
             ->with('success', 'Đã cập nhật giỏ hàng.');
@@ -149,6 +163,20 @@ class CartController extends Controller
         unset($cart[(string) $request->product_variant_id]);
 
         $this->saveCartItems($cart);
+
+        $totalQuantity = collect($cart)->sum('quantity');
+        $totalPrice = collect($cart)->sum(function ($item) {
+            return ($item['price'] ?? 0) * ($item['quantity'] ?? 0);
+        });
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Đã xóa sản phẩm khỏi giỏ hàng.',
+                'totalQuantity' => $totalQuantity,
+                'totalPrice' => (float) $totalPrice,
+            ]);
+        }
 
         return redirect()
             ->route('cart.index')

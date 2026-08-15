@@ -12,20 +12,22 @@ class UserSeeder extends Seeder
     {
         // Tạo hoặc cập nhật tài khoản Admin
         DB::table('admins')->updateOrInsert(
-            ['email' => 'admin'], // Điều kiện kiểm tra (tài khoản đăng nhập)  
+            ['email' => 'admin'],
             [
                 'name' => 'Administrator',
-                'password' => Hash::make('123123123'), // Mật khẩu đã mã hóa  
+                'password' => Hash::make('123123123'),
                 'created_at' => now(),
                 'updated_at' => now(),
             ]
         );
 
-        // Tạo hoặc cập nhật tài khoản User (giả sử bảng là nguoidung)
+        // Tạo hoặc cập nhật tài khoản User
         DB::table('nguoidung')->updateOrInsert(
-            ['email' => 'user'], // Điều kiện kiểm tra
+            ['user' => 'user'],
             [
-                'password' => Hash::make('123123123'),
+                'email' => 'user',
+                'pass' => Hash::make('123123123'),
+                'role' => 0,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]

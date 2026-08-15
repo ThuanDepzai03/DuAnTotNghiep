@@ -80,24 +80,35 @@ class PaymentController extends Controller
 
         if ($order && $request->vnp_ResponseCode === '00' && $request->vnp_TransactionStatus === '00') {
 
+            // If already confirmed, just redirect to success
             if ($order->status === 'confirmed') {
                 return redirect()->route('checkout.success');
             }
 
-            $order->update([
-                'status' => 'confirmed',
-                'transaction_no' => $request->vnp_TransactionNo,
-                'bank_code' => $request->vnp_BankCode,
-                'paid_at' => now(),
-            ]);
+            // Only process if status is still 'pending_payment'
+            if ($order->status === 'pending_payment') {
+                $order->update([
+                    'status' => 'confirmed',
+                    'transaction_no' => $request->vnp_TransactionNo,
+                    'bank_code' => $request->vnp_BankCode,
+                    'paid_at' => now(),
+                ]);
 
-            foreach ($order->items as $item) {
-                $item->variant()->decrement('stock', $item->quantity);
+                // Deduct stock when VNPay payment is confirmed
+                foreach ($order->items as $item) {
+                    $item->variant()->decrement('stock', $item->quantity);
+                }
             }
 
             $this->clearCartItems();
 
             return redirect()->route('checkout.success');
+        }
+
+        // Payment failed - delete the pending_payment order
+        if ($order && $order->status === 'pending_payment') {
+            $order->items()->delete();
+            $order->delete();
         }
 
         return redirect()->route('checkout.show')->with('error', 'Thanh toán thất bại.');

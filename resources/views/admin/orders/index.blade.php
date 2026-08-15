@@ -29,11 +29,6 @@
             'icon' => 'bi-x-circle',
         ],
     ];
-
-    $pendingCount = $orders->where('status', 'pending')->count();
-    $confirmedCount = $orders->where('status', 'confirmed')->count();
-    $shippingCount = $orders->where('status', 'shipping')->count();
-    $completedCount = $orders->where('status', 'completed')->count();
 @endphp
 
 
@@ -47,7 +42,7 @@
         </div>
 
         <div class="text-muted">
-            Tổng số đơn: <strong>{{ $orders->count() }}</strong>
+            Tổng số đơn: <strong>{{ $totalOrders }}</strong>
         </div>
     </div>
 </div>
@@ -303,6 +298,13 @@
                         <i class="bi bi-search fs-3 text-muted d-block mb-2"></i>
                         Không tìm thấy đơn hàng phù hợp.
                     </div>
+
+                    <!-- Pagination -->
+                    @if($orders->hasPages())
+                        <div class="d-flex justify-content-center mt-4">
+                            {{ $orders->links() }}
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>

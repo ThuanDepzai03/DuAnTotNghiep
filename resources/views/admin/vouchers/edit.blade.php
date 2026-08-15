@@ -45,19 +45,22 @@
                 <div class="mb-3">
                     <label class="form-label">Loại giảm giá</label>
 
-                    <input type="hidden"
-                           name="discount_type"
-                           value="percentage">
-
-                    <input type="text"
-                           class="form-control"
-                           value="Giảm theo %"
-                           readonly>
+                    <select name="discount_type" class="form-select" id="voucher-discount-type" required>
+                        <option value="percent" {{ old('discount_type', $voucher->discount_type) == 'percent' ? 'selected' : '' }}>
+                            Giảm theo %
+                        </option>
+                        <option value="fixed" {{ old('discount_type', $voucher->discount_type) == 'fixed' ? 'selected' : '' }}>
+                            Giảm theo số tiền
+                        </option>
+                        <option value="free_shipping" {{ old('discount_type', $voucher->discount_type) == 'free_shipping' ? 'selected' : '' }}>
+                            Miễn phí vận chuyển
+                        </option>
+                    </select>
                 </div>
 
 
                 <div class="mb-3">
-                    <label class="form-label">Phần trăm giảm (%)</label>
+                    <label class="form-label" id="discount-value-label">{{ old('discount_type', $voucher->discount_type) == 'free_shipping' ? 'Giá trị giảm' : (old('discount_type', $voucher->discount_type) == 'fixed' ? 'Số tiền giảm (đ)' : 'Phần trăm giảm (%)') }}</label>
 
                     <input type="number"
                            name="discount_value"
@@ -65,7 +68,12 @@
                            min="1"
                            max="100"
                            value="{{ old('discount_value', $voucher->discount_value) }}"
-                           required>
+                           required
+                           id="discount-value-input">
+
+                    <small class="text-muted" id="discount-value-help">
+                        {{ old('discount_type', $voucher->discount_type) == 'free_shipping' ? 'Voucher miễn phí vận chuyển sẽ tự động áp dụng 0đ giảm cho đơn hàng.' : (old('discount_type', $voucher->discount_type) == 'fixed' ? 'Nhập số tiền giảm trực tiếp, ví dụ: 50000.' : 'Nhập từ 1% đến 100%.') }}
+                    </small>
                 </div>
 
 
@@ -161,6 +169,34 @@
     document.addEventListener('DOMContentLoaded', function () {
         const startInput = document.querySelector('input[name="start_date"]');
         const endInput = document.querySelector('input[name="end_date"]');
+        const typeSelect = document.getElementById('voucher-discount-type');
+        const discountValueInput = document.getElementById('discount-value-input');
+        const discountValueLabel = document.getElementById('discount-value-label');
+        const discountValueHelp = document.getElementById('discount-value-help');
+
+        const syncDiscountType = function () {
+            if (!typeSelect || !discountValueInput || !discountValueLabel || !discountValueHelp) {
+                return;
+            }
+
+            const type = typeSelect.value;
+
+            if (type === 'free_shipping') {
+                discountValueInput.value = 0;
+                discountValueInput.setAttribute('min', '0');
+                discountValueInput.setAttribute('max', '0');
+                discountValueInput.setAttribute('readonly', 'readonly');
+                discountValueLabel.textContent = 'Giá trị giảm';
+                discountValueHelp.textContent = 'Voucher miễn phí vận chuyển sẽ tự động áp dụng 0đ giảm cho đơn hàng.';
+                return;
+            }
+
+            discountValueInput.removeAttribute('readonly');
+            discountValueInput.setAttribute('min', '1');
+            discountValueInput.setAttribute('max', type === 'fixed' ? '1000000000' : '100');
+            discountValueLabel.textContent = type === 'fixed' ? 'Số tiền giảm (đ)' : 'Phần trăm giảm (%)';
+            discountValueHelp.textContent = type === 'fixed' ? 'Nhập số tiền giảm trực tiếp, ví dụ: 50000.' : 'Nhập từ 1% đến 100%.';
+        };
 
         if (!startInput || !endInput) {
             return;
@@ -187,6 +223,8 @@
             }
         });
 
+        typeSelect.addEventListener('change', syncDiscountType);
+        syncDiscountType();
         syncEndDate();
     });
 </script>
