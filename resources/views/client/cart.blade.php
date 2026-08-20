@@ -47,6 +47,64 @@
         -webkit-appearance: none;
         margin: 0;
     }
+
+    .custom-confirm-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(17, 24, 39, 0.45);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    }
+
+    .custom-confirm-modal {
+        width: min(420px, calc(100vw - 32px));
+        background: #fff;
+        border-radius: 18px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18);
+        padding: 24px 20px 18px;
+        text-align: center;
+    }
+
+    .custom-confirm-modal h4 {
+        margin: 0 0 10px;
+        font-size: 22px;
+        color: #111827;
+    }
+
+    .custom-confirm-modal p {
+        margin: 0;
+        color: #4b5563;
+        line-height: 1.6;
+        font-size: 15px;
+    }
+
+    .custom-confirm-actions {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        margin-top: 20px;
+    }
+
+    .custom-confirm-btn {
+        border: none;
+        border-radius: 10px;
+        padding: 10px 18px;
+        font-weight: 700;
+        cursor: pointer;
+        min-width: 110px;
+    }
+
+    .custom-confirm-btn.cancel {
+        background: #f3f4f6;
+        color: #374151;
+    }
+
+    .custom-confirm-btn.confirm {
+        background: #dc2626;
+        color: #fff;
+    }
 </style>
 <div class="section">
     <div class="container">
@@ -167,7 +225,7 @@
                                                     type="button"
                                                     class="btn btn-danger btn-sm btn-remove-cart-item"
                                                     data-variant-id="{{ $item['variant_id'] }}"
-                                                    onclick="return confirm('Bạn muốn xóa sản phẩm này?')"
+                                                    data-product-name="{{ $item['name'] }}"
                                                 >
                                                     <i class="fa fa-trash"></i>
                                                 </button>
@@ -294,6 +352,50 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    function showDeleteConfirm(productName, onConfirm) {
+        const overlay = document.createElement('div');
+        overlay.className = 'custom-confirm-overlay';
+
+        const modal = document.createElement('div');
+        modal.className = 'custom-confirm-modal';
+
+        const title = document.createElement('h4');
+        title.textContent = 'Xác nhận xóa';
+
+        const message = document.createElement('p');
+        message.textContent = 'Bạn có chắc chắn muốn xóa \"' + productName + '\" khỏi giỏ hàng không?';
+
+        const actions = document.createElement('div');
+        actions.className = 'custom-confirm-actions';
+
+        const cancelBtn = document.createElement('button');
+        cancelBtn.type = 'button';
+        cancelBtn.className = 'custom-confirm-btn cancel';
+        cancelBtn.textContent = 'Hủy';
+
+        const confirmBtn = document.createElement('button');
+        confirmBtn.type = 'button';
+        confirmBtn.className = 'custom-confirm-btn confirm';
+        confirmBtn.textContent = 'Xóa';
+
+        cancelBtn.addEventListener('click', function () {
+            overlay.remove();
+        });
+
+        confirmBtn.addEventListener('click', function () {
+            overlay.remove();
+            onConfirm();
+        });
+
+        actions.appendChild(cancelBtn);
+        actions.appendChild(confirmBtn);
+        modal.appendChild(title);
+        modal.appendChild(message);
+        modal.appendChild(actions);
+        overlay.appendChild(modal);
+        document.body.appendChild(overlay);
+    }
+
     document.addEventListener('click', function(e) {
         const removeButton = e.target.closest('.btn-remove-cart-item');
 
@@ -302,28 +404,32 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const variantId = removeButton.getAttribute('data-variant-id');
+        const productName = removeButton.getAttribute('data-product-name') || 'sản phẩm này';
+
         if (!variantId) {
             return;
         }
 
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = '{{ route('cart.remove') }}';
+        showDeleteConfirm(productName, function () {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '{{ route('cart.remove') }}';
 
-        const csrfInput = document.createElement('input');
-        csrfInput.type = 'hidden';
-        csrfInput.name = '_token';
-        csrfInput.value = '{{ csrf_token() }}';
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = '_token';
+            csrfInput.value = '{{ csrf_token() }}';
 
-        const variantInput = document.createElement('input');
-        variantInput.type = 'hidden';
-        variantInput.name = 'product_variant_id';
-        variantInput.value = variantId;
+            const variantInput = document.createElement('input');
+            variantInput.type = 'hidden';
+            variantInput.name = 'product_variant_id';
+            variantInput.value = variantId;
 
-        form.appendChild(csrfInput);
-        form.appendChild(variantInput);
-        document.body.appendChild(form);
-        form.submit();
+            form.appendChild(csrfInput);
+            form.appendChild(variantInput);
+            document.body.appendChild(form);
+            form.submit();
+        });
     });
 
     // Bắt sự kiện gõ trực tiếp vào ô input

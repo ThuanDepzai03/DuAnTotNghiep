@@ -30,10 +30,18 @@ class VoucherController extends Controller
      */
     public function store(Request $request)
     {
+        $discountType = $request->discount_type ?? 'percent';
+
         $request->validate([
             'code' => 'required|unique:vouchers,code',
             'name' => 'required',
-            'discount_value' => 'required|numeric|min:1|max:100',
+            'discount_type' => 'required|in:percent,fixed,free_shipping',
+            'discount_value' => [
+                'required',
+                'numeric',
+                $discountType === 'free_shipping' ? 'min:0' : 'min:1',
+                $discountType === 'free_shipping' ? '' : 'max:100',
+            ],
             'max_discount' => 'nullable|numeric|min:0',
             'quantity' => 'required|integer|min:1',
             'start_date' => 'required|date',
@@ -44,9 +52,9 @@ class VoucherController extends Controller
         Voucher::create([
             'code' => $request->code,
             'name' => $request->name,
-            'discount_type' => 'percent',
-            'discount_value' => $request->discount_value,
-            'max_discount' => $request->max_discount,
+            'discount_type' => $discountType,
+            'discount_value' => $discountType === 'free_shipping' ? 0 : $request->discount_value,
+            'max_discount' => $discountType === 'free_shipping' ? 0 : $request->max_discount,
             'quantity' => $request->quantity,
             'used_quantity' => 0,
             'start_date' => $request->start_date,
@@ -86,10 +94,18 @@ class VoucherController extends Controller
     {
         $voucher = Voucher::findOrFail($id);
 
+        $discountType = $request->discount_type ?? 'percent';
+
         $request->validate([
             'code' => 'required|unique:vouchers,code,' . $id,
             'name' => 'required',
-            'discount_value' => 'required|numeric|min:1|max:100',
+            'discount_type' => 'required|in:percent,fixed,free_shipping',
+            'discount_value' => [
+                'required',
+                'numeric',
+                $discountType === 'free_shipping' ? 'min:0' : 'min:1',
+                $discountType === 'free_shipping' ? '' : 'max:100',
+            ],
             'max_discount' => 'nullable|numeric|min:0',
             'quantity' => 'required|integer|min:1',
             'start_date' => 'required|date',
@@ -100,12 +116,9 @@ class VoucherController extends Controller
         $voucher->update([
             'code' => $request->code,
             'name' => $request->name,
-
-            // Database của bạn dùng "percent"
-            'discount_type' => 'percent',
-
-            'discount_value' => $request->discount_value,
-            'max_discount' => $request->max_discount,
+            'discount_type' => $discountType,
+            'discount_value' => $discountType === 'free_shipping' ? 0 : $request->discount_value,
+            'max_discount' => $discountType === 'free_shipping' ? 0 : $request->max_discount,
             'quantity' => $request->quantity,
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,

@@ -8,9 +8,52 @@ use App\Models\OrderItem;
 use App\Models\Voucher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 
 class CheckoutController extends Controller
 {
+    protected function isFreeShippingVoucher($voucher): bool
+    {
+        if (!$voucher) {
+            return false;
+        }
+
+        $discountType = strtolower((string) ($voucher['discount_type'] ?? $voucher['type'] ?? ''));
+        $voucherCode = strtoupper((string) ($voucher['code'] ?? ''));
+        $voucherName = strtolower((string) ($voucher['name'] ?? ''));
+
+        return $discountType === 'free_shipping'
+            || $voucherCode === 'FREESHIP'
+            || str_contains($voucherName, 'miễn phí vận chuyển')
+            || str_contains($voucherName, 'free ship')
+            || str_contains($voucherName, 'freeship');
+    }
+
+    protected function calculateShippingFee(?string $city = null, ?string $ward = null, $voucher = null): float
+    {
+        if ($this->isFreeShippingVoucher($voucher)) {
+            return 0;
+        }
+
+        $city = trim((string) ($city ?? ''));
+        $wardValue = trim((string) ($ward ?? ''));
+        $baseFee = 30000;
+
+        if ($city === 'Hà Nội' || $city === 'Hồ Chí Minh' || $city === 'Đà Nẵng') {
+            $baseFee = 35000;
+        }
+
+        if ($city === 'Bình Dương' || $city === 'Đồng Nai' || $city === 'Khánh Hòa') {
+            $baseFee = 40000;
+        }
+
+        if ($wardValue !== '') {
+            $baseFee += 5000;
+        }
+
+        return round($baseFee);
+    }
+
     protected function cityList(): array
     {
         return [
@@ -39,6 +82,120 @@ class CheckoutController extends Controller
             'Cần Thơ' => ['Phường Cái Khế', 'Phường Bãi H L', 'Phường Tân An', 'Phường Ninh Kiều', 'Phường Hưng Lợi'],
         ];
     }
+
+    protected function ghnAddressRequest(
+    string $endpoint,
+    array $data = [],
+    string $method = 'get'
+): array {
+    $token = config('services.ghn.token');
+
+    if (empty($token)) {
+        return [];
+    }
+
+    $http = Http::withHeaders([
+        'Token' => $token,
+        'ShopId' => config('services.ghn.shop_id') ?: '',
+        'Content-Type' => 'application/json',
+    ]);
+
+    $response = $method === 'post'
+        ? $http->post(config('services.ghn.api_url') . $endpoint, $data)
+        : $http->get(config('services.ghn.api_url') . $endpoint, $data);
+
+   if (!$response->successful()) {
+    \Log::error('GHN API Error', [
+        'endpoint' => $endpoint,
+        'status' => $response->status(),
+        'body' => $response->body(),
+    ]);
+
+    return [];
+}
+
+    $data = $response->json('data', []);
+
+    return is_array($data) ? $data : [];
+}
+
+    public function addressOptions(Request $request)
+{
+    $type = $request->query('type');
+    $parentId = $request->query('parent_id');
+
+    if ($type === 'provinces') {
+
+        $items = $this->ghnAddressRequest(
+            '/master-data/province'
+        );
+
+        return response()->json([
+            'items' => collect($items)
+                ->map(function ($item) {
+                    return [
+                        'value' => $item['ProvinceName'] ?? '',
+                        'label' => $item['ProvinceName'] ?? '',
+                        'id' => $item['ProvinceID'] ?? '',
+                    ];
+                })
+                ->filter(fn ($item) => !empty($item['id']))
+                ->values(),
+        ]);
+    }
+
+    if ($type === 'districts' && $parentId !== null) {
+
+        $items = $this->ghnAddressRequest(
+            '/master-data/district',
+            [
+                'province_id' => (int) $parentId,
+            ],
+            'get'
+        );
+
+        return response()->json([
+            'items' => collect($items)
+                ->map(function ($item) {
+                    return [
+                        'value' => $item['DistrictName'] ?? '',
+                        'label' => $item['DistrictName'] ?? '',
+                        'id' => $item['DistrictID'] ?? '',
+                    ];
+                })
+                ->filter(fn ($item) => !empty($item['id']))
+                ->values(),
+        ]);
+    }
+
+    if ($type === 'wards' && $parentId !== null) {
+
+        $items = $this->ghnAddressRequest(
+            '/master-data/ward',
+            [
+                'district_id' => (int) $parentId,
+            ],
+            'post'
+        );
+
+        return response()->json([
+            'items' => collect($items)
+                ->map(function ($item) {
+                    return [
+                        'value' => $item['WardName'] ?? '',
+                        'label' => $item['WardName'] ?? '',
+                        'id' => $item['WardCode'] ?? '',
+                    ];
+                })
+                ->filter(fn ($item) => !empty($item['id']))
+                ->values(),
+        ]);
+    }
+
+    return response()->json([
+        'items' => []
+    ], 400);
+}
 
     public function index()
     {
@@ -72,6 +229,7 @@ class CheckoutController extends Controller
 
         $voucher = session('voucher');
         $discountAmount = 0;
+        $shippingFee = $this->calculateShippingFee($defaultCustomer['city'] ?? '', $defaultCustomer['ward'] ?? '', $voucher);
 
         if ($voucher && isset($voucher['id'])) {
             $voucherModel = Voucher::find($voucher['id']);
@@ -84,7 +242,9 @@ class CheckoutController extends Controller
                 );
 
                 if ($validVoucher) {
-                    if ($voucherModel->discount_type === 'percent') {
+                    if ($voucherModel->discount_type === 'free_shipping') {
+                        $shippingFee = 0;
+                    } elseif ($voucherModel->discount_type === 'percent') {
                         $discountAmount = $totalPrice * ((float) $voucherModel->discount_value / 100);
                         if (!empty($voucherModel->max_discount) && $discountAmount > (float) $voucherModel->max_discount) {
                             $discountAmount = (float) $voucherModel->max_discount;
@@ -107,7 +267,7 @@ class CheckoutController extends Controller
             }
         }
 
-        $finalTotal = max(0, $totalPrice - $discountAmount);
+        $finalTotal = max(0, $totalPrice + $shippingFee - $discountAmount);
         $cityOptions = $this->cityList();
         $wardOptions = $this->wardListByCity();
 
@@ -117,6 +277,7 @@ class CheckoutController extends Controller
             'wardOptions',
             'defaultCustomer',
             'totalPrice',
+            'shippingFee',
             'discountAmount',
             'finalTotal',
             'voucher'
@@ -154,16 +315,25 @@ class CheckoutController extends Controller
             return redirect()->route('checkout.show')->with('voucher_error', 'Voucher đã hết hạn.');
         }
 
-        session()->put('voucher', [
+        $voucherPayload = [
             'id' => $voucher->id,
             'code' => $voucher->code,
             'name' => $voucher->name,
             'discount_type' => $voucher->discount_type,
             'discount_value' => $voucher->discount_value,
             'max_discount' => $voucher->max_discount,
-        ]);
+        ];
 
-        return redirect()->route('checkout.show')->with('voucher_success', 'Áp dụng voucher thành công!');
+        if ($voucher->discount_type === 'free_shipping') {
+            $voucherPayload['name'] = $voucher->name ?: 'Miễn phí vận chuyển';
+            $voucherPayload['discount_value'] = 0;
+            $voucherPayload['max_discount'] = 0;
+            $voucherPayload['is_free_shipping'] = true;
+        }
+
+        session()->put('voucher', $voucherPayload);
+
+        return redirect()->route('checkout.show')->with('voucher_success', $voucher->discount_type === 'free_shipping' ? 'Áp dụng voucher miễn phí vận chuyển thành công!' : 'Áp dụng voucher thành công!');
     }
 
     public function removeVoucher()
@@ -235,12 +405,18 @@ class CheckoutController extends Controller
             }
         }
 
-        $finalTotal = max(0, $totalPrice - $discountAmount);
+        $shippingFee = $this->calculateShippingFee($request->city, $request->ward, $voucher);
+        $finalTotal = max(0, $totalPrice + $shippingFee - $discountAmount);
         $address = trim($request->address_detail) . ', ' . trim($request->ward) . ', ' . trim($request->city);
 
         DB::beginTransaction();
 
         try {
+            // All orders start with 'pending' status, awaiting admin confirmation
+            // For VNPay: Create with 'pending_payment' initially, then move to 'pending' after payment
+            // For COD: Create with 'pending' directly
+            $orderStatus = $request->payment_method === 'vnpay' ? 'pending_payment' : 'pending';
+
             $order = Order::create([
                 'customer_name' => $request->customer_name,
                 'phone' => $request->phone,
@@ -251,10 +427,11 @@ class CheckoutController extends Controller
                 'ward' => $request->ward,
                 'voucher_code' => $voucherCode !== '' ? strtoupper($voucherCode) : null,
                 'discount_amount' => $discountAmount,
+                'shipping_fee' => $shippingFee,
                 'note' => null,
                 'total_price' => $finalTotal,
                 'payment_method' => $request->payment_method,
-                'status' => 'pending',
+                'status' => $orderStatus,
             ]);
 
             foreach ($cart as $item) {
@@ -277,18 +454,14 @@ class CheckoutController extends Controller
             return back()->with('error', 'Đặt hàng thất bại: ' . $e->getMessage())->withInput();
         }
 
-        $this->clearCartItems();
+        if ($request->payment_method === 'vnpay') {
+            return redirect()->route('payment.vnpay', $order->id);
+        }
+
+        session()->forget('cart');
         session()->forget('voucher');
 
-        if ($request->payment_method === 'cod') {
-            return redirect()->route('checkout.success');
-        }
-
-        if ($request->payment_method === 'vnpay') {
-            return redirect()->route('payment.vnpay', ['order' => $order->id]);
-        }
-
-        return back()->with('error', 'Phương thức thanh toán không hợp lệ.');
+        return redirect()->route('checkout.success')->with('success', 'Đặt hàng thành công! Chúng tôi sẽ liên hệ với bạn trong thời gian sớm nhất.');
     }
 }
 

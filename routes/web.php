@@ -33,6 +33,7 @@ Route::post('/cart/remove', [ClientCartController::class, 'remove'])->name('cart
 Route::post('/cart/update', [ClientCartController::class, 'update'])->name('cart.update');
 
 Route::get('/checkout', [ClientCheckoutController::class, 'index'])->name('checkout.show');
+Route::get('/checkout/address-options', [ClientCheckoutController::class, 'addressOptions'])->name('checkout.addressOptions');
 Route::post('/checkout/submit', [ClientCheckoutController::class, 'store'])->name('checkout.submit');
 
 Route::post('/checkout/apply-voucher', [ClientCheckoutController::class, 'applyVoucher'])->name('checkout.applyVoucher');
