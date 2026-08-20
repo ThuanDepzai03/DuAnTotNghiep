@@ -44,51 +44,43 @@
                 </div>
 
                 <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle">
-                            <thead>
-                                <tr>
-                                    <th>Sản phẩm</th>
-                                    <th>SKU</th>
-                                    <th>Số lượng</th>
-                                    <th>Đơn giá</th>
-                                    <th>Thành tiền</th>
-                                </tr>
-                            </thead>
+                    @forelse($order->items as $item)
+                        @php
+                            $variant = $item->variant;
+                            $product = $variant?->product;
+                            $lineTotal = $item->quantity * $item->price;
+                            $images = $product?->images ?? [];
+                            $image = $images->first();
+                        @endphp
 
-                            <tbody>
-                                @forelse($order->items as $item)
-                                    @php
-                                        $variant = $item->variant;
-                                        $product = $variant?->product;
-                                        $lineTotal = $item->quantity * $item->price;
-                                    @endphp
+                        <div class="d-flex gap-3 mb-4 pb-3 border-bottom">
+                            <!-- Ảnh sản phẩm -->
+                            <div style="flex-shrink: 0;">
+                                @if($image && $image->image_url)
+                                    <img src="{{ asset('storage/' . $image->image_url) }}" 
+                                         alt="{{ $product->name }}"
+                                         style="width: 100px; height: 100px; object-fit: cover; border-radius: 4px;">
+                                @else
+                                    <div style="width: 100px; height: 100px; background-color: #f0f0f0; display: flex; align-items: center; justify-content: center; border-radius: 4px; color: #999;">
+                                        Không có ảnh
+                                    </div>
+                                @endif
+                            </div>
 
-                                    <tr>
-                                        <td>
-                                            <strong>{{ $product->name ?? 'Sản phẩm không tồn tại' }}</strong>
-                                        </td>
+                            <!-- Thông tin sản phẩm -->
+                            <div class="flex-grow-1">
+                                <h6 class="mb-2">{{ $product->name ?? 'Sản phẩm không tồn tại' }}</h6>
+                                <p class="mb-1 small text-muted"><strong>SKU:</strong> {{ $variant->sku ?? 'Không có' }}</p>
+                                <p class="mb-1 small text-muted"><strong>Số lượng:</strong> {{ $item->quantity }}</p>
+                                <p class="mb-1 small text-muted"><strong>Đơn giá:</strong> {{ number_format($item->price, 0, ',', '.') }} ₫</p>
+                                <p class="mb-0"><strong>Thành tiền:</strong> <span class="text-danger">{{ number_format($lineTotal, 0, ',', '.') }} ₫</span></p>
+                            </div>
+                        </div>
+                    @empty
+                        <p class="text-center text-muted">Không có sản phẩm trong đơn hàng.</p>
+                    @endforelse
 
-                                        <td>{{ $variant->sku ?? 'Không có' }}</td>
-
-                                        <td>{{ $item->quantity }}</td>
-
-                                        <td>{{ number_format($item->price, 0, ',', '.') }} ₫</td>
-
-                                        <td>{{ number_format($lineTotal, 0, ',', '.') }} ₫</td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="5" class="text-center">
-                                            Không có sản phẩm trong đơn hàng.
-                                        </td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="text-end mt-3">
+                    <div class="text-end mt-3 pt-3 border-top">
                         <h5>
                             Tổng tiền:
                             <strong class="text-danger">
@@ -103,15 +95,42 @@
         <div class="col-12 col-lg-5">
             <div class="card mb-4">
                 <div class="card-header">
-                    <h4 class="card-title mb-0">Thanh toán</h4>
+                    <h4 class="card-title mb-0">Thông tin thanh toán</h4>
                 </div>
 
                 <div class="card-body">
-                    <p><strong>Phương thức:</strong> {{ strtoupper($order->payment_method) }}</p>
-                    <p><strong>Mã giao dịch:</strong> {{ $order->transaction_no ?? 'Chưa có' }}</p>
-                    <p><strong>Ngân hàng:</strong> {{ $order->bank_code ?? 'Chưa có' }}</p>
-                    <p><strong>Thời gian thanh toán:</strong>
-                        {{ $order->paid_at ? \Carbon\Carbon::parse($order->paid_at)->format('d/m/Y H:i') : 'Chưa thanh toán' }}
+                    <p class="mb-3">
+                        <strong>Phương thức thanh toán:</strong>
+                        @if($order->payment_method === 'cod')
+                            <span class="badge bg-info">Thanh toán khi nhận hàng (COD)</span>
+                        @elseif($order->payment_method === 'vnpay')
+                            <span class="badge bg-success">VNPay</span>
+                        @else
+                            <span class="badge bg-secondary">{{ strtoupper($order->payment_method) }}</span>
+                        @endif
+                    </p>
+
+                    @if($order->payment_method === 'vnpay')
+                        <p class="mb-2">
+                            <strong>Mã giao dịch:</strong> 
+                            <code>{{ $order->transaction_no ?? 'Chưa có' }}</code>
+                        </p>
+                        <p class="mb-2">
+                            <strong>Ngân hàng:</strong> {{ $order->bank_code ?? 'Chưa có' }}
+                        </p>
+                    @endif
+
+                    <p class="mb-0">
+                        <strong>Thời gian thanh toán:</strong>
+                        @if($order->payment_method === 'cod')
+                            @if($order->status === 'completed')
+                                {{ \Carbon\Carbon::parse($order->completed_at)->format('d/m/Y H:i') ?? 'Đang cập nhật' }}
+                            @else
+                                <span class="text-muted">Đang cập nhật</span>
+                            @endif
+                        @else
+                            {{ $order->paid_at ? \Carbon\Carbon::parse($order->paid_at)->format('d/m/Y H:i') : 'Chưa thanh toán' }}
+                        @endif
                     </p>
                 </div>
             </div>

@@ -11,21 +11,29 @@ class HomeController extends Controller
     public function home(Request $request)
     {
         // 1. Lấy danh sách danh mục từ database
-        $danhmuc = DB::table('danhmuc')->where('deleted', 0)->get();
+        $danhmuc = DB::table('categories')
+            ->where('status', 1)
+            ->get();
 
         // 2. Lấy danh sách sản phẩm (Có join với bảng danh mục để lấy tên danh mục)
-        $query = DB::table('sanpham')
-            ->join('danhmuc', 'sanpham.iddm', '=', 'danhmuc.id')
-            ->select('sanpham.*', 'danhmuc.name as category_name')
-            ->where('sanpham.deleted', 0);
+        $query = DB::table('products')
+            ->join('categories', 'products.category_id', '=', 'categories.id')
+            ->select(
+                'products.*',
+                'categories.name as category_name'
+            )
+            ->where('products.status', 1);
 
         // Nếu người dùng có click lọc theo danh mục
         if ($request->has('iddm') && $request->iddm != 'all') {
-            $query->where('sanpham.iddm', $request->iddm);
+            $query->where('products.category_id', $request->iddm);
         }
 
         // Lấy 8 sản phẩm mới nhất
-        $newProducts = $query->orderBy('sanpham.id', 'desc')->limit(8)->get();
+        $newProducts = $query
+            ->orderBy('products.id', 'desc')
+            ->limit(8)
+            ->get();
 
         // 3. Chuyển đổi dữ liệu sang dạng Mảng (Array) để tương thích 100% với giao diện cũ
         $danhmuc = json_decode(json_encode($danhmuc), true);

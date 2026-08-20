@@ -152,4 +152,30 @@ class AuthAndProfileTest extends TestCase
             ->assertSee('value="123 Nguyễn Văn Cừ"', false)
             ->assertSee('value="0909123456"', false);
     }
+
+    public function test_checkout_shows_shipping_fee_and_free_shipping_voucher_reduces_it_to_zero(): void
+    {
+        session(['customer' => [
+            'id' => 1,
+            'user' => 'khachhang1',
+            'email' => 'khachhang1@example.com',
+            'address' => '123 Nguyễn Văn Cừ',
+            'tel' => '0909123456',
+            'role' => 0,
+        ], 'voucher' => [
+            'id' => 999,
+            'code' => 'FREESHIP',
+            'name' => 'Miễn phí vận chuyển',
+            'discount_type' => 'free_shipping',
+            'discount_value' => 0,
+            'max_discount' => 0,
+            'is_free_shipping' => true,
+        ]]);
+
+        $response = $this->get('/checkout');
+
+        $response->assertStatus(200)
+            ->assertSee('Phí vận chuyển')
+            ->assertSee('Miễn phí');
+    }
 }

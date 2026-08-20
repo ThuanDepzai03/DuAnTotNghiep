@@ -63,6 +63,13 @@
                         </a>
                     </li>
 
+                    <li class="sidebar-item {{ request()->routeIs('admin.banners.*') ? 'active' : '' }}">
+                        <a href="{{ route('admin.banners.index') }}" class="sidebar-link">
+                            <i class="bi bi-images"></i>
+                            <span>Banner trang chủ</span>
+                        </a>
+                    </li>
+
                     <li class="sidebar-item {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
                         <a href="{{ route('admin.users.index') }}" class="sidebar-link">
                             <i class="bi bi-people-fill"></i>
@@ -76,7 +83,12 @@
                             <span>Đơn hàng</span>
                         </a>
                     </li>
-
+<li class="sidebar-item {{ request()->routeIs('admin.vouchers.*') ? 'active' : '' }}">
+    <a href="{{ route('admin.vouchers.index') }}" class="sidebar-link">
+        <i class="bi bi-tag-fill"></i>
+        <span>Voucher</span>
+    </a>
+</li>
                     <li class="sidebar-item {{ request()->routeIs('admin.statistics.revenue') ? 'active' : '' }}">
                         <a href="{{ route('admin.statistics.revenue') }}" class="sidebar-link">
                             <i class="bi bi-bar-chart-line-fill"></i>

@@ -22,18 +22,18 @@ class AdminController extends Controller
     ];
 
     // Hôm nay
-    $revenueToday = Order::where('status', 'completed')
+    $revenueToday = Order::where('status', 'completed')->whereNotIn('status', ['pending_payment'])
         ->whereDate('created_at', today())
         ->sum('total_price');
 
     // Tháng này
-    $revenueMonth = Order::where('status', 'completed')
+    $revenueMonth = Order::where('status', 'completed')->whereNotIn('status', ['pending_payment'])
         ->whereMonth('created_at', now()->month)
         ->whereYear('created_at', now()->year)
         ->sum('total_price');
 
     // Query doanh thu
-    $query = Order::where('status', 'completed');
+    $query = Order::where('status', 'completed')->whereNotIn('status', ['pending_payment']);
 
     if ($from) {
         $query->whereDate('created_at', '>=', $from);
