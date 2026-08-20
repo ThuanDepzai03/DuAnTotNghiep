@@ -141,9 +141,9 @@ Route::middleware(['web', 'admin'])
 
         Route::resource('users', UserController::class);
         Route::resource('brands', BrandController::class);
-        Route::resource('banners', BannerController::class)->except(['show']);
-        Route::post('/banners/{id}/restore', [BannerController::class, 'restore'])
-            ->name('banners.restore');
+        Route::resource('banners', BannerController::class);
+        Route::patch('/banners/{banner}/toggle-status', [BannerController::class, 'toggleStatus'])
+            ->name('banners.toggle-status');
         Route::resource('vouchers', VoucherController::class);
         Route::get('/statistics/revenue', [OrderController::class, 'revenue'])
     ->name('statistics.revenue');

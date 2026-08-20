@@ -154,32 +154,6 @@
 <script src="{{ asset('admin-assets/js/bootstrap.bundle.min.js') }}"></script>
 <script src="{{ asset('admin-assets/vendors/simple-datatables/simple-datatables.js') }}"></script>
 <script src="{{ asset('admin-assets/js/main.js') }}"></script>
-<script>
-    function updateChatNotification() {
-        fetch("{{ route('admin.chat.unread') }}")
-            .then(response => response.json())
-            .then(data => {
-                const badge = document.getElementById('notification-count');
-
-                if (!badge) {
-                    return;
-                }
-
-                if (data.count > 0) {
-                    badge.textContent = data.count;
-                    badge.style.display = 'flex';
-                } else {
-                    badge.style.display = 'none';
-                }
-            })
-            .catch(error => {
-                console.log('Không thể lấy thông báo chat:', error);
-            });
-    }
-
-    updateChatNotification();
-
-    setInterval(updateChatNotification, 3000);
-</script>
+@stack('scripts')
 </body>
 </html>

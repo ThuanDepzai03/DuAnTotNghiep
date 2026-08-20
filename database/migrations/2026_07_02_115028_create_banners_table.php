@@ -11,15 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-       Schema::create('banners', function (Blueprint $table) {
-    $table->id();
-    $table->string('title')->nullable();
-    $table->string('image')->nullable();
-    $table->string('link')->nullable();
-    $table->string('position')->default('home');
-    $table->tinyInteger('status')->default(1);
-    $table->timestamps();
-});
+        Schema::create('banners', function (Blueprint $table) {
+            $table->id();
+            $table->string('title')->nullable();
+            $table->string('subtitle')->nullable();
+            $table->unsignedTinyInteger('title_font_size')->default(37);
+            $table->unsignedTinyInteger('subtitle_font_size')->default(16);
+            $table->string('image');
+            $table->string('link')->nullable();
+            $table->string('type')->default('hero');
+            $table->integer('position')->default(0);
+            $table->boolean('status')->default(true);
+            $table->timestamps();
+        });
     }
 
     /**
