@@ -51,6 +51,24 @@
             </div>
         </div>
 
+        <div class="header-search-bar">
+            <div class="container">
+                <form action="{{ route('shop') }}" method="GET" class="header-search-form">
+                    <label class="sr-only" for="header-search-input">Tìm kiếm sản phẩm</label>
+                    <input
+                        id="header-search-input"
+                        type="search"
+                        name="keyword"
+                        value="{{ request('keyword') }}"
+                        placeholder="Tìm kiếm sản phẩm..."
+                        autocomplete="off"
+                    >
+                    <button type="submit" aria-label="Tìm kiếm">
+                        <i class="fa fa-search" aria-hidden="true"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
 
         <nav id="navigation" aria-label="Primary navigation">
             <div class="container">

@@ -100,76 +100,74 @@
                             @endforeach
                         </select>
                     </div>
+
                     {{-- Lọc theo cấu hình --}}
-<div class="shop-filter-group config-filter-group">
-    <h3 class="shop-filter-title">Cấu hình</h3>
+                    <div class="shop-filter-group config-filter-group">
+                        <h3 class="shop-filter-title">Cấu hình</h3>
 
-    {{-- Màu sắc --}}
-    @if($colors->isNotEmpty())
-        <div class="config-filter-item">
-            <strong>Màu sắc</strong>
+                        {{-- Màu sắc --}}
+                        @if(isset($colors) && $colors->isNotEmpty())
+                            <div class="config-filter-item">
+                                <strong>Màu sắc</strong>
 
-            <div class="config-options">
-                @foreach($colors as $color)
-                    <label class="config-option">
-                        <input
-                            type="checkbox"
-                            name="colors[]"
-                            value="{{ $color->id }}"
-                            {{ in_array($color->id, $selectedColors) ? 'checked' : '' }}
-                        >
+                                <div class="config-options">
+                                    @foreach($colors as $color)
+                                        <label class="config-option">
+                                            <input
+                                                type="checkbox"
+                                                name="colors[]"
+                                                value="{{ $color->id }}"
+                                                {{ in_array($color->id, $selectedColors ?? []) ? 'checked' : '' }}
+                                            >
+                                            <span>{{ $color->value }}</span>
+                                        </label>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
 
-                        <span>{{ $color->value }}</span>
-                    </label>
-                @endforeach
-            </div>
-        </div>
-    @endif
+                        {{-- RAM --}}
+                        @if(isset($rams) && $rams->isNotEmpty())
+                            <div class="config-filter-item">
+                                <strong>RAM</strong>
 
-    {{-- RAM --}}
-    @if($rams->isNotEmpty())
-        <div class="config-filter-item">
-            <strong>RAM</strong>
+                                <div class="config-options">
+                                    @foreach($rams as $ram)
+                                        <label class="config-option">
+                                            <input
+                                                type="checkbox"
+                                                name="rams[]"
+                                                value="{{ $ram->id }}"
+                                                {{ in_array($ram->id, $selectedRams ?? []) ? 'checked' : '' }}
+                                            >
+                                            <span>{{ $ram->value }}</span>
+                                        </label>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
 
-            <div class="config-options">
-                @foreach($rams as $ram)
-                    <label class="config-option">
-                        <input
-                            type="checkbox"
-                            name="rams[]"
-                            value="{{ $ram->id }}"
-                            {{ in_array($ram->id, $selectedRams) ? 'checked' : '' }}
-                        >
+                        {{-- Bộ nhớ --}}
+                        @if(isset($storages) && $storages->isNotEmpty())
+                            <div class="config-filter-item">
+                                <strong>Bộ nhớ</strong>
 
-                        <span>{{ $ram->value }}</span>
-                    </label>
-                @endforeach
-            </div>
-        </div>
-    @endif
-
-    {{-- Bộ nhớ --}}
-    @if($storages->isNotEmpty())
-        <div class="config-filter-item">
-            <strong>Bộ nhớ</strong>
-
-            <div class="config-options">
-                @foreach($storages as $storage)
-                    <label class="config-option">
-                        <input
-                            type="checkbox"
-                            name="storages[]"
-                            value="{{ $storage->id }}"
-                            {{ in_array($storage->id, $selectedStorages) ? 'checked' : '' }}
-                        >
-
-                        <span>{{ $storage->value }}</span>
-                    </label>
-                @endforeach
-            </div>
-        </div>
-    @endif
-</div>
+                                <div class="config-options">
+                                    @foreach($storages as $storage)
+                                        <label class="config-option">
+                                            <input
+                                                type="checkbox"
+                                                name="storages[]"
+                                                value="{{ $storage->id }}"
+                                                {{ in_array($storage->id, $selectedStorages ?? []) ? 'checked' : '' }}
+                                            >
+                                            <span>{{ $storage->value }}</span>
+                                        </label>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+                    </div>
 
                     <button
                         type="submit"
@@ -191,7 +189,7 @@
 
             {{-- Danh sách sản phẩm --}}
             <main class="col-md-9">
-                <div class="row">
+                <div class="row product-grid">
                     @forelse ($products as $product)
                         @php
                             $activeVariants = $product->variants
@@ -205,7 +203,7 @@
                                 ? ($cheapestVariant->sale_price ?? $cheapestVariant->price)
                                 : 0;
 
-                            $oldPrice = $cheapestVariant?->sale_price
+                            $oldPrice = ($cheapestVariant && $cheapestVariant->sale_price)
                                 ? $cheapestVariant->price
                                 : null;
 
@@ -229,14 +227,13 @@
                             }
                         @endphp
 
-                        <div class="col-md-4 col-sm-6 mb-4">
+                        <div class="col-md-4 col-sm-6 product-column">
                             <div class="product">
                                 <div class="product-img">
                                     <a href="{{ route('product.detail', ['id' => $product->id]) }}">
                                         <img
                                             src="{{ $imgSrc }}"
                                             alt="{{ $product->name }}"
-                                            style="width: 100%; height: 250px; object-fit: cover;"
                                             onerror="this.onerror=null;this.src='{{ asset('img/product01.png') }}';"
                                         >
                                     </a>
@@ -258,7 +255,7 @@
                                     </h3>
 
                                     <h4 class="product-price">
-                                        Từ {{ number_format($displayPrice, 0, ',', '.') }} ₫
+                                        {{ number_format($displayPrice, 0, ',', '.') }} ₫
 
                                         @if ($oldPrice)
                                             <del class="product-old-price">
@@ -280,6 +277,10 @@
                                             <i class="fa fa-heart-o"></i>
                                         </button>
 
+                                        <button type="button" class="add-to-compare">
+                                            <i class="fa fa-exchange"></i>
+                                        </button>
+
                                         <a
                                             class="quick-view"
                                             href="{{ route('product.detail', ['id' => $product->id]) }}"
@@ -290,19 +291,16 @@
                                 </div>
 
                                 <div class="add-to-cart">
-                                    @if ($cheapestVariant)
+                                    @if ($cheapestVariant && ($cheapestVariant->stock ?? 1) > 0)
                                         <form action="{{ route('cart.add') }}" method="POST">
                                             @csrf
-
                                             <input
                                                 type="hidden"
                                                 name="product_variant_id"
                                                 value="{{ $cheapestVariant->id }}"
                                             >
-
                                             <button type="submit" class="add-to-cart-btn">
-                                                <i class="fa fa-shopping-cart"></i>
-                                                Thêm vào giỏ
+                                                <i class="fa fa-shopping-cart"></i> Thêm vào giỏ
                                             </button>
                                         </form>
                                     @else
@@ -310,8 +308,7 @@
                                             href="{{ route('product.detail', ['id' => $product->id]) }}"
                                             class="add-to-cart-btn"
                                         >
-                                            <i class="fa fa-eye"></i>
-                                            Xem chi tiết
+                                            <i class="fa fa-eye"></i> Xem chi tiết
                                         </a>
                                     @endif
                                 </div>
@@ -390,8 +387,7 @@
         cursor: pointer;
         margin: 0;
     }
-</style>
-<style>
+
     .config-filter-group {
         margin-top: 20px;
         padding-top: 5px;
@@ -451,6 +447,155 @@
         background: #fff1f3;
         color: #d10024;
         font-weight: 600;
+    }
+
+    /* ===== Đồng bộ Product Grid & Card từ Trang chủ ===== */
+    .product-grid {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .product-grid .product-column {
+        display: flex;
+        margin-bottom: 30px;
+    }
+
+    .product-grid .product {
+        width: 100%;
+        min-height: 100%;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid #e7e7e7;
+        background: #fff;
+        border-radius: 6px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .product-grid .product:hover {
+        box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        border-color: #d10024;
+    }
+
+    .product-grid .product-img {
+        height: 240px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .product-grid .product-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    .product-grid .product-body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        text-align: center;
+        padding: 12px 15px 16px;
+    }
+
+    .product-grid .product-category {
+        min-height: 20px;
+        margin: 0 0 8px;
+        text-transform: uppercase;
+        font-size: 11px;
+        color: #8d99ae;
+        font-weight: 600;
+    }
+
+    .product-grid .product-name {
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 0 10px;
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    .product-grid .product-price {
+        min-height: 28px;
+        margin: 0 0 12px;
+        color: #d10024;
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    .product-grid .product-old-price {
+        font-size: 70%;
+        font-weight: 400;
+        color: #8d99ae;
+        margin-left: 5px;
+    }
+
+    .product-grid .product-rating {
+        margin-top: auto;
+        padding-top: 5px;
+        color: #d10024;
+        font-size: 11px;
+    }
+
+    .product-grid .product-btns {
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid #eeeeee;
+    }
+
+    .product-grid .product-btns button,
+    .product-grid .quick-view {
+        background: transparent;
+        border: none;
+        color: #8d99ae;
+        padding: 0 6px;
+        transition: 0.2s;
+    }
+
+    .product-grid .product-btns button:hover,
+    .product-grid .quick-view:hover {
+        color: #d10024;
+    }
+
+    .product-grid .add-to-cart {
+        position: static;
+        transform: none;
+        padding: 0 15px 15px;
+        margin-top: auto;
+        background: transparent;
+    }
+
+    .product-grid .product:hover .add-to-cart {
+        transform: none;
+    }
+
+    .product-grid .add-to-cart form {
+        margin: 0;
+    }
+
+    .product-grid .add-to-cart-btn {
+        display: block;
+        width: 100%;
+        border: none;
+        background: #d10024;
+        color: #fff;
+        padding: 8px 12px;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 12px;
+        text-transform: uppercase;
+        text-align: center;
+        transition: 0.2s;
+    }
+
+    .product-grid .add-to-cart-btn:hover {
+        background: #1e1f29;
+        color: #fff;
     }
 </style>
 @endsection

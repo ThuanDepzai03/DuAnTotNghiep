@@ -11,6 +11,7 @@ use App\Http\Controllers\Client\PaymentController;
 use App\Http\Controllers\ProductVariantController;
 use App\Http\Controllers\VoucherController;
 use App\Http\Controllers\Admin\BrandController;
+use App\Http\Controllers\Admin\BannerController;
 // Admin Controllers cũ của nhóm
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminAuthController;
@@ -135,6 +136,9 @@ Route::middleware(['web', 'admin'])
 
         Route::resource('users', UserController::class);
         Route::resource('brands', BrandController::class);
+        Route::resource('banners', BannerController::class)->except(['show']);
+        Route::post('/banners/{id}/restore', [BannerController::class, 'restore'])
+            ->name('banners.restore');
         Route::resource('vouchers', VoucherController::class);
         Route::get('/statistics/revenue', [OrderController::class, 'revenue'])
             ->name('statistics.revenue');

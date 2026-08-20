@@ -3,7 +3,7 @@
    ========================================================= */
 
 body {
-    padding-top: 115px;
+    padding-top: 175px;
 }
 
 /* =========================================================
@@ -33,6 +33,45 @@ body {
 
 .site-header.is-scrolled {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.header-search-bar {
+    background: #15161d;
+    padding: 10px 0;
+}
+
+.header-search-form {
+    display: flex;
+    max-width: 680px;
+    margin: 0 auto;
+}
+
+.header-search-form input {
+    flex: 1;
+    min-width: 0;
+    height: 40px;
+    padding: 0 16px;
+    border: 1px solid #e4e7ed;
+    border-right: 0;
+    border-radius: 20px 0 0 20px;
+    outline: none;
+}
+
+.header-search-form input:focus {
+    border-color: #d10024;
+}
+
+.header-search-form button {
+    width: 52px;
+    height: 40px;
+    border: 0;
+    border-radius: 0 20px 20px 0;
+    background: #d10024;
+    color: #fff;
+}
+
+.header-search-form button:hover {
+    background: #a9001d;
 }
 
 

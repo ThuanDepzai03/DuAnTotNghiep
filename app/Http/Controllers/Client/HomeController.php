@@ -13,7 +13,10 @@ class HomeController extends Controller
 {
     public function index(Request $request)
     {
-        $banners = Banner::where('status', 1)->get();
+        $banners = Banner::where('position', 'home')
+            ->where('status', 1)
+            ->latest()
+            ->get();
 
         $categories = Category::where('status', 1)->get();
 

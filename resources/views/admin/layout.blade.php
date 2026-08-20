@@ -62,6 +62,13 @@
                         </a>
                     </li>
 
+                    <li class="sidebar-item {{ request()->routeIs('admin.banners.*') ? 'active' : '' }}">
+                        <a href="{{ route('admin.banners.index') }}" class="sidebar-link">
+                            <i class="bi bi-images"></i>
+                            <span>Banner trang chủ</span>
+                        </a>
+                    </li>
+
                     <li class="sidebar-item {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
                         <a href="{{ route('admin.users.index') }}" class="sidebar-link">
                             <i class="bi bi-people-fill"></i>
