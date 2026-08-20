@@ -3,46 +3,45 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreBannerRequest;
+use App\Http\Requests\UpdateBannerRequest;
 use App\Models\Banner;
-use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Str;
+use Illuminate\View\View;
 
 class BannerController extends Controller
 {
-    public function index()
+    public function index(): View
     {
-        $banners = Banner::where('position', 'home')
-            ->orderByDesc('status')
+        $banners = Banner::query()
+            ->when(request('type'), fn ($query, $type) => $query->byType($type))
+            ->orderBy('position')
             ->latest()
-            ->get();
+            ->paginate(10)
+            ->withQueryString();
 
         return view('admin.banners.index', compact('banners'));
     }
 
-    public function create()
+    public function create(): View
     {
         return view('admin.banners.create');
     }
 
-    public function store(Request $request)
+    public function store(StoreBannerRequest $request): RedirectResponse
     {
-        $data = $request->validate([
-            'title' => ['nullable', 'string', 'max:255'],
-            'image' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
-            'link' => ['nullable', 'url', 'max:255'],
-            'status' => ['required', 'in:0,1'],
-        ], [
-            'image.required' => 'Vui lòng chọn ảnh banner.',
-            'image.image' => 'Tệp tải lên phải là hình ảnh.',
-            'image.max' => 'Ảnh banner không được vượt quá 4MB.',
-            'link.url' => 'Liên kết banner không hợp lệ.',
-        ]);
+        $data = $request->validated();
 
         Banner::create([
             'title' => trim($data['title'] ?? ''),
+            'subtitle' => trim($data['subtitle'] ?? ''),
+            'title_font_size' => (int) $data['title_font_size'],
+            'subtitle_font_size' => (int) $data['subtitle_font_size'],
             'image' => $this->uploadImage($request->file('image')),
             'link' => $data['link'] ?? null,
-            'position' => 'home',
+            'type' => $data['type'],
+            'position' => (int) $data['position'],
             'status' => (int) $data['status'],
         ]);
 
@@ -51,31 +50,35 @@ class BannerController extends Controller
             ->with('success', 'Thêm banner trang chủ thành công.');
     }
 
-    public function edit(Banner $banner)
+    public function show(Banner $banner): RedirectResponse
+    {
+        return redirect()->route('admin.banners.edit', $banner);
+    }
+
+    public function edit(Banner $banner): View
     {
         return view('admin.banners.edit', compact('banner'));
     }
 
-    public function update(Request $request, Banner $banner)
+    public function update(UpdateBannerRequest $request, Banner $banner): RedirectResponse
     {
-        $data = $request->validate([
-            'title' => ['nullable', 'string', 'max:255'],
-            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
-            'link' => ['nullable', 'url', 'max:255'],
-            'status' => ['required', 'in:0,1'],
-        ], [
-            'image.image' => 'Tệp tải lên phải là hình ảnh.',
-            'image.max' => 'Ảnh banner không được vượt quá 4MB.',
-            'link.url' => 'Liên kết banner không hợp lệ.',
-        ]);
+        $data = $request->validated();
+        $imagePath = $banner->image;
+
+        if ($request->hasFile('image')) {
+            $this->deleteImage($banner->image);
+            $imagePath = $this->uploadImage($request->file('image'));
+        }
 
         $banner->update([
             'title' => trim($data['title'] ?? ''),
-            'image' => $request->hasFile('image')
-                ? $this->uploadImage($request->file('image'))
-                : $banner->image,
+            'subtitle' => trim($data['subtitle'] ?? ''),
+            'title_font_size' => (int) $data['title_font_size'],
+            'subtitle_font_size' => (int) $data['subtitle_font_size'],
+            'image' => $imagePath,
             'link' => $data['link'] ?? null,
-            'position' => 'home',
+            'type' => $data['type'],
+            'position' => (int) $data['position'],
             'status' => (int) $data['status'],
         ]);
 
@@ -84,28 +87,28 @@ class BannerController extends Controller
             ->with('success', 'Cập nhật banner thành công.');
     }
 
-    public function destroy(Banner $banner)
+    public function destroy(Banner $banner): RedirectResponse
     {
-        $banner->update(['status' => 0]);
+        $this->deleteImage($banner->image);
+        $banner->delete();
 
         return redirect()
             ->route('admin.banners.index')
-            ->with('success', 'Đã ẩn banner.');
+            ->with('success', 'Đã xóa banner.');
     }
 
-    public function restore($id)
+    public function toggleStatus(Banner $banner): RedirectResponse
     {
-        $banner = Banner::findOrFail($id);
-        $banner->update(['status' => 1]);
+        $banner->update(['status' => ! $banner->status]);
 
         return redirect()
             ->route('admin.banners.index')
-            ->with('success', 'Khôi phục banner thành công.');
+            ->with('success', $banner->status ? 'Đã bật banner.' : 'Đã tắt banner.');
     }
 
     private function uploadImage($file): string
     {
-        $directory = public_path('image/banners');
+        $directory = public_path('uploads/banners');
 
         if (!is_dir($directory)) {
             mkdir($directory, 0755, true);
@@ -114,6 +117,19 @@ class BannerController extends Controller
         $fileName = time() . '-' . Str::random(8) . '.' . $file->getClientOriginalExtension();
         $file->move($directory, $fileName);
 
-        return 'image/banners/' . $fileName;
+        return 'uploads/banners/' . $fileName;
+    }
+
+    private function deleteImage(?string $path): void
+    {
+        if (! $path) {
+            return;
+        }
+
+        $filePath = public_path($path);
+
+        if (is_file($filePath)) {
+            @unlink($filePath);
+        }
     }
 }
