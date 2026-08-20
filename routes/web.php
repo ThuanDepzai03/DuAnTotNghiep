@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 
 // Client Controllers
+use App\Http\Controllers\ChatController;
 use App\Http\Controllers\Client\HomeController;
 use App\Http\Controllers\Client\ProductController as ClientProductController;
 use App\Http\Controllers\Client\CartController as ClientCartController;
@@ -62,6 +63,10 @@ Route::get('/news', [HomeController::class, 'news'])->name('news');
 
 Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
 
+Route::post('/chat/send', [ChatController::class, 'send'])
+    ->name('chat.send');
+Route::get('/chat/messages', [ChatController::class, 'customerMessages'])
+    ->name('chat.messages');
 // ================= AUTH =================
 
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -141,5 +146,18 @@ Route::middleware(['web', 'admin'])
             ->name('banners.toggle-status');
         Route::resource('vouchers', VoucherController::class);
         Route::get('/statistics/revenue', [OrderController::class, 'revenue'])
-            ->name('statistics.revenue');
+    ->name('statistics.revenue');
+Route::get('/chat', [ChatController::class, 'adminIndex'])
+    ->name('chat');
+
+Route::get('/chat/unread', [ChatController::class, 'unreadCount'])
+    ->name('chat.unread');
+
+Route::get('/chat/{id}/messages', [ChatController::class, 'adminMessages'])
+    ->name('chat.messages');
+
+Route::post('/chat/{id}/reply', [ChatController::class, 'adminReply'])
+    ->name('chat.reply');
+    
+
     });
