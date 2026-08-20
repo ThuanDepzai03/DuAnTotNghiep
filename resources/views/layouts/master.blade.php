@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>AE Phoenic Store</title>
 
     <link href="https://fonts.googleapis.com/css?family=Montserrat:400,500,700" rel="stylesheet">
@@ -228,6 +229,7 @@
         </div>
     </div>
 </footer>
+@include('layouts.chat')
 
     @include('client.partials.auth_modal')
 
@@ -235,6 +237,9 @@
     <script src="{{ asset('js/bootstrap.min.js') }}"></script>
     <script src="{{ asset('js/slick.min.js') }}"></script>
     <script src="{{ asset('js/main.js') }}"></script>
-    <script src="{{ asset('js/app-interactions.js') }}"></script>
+ <script>
+        var CHAT_ROUTE = "{{ route('chat.send') }}";
+    </script>
+    <script src="{{ asset('js/chat.js') }}?v={{ time() }}"></script>
 </body>
 </html>

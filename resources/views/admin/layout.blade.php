@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>AE Phoenic Store Admin</title>
 
     <link rel="preconnect" href="https://fonts.gstatic.com">
@@ -102,20 +103,33 @@
 
     <div id="main">
         <header class="mb-3 d-flex justify-content-between align-items-center px-3">
-            <a href="#" class="burger-btn d-block d-xl-none">
-                <i class="bi bi-justify fs-3"></i>
-            </a>
 
-            <button type="button" class="theme-switch-btn" id="theme-toggle-btn" aria-label="Chuyển sang chế độ sáng">
-                <span class="theme-switch-track">
-                    <span class="theme-switch-thumb">
-                        <i class="bi bi-sun-fill icon-light" aria-hidden="true"></i>
-                        <i class="bi bi-moon-stars-fill icon-dark" aria-hidden="true"></i>
-                    </span>
+    <a href="#" class="burger-btn d-block d-xl-none">
+        <i class="bi bi-justify fs-3"></i>
+    </a>
+
+    <div class="admin-header-right">
+
+        <!-- Chuông thông báo -->
+        <a href="{{ route('admin.chat') }}" class="notification-bell">
+    <i class="bi bi-bell-fill"></i>
+    <span class="notification-badge" id="notification-count">0</span>
+</a>
+
+        <!-- Chế độ tối -->
+        <button type="button" class="theme-switch-btn" id="theme-toggle-btn" aria-label="Chuyển sang chế độ sáng">
+            <span class="theme-switch-track">
+                <span class="theme-switch-thumb">
+                    <i class="bi bi-sun-fill icon-light" aria-hidden="true"></i>
+                    <i class="bi bi-moon-stars-fill icon-dark" aria-hidden="true"></i>
                 </span>
-                <span class="theme-switch-text" id="theme-label">Dark</span>
-            </button>
-        </header>
+            </span>
+            <span class="theme-switch-text" id="theme-label">Dark</span>
+        </button>
+
+    </div>
+
+</header>
 
 
 
@@ -140,5 +154,32 @@
 <script src="{{ asset('admin-assets/js/bootstrap.bundle.min.js') }}"></script>
 <script src="{{ asset('admin-assets/vendors/simple-datatables/simple-datatables.js') }}"></script>
 <script src="{{ asset('admin-assets/js/main.js') }}"></script>
+<script>
+    function updateChatNotification() {
+        fetch("{{ route('admin.chat.unread') }}")
+            .then(response => response.json())
+            .then(data => {
+                const badge = document.getElementById('notification-count');
+
+                if (!badge) {
+                    return;
+                }
+
+                if (data.count > 0) {
+                    badge.textContent = data.count;
+                    badge.style.display = 'flex';
+                } else {
+                    badge.style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.log('Không thể lấy thông báo chat:', error);
+            });
+    }
+
+    updateChatNotification();
+
+    setInterval(updateChatNotification, 3000);
+</script>
 </body>
 </html>
