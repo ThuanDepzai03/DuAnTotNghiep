@@ -16,10 +16,11 @@ class OrderTrackingController extends Controller
             return redirect()->route('login');
         }
 
-        $orders = Order::where(function ($query) use ($customer) {
-            $query->where('phone', $customer['tel'] ?? '')
-                ->orWhere('email', $customer['email'] ?? '');
-        })
+        $orders = Order::with(['items.variant.product'])
+            ->where(function ($query) use ($customer) {
+                $query->where('phone', $customer['tel'] ?? '')
+                    ->orWhere('email', $customer['email'] ?? '');
+            })
             ->orderByDesc('created_at')
             ->get();
 
