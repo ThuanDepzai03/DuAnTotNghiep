@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 
 // Client Controllers
+use App\Http\Controllers\ChatController;
 use App\Http\Controllers\Client\HomeController;
 use App\Http\Controllers\Client\ProductController as ClientProductController;
 use App\Http\Controllers\Client\CartController as ClientCartController;
@@ -11,8 +12,10 @@ use App\Http\Controllers\Client\PaymentController;
 use App\Http\Controllers\ProductVariantController;
 use App\Http\Controllers\VoucherController;
 use App\Http\Controllers\Admin\BrandController;
+use App\Http\Controllers\Admin\BannerController;
 // Admin Controllers cũ của nhóm
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProductController as AdminProductController;
 use App\Http\Controllers\OrderController;
@@ -32,6 +35,7 @@ Route::post('/cart/remove', [ClientCartController::class, 'remove'])->name('cart
 Route::post('/cart/update', [ClientCartController::class, 'update'])->name('cart.update');
 
 Route::get('/checkout', [ClientCheckoutController::class, 'index'])->name('checkout.show');
+Route::get('/checkout/address-options', [ClientCheckoutController::class, 'addressOptions'])->name('checkout.addressOptions');
 Route::post('/checkout/submit', [ClientCheckoutController::class, 'store'])->name('checkout.submit');
 
 Route::post('/checkout/apply-voucher', [ClientCheckoutController::class, 'applyVoucher'])->name('checkout.applyVoucher');
@@ -60,6 +64,10 @@ Route::get('/news', [HomeController::class, 'news'])->name('news');
 
 Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
 
+Route::post('/chat/send', [ChatController::class, 'send'])
+    ->name('chat.send');
+Route::get('/chat/messages', [ChatController::class, 'customerMessages'])
+    ->name('chat.messages');
 // ================= AUTH =================
 
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -69,6 +77,10 @@ Route::get('/register', [AuthController::class, 'showRegister'])->name('register
 Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
+
+Route::get('/admin/login', [AdminAuthController::class, 'showLogin'])->name('admin.login');
+Route::post('/admin/login', [AdminAuthController::class, 'login'])->name('admin.login.post');
+Route::post('/admin/logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
 
 Route::get('/account/profile', [AuthController::class, 'profile'])->name('account.profile');
 Route::post('/account/profile', [AuthController::class, 'updateProfile'])->name('account.update');
@@ -130,7 +142,23 @@ Route::middleware(['web', 'admin'])
 
         Route::resource('users', UserController::class);
         Route::resource('brands', BrandController::class);
+        Route::resource('banners', BannerController::class);
+        Route::patch('/banners/{banner}/toggle-status', [BannerController::class, 'toggleStatus'])
+            ->name('banners.toggle-status');
         Route::resource('vouchers', VoucherController::class);
         Route::get('/statistics/revenue', [OrderController::class, 'revenue'])
-            ->name('statistics.revenue');
+    ->name('statistics.revenue');
+Route::get('/chat', [ChatController::class, 'adminIndex'])
+    ->name('chat');
+
+Route::get('/chat/unread', [ChatController::class, 'unreadCount'])
+    ->name('chat.unread');
+
+Route::get('/chat/{id}/messages', [ChatController::class, 'adminMessages'])
+    ->name('chat.messages');
+
+Route::post('/chat/{id}/reply', [ChatController::class, 'adminReply'])
+    ->name('chat.reply');
+    
+
     });

@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('name');
 
             // percent | fixed
-            $table->enum('discount_type', ['percent', 'fixed']);
+            $table->enum('discount_type', ['percent', 'fixed', 'free_shipping']);
 
             // Giá trị giảm
             $table->decimal('discount_value', 12, 2);

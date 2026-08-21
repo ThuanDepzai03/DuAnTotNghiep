@@ -13,7 +13,14 @@ class HomeController extends Controller
 {
     public function index(Request $request)
     {
-        $banners = Banner::where('status', 1)->get();
+        $banners = Banner::active()
+            ->orderBy('position')
+            ->latest()
+            ->get();
+
+        $heroBanners = $banners->where('type', 'hero')->values();
+        $staticFullBanners = $banners->where('type', 'static_full')->values();
+        $staticRectBanners = $banners->where('type', 'static_rect')->values();
 
         $categories = Category::where('status', 1)->get();
 
@@ -35,6 +42,9 @@ class HomeController extends Controller
 
         return view('client.home', compact(
             'banners',
+            'heroBanners',
+            'staticFullBanners',
+            'staticRectBanners',
             'categories',
             'brands',
             'products'

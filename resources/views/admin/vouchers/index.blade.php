@@ -104,7 +104,13 @@
                                 {{-- Phần trăm giảm --}}
                                 <td>
                                     <strong>
-                                        {{ $voucher->discount_value }}%
+                                        @if($voucher->discount_type === 'free_shipping')
+                                            Miễn phí
+                                        @elseif($voucher->discount_type === 'fixed')
+                                            {{ number_format($voucher->discount_value, 0, ',', '.') }}đ
+                                        @else
+                                            {{ $voucher->discount_value }}%
+                                        @endif
                                     </strong>
                                 </td>
 

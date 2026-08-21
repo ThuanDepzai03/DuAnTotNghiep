@@ -1,0 +1,808 @@
+/* =========================================================
+   GLOBAL
+   ========================================================= */
+
+body {
+    padding-top: 175px;
+}
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.site-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    z-index: 999;
+
+    transform: translateY(0);
+
+    transition:
+        transform 0.3s ease-in-out,
+        box-shadow 0.3s ease;
+
+    box-shadow: none;
+}
+
+.site-header.header-hidden {
+    transform: translateY(-100%);
+}
+
+.site-header.is-scrolled {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.header-search-bar {
+    background: #15161d;
+    padding: 10px 0;
+}
+
+.header-search-form {
+    display: flex;
+    max-width: 680px;
+    margin: 0 auto;
+}
+
+.header-search-form input {
+    flex: 1;
+    min-width: 0;
+    height: 40px;
+    padding: 0 16px;
+    border: 1px solid #e4e7ed;
+    border-right: 0;
+    border-radius: 20px 0 0 20px;
+    outline: none;
+}
+
+.header-search-form input:focus {
+    border-color: #d10024;
+}
+
+.header-search-form button {
+    width: 52px;
+    height: 40px;
+    border: 0;
+    border-radius: 0 20px 20px 0;
+    background: #d10024;
+    color: #fff;
+}
+
+.header-search-form button:hover {
+    background: #a9001d;
+}
+
+
+/* =========================================================
+   TOP HEADER
+   ========================================================= */
+
+#top-header {
+    background: rgba(18, 21, 27, 0.95);
+
+    color: #cbd5e1;
+
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+
+    border-bottom: 1px solid var(--header-border);
+
+    min-height: 56px;
+
+    transition:
+        background 0.3s ease,
+        box-shadow 0.3s ease,
+        border-color 0.3s ease;
+}
+
+
+/* =========================================================
+   TOP HEADER LAYOUT
+   ========================================================= */
+
+.top-header-inner {
+    width: 100%;
+    min-height: 56px;
+
+    display: flex;
+    align-items: center;
+
+    justify-content: space-between;
+
+    /*
+     * Tuyệt đối không cho top header xuống dòng
+     */
+    flex-wrap: nowrap;
+
+    gap: 30px;
+}
+
+
+/* =========================================================
+   LEFT AREA
+   ========================================================= */
+
+.top-header-left {
+    display: flex;
+    align-items: center;
+
+    /*
+     * Chiếm phần không gian còn lại
+     */
+    flex: 1 1 auto;
+
+    min-width: 0;
+
+    gap: 28px;
+}
+
+
+/* =========================================================
+   LOGO
+   ========================================================= */
+
+.brand-logo {
+    display: inline-flex;
+    align-items: center;
+
+    gap: 10px;
+
+    flex-shrink: 0;
+
+    color: #ffffff;
+
+    text-decoration: none;
+
+    white-space: nowrap;
+}
+
+.brand-logo:hover {
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.brand-logo__img {
+    width: auto;
+    height: 42px;
+
+    object-fit: contain;
+
+    filter:
+        drop-shadow(
+            0 4px 8px rgba(255, 255, 255, 0.12)
+        );
+}
+
+.brand-logo__text {
+    color: #ffffff;
+
+    font-size: 18px;
+    font-weight: 700;
+
+    letter-spacing: 0.04em;
+
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   HEADER LINKS - DÙNG CHUNG
+   ========================================================= */
+
+.header-links {
+    display: flex;
+
+    align-items: center;
+
+    /*
+     * Quan trọng:
+     * Không cho phone/email hoặc tài khoản tự xuống dòng
+     */
+    flex-wrap: nowrap;
+
+    list-style: none;
+
+    margin: 0;
+    padding: 0;
+
+    gap: 18px;
+}
+
+.header-links li {
+    flex: 0 0 auto;
+
+    white-space: nowrap;
+}
+
+.header-links a {
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 7px;
+
+    color: #e2e8f0;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    text-decoration: none;
+
+    white-space: nowrap;
+
+    transition:
+        color var(--transition),
+        opacity var(--transition);
+}
+
+.header-links a:hover {
+    color: #ffffff;
+}
+
+.header-links a i {
+    font-size: 13px;
+}
+
+
+/* =========================================================
+   CONTACT - PHONE + EMAIL
+   ========================================================= */
+
+.header-links--left {
+    /*
+     * Không dùng margin-left: auto
+     *
+     * Đây là một trong những nguyên nhân làm
+     * bố cục header bị lệch.
+     */
+    margin-left: 0;
+
+    flex: 0 0 auto;
+
+    gap: 20px;
+}
+
+
+/* =========================================================
+   RIGHT HEADER - CART / ACCOUNT / ORDERS
+   ========================================================= */
+
+.header-links--right {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: flex-end;
+
+    flex: 0 0 auto;
+
+    gap: 18px;
+
+    /*
+     * Không cho nhóm bên phải xuống dòng
+     */
+    flex-wrap: nowrap;
+}
+
+
+/* =========================================================
+   SCROLL HEADER
+   ========================================================= */
+
+.site-header.is-scrolled #top-header,
+.site-header.is-scrolled #header,
+.site-header.is-scrolled #navigation {
+    background: rgba(24, 28, 36, 0.95);
+
+    box-shadow:
+        0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+
+/* =========================================================
+   MAIN HEADER
+   ========================================================= */
+
+#header {
+    background: rgba(24, 28, 36, 0.9);
+
+    border-bottom:
+        1px solid rgba(148, 163, 184, 0.12);
+
+    min-height: 74px;
+
+    transition:
+        box-shadow 0.3s ease,
+        background 0.3s ease;
+}
+
+.header-main-inner {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    width: 100%;
+}
+
+
+/* =========================================================
+   NAVIGATION
+   ========================================================= */
+
+#navigation {
+    background: rgba(24, 28, 36, 0.9);
+
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+
+    border-bottom:
+        1px solid rgba(148, 163, 184, 0.12);
+    
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+}
+
+#responsive-nav {
+    width: 100%;
+}
+
+.main-nav {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: flex-start;
+
+    gap: 4px;
+
+    margin: 0;
+    padding: 0;
+
+    list-style: none;
+}
+
+.main-nav li {
+    margin: 0 8px;
+}
+
+.main-nav li a {
+    padding: 14px 10px;
+
+    display: inline-flex;
+
+    align-items: center;
+
+    position: relative;
+
+    color: #e2e8f0;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    text-decoration: none;
+}
+
+.main-nav li a::after {
+    content: "";
+
+    position: absolute;
+
+    left: 10px;
+    right: 10px;
+
+    bottom: 8px;
+
+    height: 2px;
+
+    background: var(--color-primary);
+
+    border-radius: 999px;
+
+    transform: scaleX(0);
+
+    transform-origin: center;
+
+    transition:
+        transform 0.25s ease;
+}
+
+.main-nav li.active a,
+.main-nav li a:hover {
+    color: #ffffff;
+}
+
+.main-nav li.active a::after,
+.main-nav li a:hover::after {
+    transform: scaleX(1);
+}
+
+
+/* =========================================================
+   HEADER RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1199px) {
+
+    .top-header-inner {
+        gap: 18px;
+    }
+
+    .top-header-left {
+        gap: 18px;
+    }
+
+    .header-links {
+        gap: 12px;
+    }
+
+    .header-links--left {
+        gap: 14px;
+    }
+
+    .header-links--right {
+        gap: 12px;
+    }
+
+    .header-links a {
+        font-size: 12px;
+    }
+
+    .brand-logo__img {
+        height: 38px;
+    }
+
+    .brand-logo__text {
+        font-size: 16px;
+    }
+}
+
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 991px) {
+
+    .header-email-item {
+        display: none;
+    }
+
+    .top-header-inner {
+        gap: 10px;
+    }
+
+    .top-header-left {
+        gap: 14px;
+    }
+
+    .header-links {
+        gap: 10px;
+    }
+
+    .header-links--right {
+        gap: 10px;
+    }
+
+    .header-links a {
+        font-size: 11px;
+    }
+
+    .brand-logo__img {
+        height: 36px;
+    }
+
+    .brand-logo__text {
+        font-size: 14px;
+    }
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+    .header-links--left {
+        display: none;
+    }
+
+    .top-header-inner {
+        gap: 8px;
+    }
+
+    .top-header-left {
+        gap: 10px;
+    }
+
+    .header-links {
+        gap: 8px;
+    }
+
+    .header-links--right {
+        gap: 8px;
+    }
+
+    .header-links a {
+        font-size: 11px;
+    }
+
+    .brand-logo__img {
+        height: 32px;
+    }
+
+    .brand-logo__text {
+        font-size: 14px;
+    }
+}
+/* =========================================================
+   HEADER CONTAINER
+   Chỉ tác động đến Header, không ảnh hưởng nội dung khác
+   ========================================================= */
+
+@media (min-width: 1200px) {
+
+    #top-header > .container,
+    #navigation > .container {
+        width: 100%;
+        max-width: 1400px;
+    }
+}
+
+/* =========================================================
+   BUTTONS - GLOW & SHINE EFFECTS
+   ========================================================= */
+
+.btn,
+.primary-btn,
+.shop-btn,
+.qty-btn,
+.main-btn,
+button[type="submit"],
+.btn-primary {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-weight: 700;
+    border: none;
+    border-radius: 12px;
+    padding: 11px 18px;
+    cursor: pointer;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+}
+
+.primary-btn,
+.main-btn,
+.btn-primary,
+button[type="submit"] {
+    background: linear-gradient(135deg, #d10024, #e11d48);
+    color: #fff;
+    box-shadow: 0 8px 16px rgba(209, 0, 36, 0.18);
+}
+
+.primary-btn::before,
+.main-btn::before,
+.btn-primary::before,
+button[type="submit"]::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s ease;
+    z-index: 1;
+}
+
+.primary-btn:hover::before,
+.main-btn:hover::before,
+.btn-primary:hover::before,
+button[type="submit"]:hover::before {
+    left: 100%;
+}
+
+.primary-btn:hover,
+.main-btn:hover,
+.btn-primary:hover,
+button[type="submit"]:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(209, 0, 36, 0.28), 0 0 20px rgba(209, 0, 36, 0.15);
+}
+
+.primary-btn:active,
+.main-btn:active,
+.btn-primary:active,
+button[type="submit"]:active {
+    transform: scale(0.98);
+}
+
+/* =========================================================
+   CARDS - GLOW EFFECT
+   ========================================================= */
+
+.product,
+.product-card,
+.product-item,
+.panel,
+.card,
+.widget,
+.filter-box,
+.checkout-box,
+.summary-box {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    padding: 20px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    position: relative;
+}
+
+.product::after,
+.product-card::after,
+.product-item::after,
+.card::after,
+.widget::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    background: radial-gradient(circle at 50% 0%, rgba(209, 0, 36, 0.1), transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.product:hover,
+.product-card:hover,
+.product-item:hover,
+.card:hover,
+.widget:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08), 0 0 30px rgba(209, 0, 36, 0.12);
+    border-color: rgba(209, 0, 36, 0.2);
+}
+
+.product:hover::after,
+.product-card:hover::after,
+.product-item:hover::after,
+.card:hover::after,
+.widget:hover::after {
+    opacity: 1;
+}
+
+.product img,
+.product-card img,
+.product-item img,
+.card img,
+.product-img img {
+    transition: transform 0.4s ease, filter 0.3s ease;
+}
+
+.product:hover img,
+.product-card:hover img,
+.product-item:hover img,
+.card:hover img,
+.product-img:hover img {
+    transform: scale(1.08);
+    filter: brightness(1.05);
+}
+
+/* =========================================================
+   LINKS - GLOW EFFECT
+   ========================================================= */
+
+a:not(.brand-logo):not(.header-links a) {
+    transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+a:hover:not(.brand-logo):not(.header-links a) {
+    text-shadow: 0 0 8px rgba(209, 0, 36, 0.3);
+}
+
+.header-links a {
+    position: relative;
+    transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+.header-links a:hover {
+    color: #ffffff;
+    text-shadow: 0 0 12px rgba(255, 255, 255, 0.2);
+}
+
+/* =========================================================
+   ANIMATIONS & KEYFRAMES
+   ========================================================= */
+
+@keyframes glow-pulse {
+    0%, 100% {
+        box-shadow: 0 0 15px rgba(209, 0, 36, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 25px rgba(209, 0, 36, 0.5), 0 0 40px rgba(209, 0, 36, 0.2);
+    }
+}
+
+@keyframes shine-sweep {
+    0% {
+        left: -100%;
+    }
+    100% {
+        left: 100%;
+    }
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.glow-text {
+    animation: glow-pulse 2s ease-in-out infinite;
+    color: #d10024;
+    font-weight: 700;
+}
+
+/* =========================================================
+   REVEAL & SKELETON
+   ========================================================= */
+
+.reveal {
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity 0.45s ease, transform 0.45s ease;
+}
+
+.reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.skeleton {
+    position: relative;
+    overflow: hidden;
+    background: rgba(226, 232, 240, 0.9);
+    border-radius: 12px;
+}
+
+.skeleton::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.7) 40%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    animation: shimmer 1.4s infinite;
+}
+
+.skeleton-text {
+    height: 14px;
+    margin-bottom: 10px;
+}
+
+.skeleton-image {
+    height: 220px;
+}
+
+@keyframes shimmer {
+    100% {
+        transform: translateX(100%);
+    }
+}

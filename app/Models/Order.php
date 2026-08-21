@@ -17,6 +17,7 @@ class Order extends Model
         'voucher_id',
         'voucher_code',
         'discount_amount',
+        'shipping_fee',
         'note',
         'total_price',
         'final_price',
@@ -25,6 +26,7 @@ class Order extends Model
         'transaction_no',
         'bank_code',
         'paid_at',
+        'completed_at',
     ];
 
     public function items()
