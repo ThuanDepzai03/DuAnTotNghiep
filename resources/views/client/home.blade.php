@@ -359,9 +359,12 @@
                 @endforeach
             </div>
         </div>
-    </section>
-@endif
+    </div>
+</div>
+{{-- =========================================================
+    FLASH SALE + VOUCHER SỰ KIỆN
 
+@include('client.flash-voucher')
 <style>
     /* ===== 1. HERO SLIDER CSS ===== */
     .home-hero { padding: 25px 0 0; background: #fff; }

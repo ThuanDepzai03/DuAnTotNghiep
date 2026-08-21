@@ -3,19 +3,19 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB; // Gọi class DB để lấy dữ liệu từ phpMyAdmin
+use Illuminate\Support\Facades\DB;
+use App\Models\Voucher;
 
 class HomeController extends Controller
 {
-    // Hàm xử lý trang chủ
     public function home(Request $request)
     {
-        // 1. Lấy danh sách danh mục từ database
+        // 1. Lấy danh sách danh mục
         $danhmuc = DB::table('categories')
             ->where('status', 1)
             ->get();
 
-        // 2. Lấy danh sách sản phẩm (Có join với bảng danh mục để lấy tên danh mục)
+        // 2. Lấy danh sách sản phẩm
         $query = DB::table('products')
             ->join('categories', 'products.category_id', '=', 'categories.id')
             ->select(
@@ -24,7 +24,7 @@ class HomeController extends Controller
             )
             ->where('products.status', 1);
 
-        // Nếu người dùng có click lọc theo danh mục
+        // Lọc theo danh mục
         if ($request->has('iddm') && $request->iddm != 'all') {
             $query->where('products.category_id', $request->iddm);
         }
@@ -35,21 +35,60 @@ class HomeController extends Controller
             ->limit(8)
             ->get();
 
-        // 3. Chuyển đổi dữ liệu sang dạng Mảng (Array) để tương thích 100% với giao diện cũ
+        // 3. Voucher Flash Sale đang hoạt động
+        $flashSaleVouchers = Voucher::where('voucher_type', 'flash_sale')
+            ->where('status', 1)
+            ->where(function ($query) {
+                $query->whereNull('quantity')
+                    ->orWhereColumn('used_quantity', '<', 'quantity');
+            })
+            ->where(function ($query) {
+                $query->whereNull('start_date')
+                    ->orWhereDate('start_date', '<=', now());
+            })
+            ->where(function ($query) {
+                $query->whereNull('end_date')
+                    ->orWhereDate('end_date', '>=', now());
+            })
+            ->orderBy('id', 'desc')
+            ->get();
+
+        // 4. Voucher Trung Thu đang hoạt động
+        $midAutumnVouchers = Voucher::where('voucher_type', 'mid_autumn')
+            ->where('status', 1)
+            ->where(function ($query) {
+                $query->whereNull('quantity')
+                    ->orWhereColumn('used_quantity', '<', 'quantity');
+            })
+            ->where(function ($query) {
+                $query->whereNull('start_date')
+                    ->orWhereDate('start_date', '<=', now());
+            })
+            ->where(function ($query) {
+                $query->whereNull('end_date')
+                    ->orWhereDate('end_date', '>=', now());
+            })
+            ->orderBy('id', 'desc')
+            ->get();
+
+        // 5. Chuyển sang mảng để tương thích giao diện cũ
         $danhmuc = json_decode(json_encode($danhmuc), true);
         $newProducts = json_decode(json_encode($newProducts), true);
 
-        // 4. Trả về file home.blade.php kèm theo dữ liệu
-        return view('home', compact('danhmuc', 'newProducts'));
+        // 6. Gửi dữ liệu sang home.blade.php
+        return view('home', compact(
+            'danhmuc',
+            'newProducts',
+            'flashSaleVouchers',
+            'midAutumnVouchers'
+        ));
     }
 
-    // Hàm xử lý trang Giới Thiệu
     public function about()
     {
         return view('about');
     }
 
-    // Hàm xử lý trang Liên Hệ
     public function contact()
     {
         return view('contact');

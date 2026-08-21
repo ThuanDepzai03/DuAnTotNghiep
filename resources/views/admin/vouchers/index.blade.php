@@ -37,7 +37,7 @@
                             <th>ID</th>
                             <th>Mã</th>
                             <th>Tên</th>
-                            <th>Loại</th>
+                            <th>Loại Voucher</th>
                             <th>Giảm (%)</th>
                             <th>Giảm tối đa</th>
                             <th>Số lượng</th>
@@ -75,18 +75,30 @@
                                 </td>
 
 
-                                {{-- Loại --}}
-                                <td>
-                                    <span class="badge bg-info">
-                                        @if($voucher->discount_type === 'free_shipping')
-                                            Miễn phí ship
-                                        @elseif($voucher->discount_type === 'fixed')
-                                            Giảm theo tiền
-                                        @else
-                                            Giảm theo %
-                                        @endif
-                                    </span>
-                                </td>
+                                {{-- Loại Voucher --}}
+<td>
+
+    @if($voucher->voucher_type === 'flash_sale')
+
+        <span class="badge bg-danger">
+            🔥 Flash Sale
+        </span>
+
+    @elseif($voucher->voucher_type === 'mid_autumn')
+
+        <span class="badge bg-warning text-dark">
+            🌕 Trung Thu
+        </span>
+
+    @else
+
+        <span class="badge bg-primary">
+            Voucher thường
+        </span>
+
+    @endif
+
+</td>
 
 
                                 {{-- Phần trăm giảm --}}

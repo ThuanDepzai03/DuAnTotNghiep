@@ -57,15 +57,65 @@ class CheckoutController extends Controller
     protected function cityList(): array
     {
         return [
-            'Hà Nội', 'Hải Phòng', 'Đà Nẵng', 'Hồ Chí Minh', 'Bình Dương', 'Đồng Nai', 'Khánh Hòa',
-            'Cần Thơ', 'Bình Định', 'Đà Lạt', 'Thừa Thiên Huế', 'Hải Dương', 'Nam Định', 'Quảng Ninh',
-            'Bắc Ninh', 'Vĩnh Phúc', 'Phú Thọ', 'Thái Nguyên', 'Bắc Giang', 'Lạng Sơn', 'Cao Bằng',
-            'Hà Giang', 'Lào Cai', 'Yên Bái', 'Tuyên Quang', 'Hòa Bình', 'Sơn La', 'Điện Biên',
-            'Lai Châu', 'Hà Nam', 'Ninh Bình', 'Thanh Hóa', 'Nghệ An', 'Hà Tĩnh', 'Quảng Bình',
-            'Quảng Trị', 'Thừa Thiên Huế', 'Quảng Nam', 'Quảng Ngãi', 'Bình Thuận', 'Ninh Thuận',
-            'Bình Phước', 'Tây Ninh', 'Long An', 'Đồng Tháp', 'An Giang', 'Kiên Giang', 'Cà Mau',
-            'Bạc Liêu', 'Sóc Trăng', 'Trà Vinh', 'Vĩnh Long', 'Tiền Giang', 'Bến Tre', 'Hậu Giang',
-            'Bà Rịa - Vũng Tàu', 'Dak Lak', 'Dak Nong', 'Lâm Đồng'
+            'Hà Nội',
+            'Hải Phòng',
+            'Đà Nẵng',
+            'Hồ Chí Minh',
+            'Bình Dương',
+            'Đồng Nai',
+            'Khánh Hòa',
+            'Cần Thơ',
+            'Bình Định',
+            'Đà Lạt',
+            'Thừa Thiên Huế',
+            'Hải Dương',
+            'Nam Định',
+            'Quảng Ninh',
+            'Bắc Ninh',
+            'Vĩnh Phúc',
+            'Phú Thọ',
+            'Thái Nguyên',
+            'Bắc Giang',
+            'Lạng Sơn',
+            'Cao Bằng',
+            'Hà Giang',
+            'Lào Cai',
+            'Yên Bái',
+            'Tuyên Quang',
+            'Hòa Bình',
+            'Sơn La',
+            'Điện Biên',
+            'Lai Châu',
+            'Hà Nam',
+            'Ninh Bình',
+            'Thanh Hóa',
+            'Nghệ An',
+            'Hà Tĩnh',
+            'Quảng Bình',
+            'Quảng Trị',
+            'Thừa Thiên Huế',
+            'Quảng Nam',
+            'Quảng Ngãi',
+            'Bình Thuận',
+            'Ninh Thuận',
+            'Bình Phước',
+            'Tây Ninh',
+            'Long An',
+            'Đồng Tháp',
+            'An Giang',
+            'Kiên Giang',
+            'Cà Mau',
+            'Bạc Liêu',
+            'Sóc Trăng',
+            'Trà Vinh',
+            'Vĩnh Long',
+            'Tiền Giang',
+            'Bến Tre',
+            'Hậu Giang',
+            'Bà Rịa - Vũng Tàu',
+            'Dak Lak',
+            'Dak Nong',
+            'Lâm Đồng'
         ];
     }
 
@@ -202,85 +252,58 @@ class CheckoutController extends Controller
         if (!session('customer')) {
             session(['url.intended' => route('checkout.show')]);
 
-            return redirect()->route('login')->with('error', 'Vui lòng đăng nhập hoặc đăng ký để đặt hàng.');
+            return redirect()
+                ->route('login')
+                ->with('error', 'Vui lòng đăng nhập hoặc đăng ký để đặt hàng.');
         }
+
+        // ==============================
+        // KHÁCH HÀNG
+        // ==============================
 
         $customer = session('customer');
-        $defaultCustomer = [
-            'customer_name' => $customer['user'] ?? '',
-            'phone' => $customer['tel'] ?? '',
-            'city' => $customer['city'] ?? '',
-            'ward' => $customer['ward'] ?? '',
-            'address_detail' => $customer['address_detail'] ?? $customer['address'] ?? '',
-        ];
 
-        $cart = $this->getCartItems();
 
-        if (empty($cart)) {
-            return redirect()->route('cart.index')->with('error', 'Giỏ hàng đang trống.');
-        }
+        // ==============================
+        // GIỎ HÀNG
+        // ==============================
 
-        $totalPrice = 0;
-        foreach ($cart as $item) {
-            $price = (float) ($item['price'] ?? 0);
-            $quantity = (int) ($item['quantity'] ?? 0);
-            $totalPrice += $price * $quantity;
-        }
+        $cartKey = $customer && !empty($customer['id'])
+            ? 'cart.' . $customer['id']
+            : 'cart.guest';
 
-        $voucher = session('voucher');
-        $discountAmount = 0;
-        $shippingFee = $this->calculateShippingFee($defaultCustomer['city'] ?? '', $defaultCustomer['ward'] ?? '', $voucher);
+        $cart = session($cartKey, []);
 
-        if ($voucher && isset($voucher['id'])) {
-            $voucherModel = Voucher::find($voucher['id']);
 
-            if ($voucherModel && (int) $voucherModel->status === 1) {
-                $validVoucher = (
-                    ($voucherModel->quantity === null || $voucherModel->used_quantity < $voucherModel->quantity)
-                    && (!$voucherModel->start_date || now()->toDateString() >= $voucherModel->start_date)
-                    && (!$voucherModel->end_date || now()->toDateString() <= $voucherModel->end_date)
-                );
+        // ==============================
+        // LẤY VOUCHER
+        // ==============================
 
-                if ($validVoucher) {
-                    if ($voucherModel->discount_type === 'free_shipping') {
-                        $shippingFee = 0;
-                    } elseif ($voucherModel->discount_type === 'percent') {
-                        $discountAmount = $totalPrice * ((float) $voucherModel->discount_value / 100);
-                        if (!empty($voucherModel->max_discount) && $discountAmount > (float) $voucherModel->max_discount) {
-                            $discountAmount = (float) $voucherModel->max_discount;
-                        }
-                    } elseif ($voucherModel->discount_type === 'fixed') {
-                        $discountAmount = (float) $voucherModel->discount_value;
-                    }
+        $vouchers = Voucher::where('status', 1)
+            ->where('discount_type', 'percent')
+            ->where(function ($query) {
+                $query->whereNull('quantity')
+                    ->orWhereColumn('used_quantity', '<', 'quantity');
+            })
+            ->where(function ($query) {
+                $query->whereNull('start_date')
+                    ->orWhereDate('start_date', '<=', now());
+            })
+            ->where(function ($query) {
+                $query->whereNull('end_date')
+                    ->orWhereDate('end_date', '>=', now());
+            })
+            ->latest()
+            ->get();
 
-                    if ($discountAmount > $totalPrice) {
-                        $discountAmount = $totalPrice;
-                    }
-                    $discountAmount = round($discountAmount);
-                } else {
-                    session()->forget('voucher');
-                    $voucher = null;
-                }
-            } else {
-                session()->forget('voucher');
-                $voucher = null;
-            }
-        }
 
-        $finalTotal = max(0, $totalPrice + $shippingFee - $discountAmount);
-        $cityOptions = $this->cityList();
-        $wardOptions = $this->wardListByCity();
+        // ==============================
+        // TRẢ VỀ CHECKOUT
+        // ==============================
 
         return view('checkout', compact(
             'cart',
-            'cityOptions',
-            'wardOptions',
-            'defaultCustomer',
-            'totalPrice',
-            'shippingFee',
-            'discountAmount',
-            'finalTotal',
-            'voucher'
+            'vouchers'
         ));
     }
 
@@ -303,8 +326,13 @@ class CheckoutController extends Controller
             return redirect()->route('checkout.show')->with('voucher_error', 'Voucher hiện đang bị khóa.');
         }
 
-        if ($voucher->quantity !== null && $voucher->used_quantity >= $voucher->quantity) {
-            return redirect()->route('checkout.show')->with('voucher_error', 'Voucher đã hết lượt sử dụng.');
+        if (
+            $voucher->quantity !== null &&
+            $voucher->used_quantity >= $voucher->quantity
+        ) {
+            return back()
+                ->with('error', 'Mã giảm giá đã hết lượt sử dụng.')
+                ->withInput();
         }
 
         if ($voucher->start_date && now()->toDateString() < $voucher->start_date) {
@@ -345,17 +373,35 @@ class CheckoutController extends Controller
 
     public function store(Request $request)
     {
+        // ==============================
+        // KIỂM TRA ĐĂNG NHẬP
+        // ==============================
+
         if (!session('customer')) {
             session(['url.intended' => route('checkout.show')]);
 
-            return redirect()->route('login')->with('error', 'Vui lòng đăng nhập hoặc đăng ký để đặt hàng.');
+            return redirect()
+                ->route('login')
+                ->with('error', 'Vui lòng đăng nhập hoặc đăng ký để đặt hàng.');
         }
+
+
+        // ==============================
+        // LẤY GIỎ HÀNG
+        // ==============================
 
         $cart = $this->getCartItems();
 
         if (empty($cart)) {
-            return redirect()->route('cart.index')->with('error', 'Giỏ hàng đang trống!');
+            return redirect()
+                ->route('cart.index')
+                ->with('error', 'Giỏ hàng đang trống!');
         }
+
+
+        // ==============================
+        // VALIDATE
+        // ==============================
 
         $request->validate([
             'customer_name' => 'required|string|max:255',
@@ -366,102 +412,303 @@ class CheckoutController extends Controller
             'payment_method' => 'required|in:cod,vnpay',
         ]);
 
+
+        // ==============================
+        // TÍNH TỔNG TIỀN GỐC
+        // ==============================
+
         $totalPrice = 0;
+
         foreach ($cart as $item) {
-            $totalPrice += (float) ($item['price'] ?? 0) * (int) ($item['quantity'] ?? 0);
+
+            $price = (float) ($item['price'] ?? 0);
+            $quantity = (int) ($item['quantity'] ?? 0);
+
+            $totalPrice += $price * $quantity;
         }
 
-        $voucherCode = trim((string) $request->input('voucher_code', ''));
-        $discountAmount = 0;
+
+        // ==============================
+        // LẤY VOUCHER TỪ SESSION
+        // ==============================
+
+        $sessionVoucher = session('voucher');
+
         $voucher = null;
+        $discountAmount = 0;
 
-        if ($voucherCode !== '') {
-            $voucher = Voucher::where('code', strtoupper($voucherCode))->where('status', 1)->first();
 
+        // ==============================
+        // XỬ LÝ VOUCHER
+        // ==============================
+
+        if ($sessionVoucher) {
+
+            $voucher = Voucher::find($sessionVoucher['id']);
+
+            // Voucher không tồn tại
             if (!$voucher) {
-                return back()->with('error', 'Mã giảm giá không hợp lệ hoặc đã hết hiệu lực.')->withInput();
+
+                session()->forget('voucher');
+
+                return back()
+                    ->with('error', 'Voucher không tồn tại.')
+                    ->withInput();
             }
 
-            $now = now();
-            if (($voucher->start_date && $now->lt($voucher->start_date)) || ($voucher->end_date && $now->gt($voucher->end_date))) {
-                return back()->with('error', 'Mã giảm giá hiện không còn hiệu lực.')->withInput();
+
+            // Voucher bị khóa
+            if ((int) $voucher->status !== 1) {
+
+                session()->forget('voucher');
+
+                return back()
+                    ->with('error', 'Voucher hiện đang bị khóa.')
+                    ->withInput();
             }
 
-            if (($voucher->quantity ?? 0) <= 0) {
-                return back()->with('error', 'Mã giảm giá đã hết lượt sử dụng.')->withInput();
+
+            // Kiểm tra số lượng
+            if (
+                $voucher->quantity !== null &&
+                $voucher->used_quantity >= $voucher->quantity
+            ) {
+
+                session()->forget('voucher');
+
+                return back()
+                    ->with('error', 'Voucher đã hết lượt sử dụng.')
+                    ->withInput();
             }
 
-            if (($voucher->min_order_value ?? 0) > $totalPrice) {
-                return back()->with('error', 'Đơn hàng chưa đạt giá trị tối thiểu để dùng mã giảm giá.')->withInput();
+
+            // Kiểm tra ngày bắt đầu
+            if (
+                $voucher->start_date &&
+                now()->toDateString() < $voucher->start_date
+            ) {
+
+                session()->forget('voucher');
+
+                return back()
+                    ->with('error', 'Voucher chưa đến thời gian sử dụng.')
+                    ->withInput();
             }
 
-            if (($voucher->discount_type ?? 'percent') === 'percent') {
-                $discountAmount = round($totalPrice * ((float) ($voucher->discount_value ?? 0) / 100), 2);
-                if (!empty($voucher->max_discount) && $discountAmount > (float) $voucher->max_discount) {
-                    $discountAmount = (float) $voucher->max_discount;
+
+            // Kiểm tra ngày kết thúc
+            if (
+                $voucher->end_date &&
+                now()->toDateString() > $voucher->end_date
+            ) {
+
+                session()->forget('voucher');
+
+                return back()
+                    ->with('error', 'Voucher đã hết hạn.')
+                    ->withInput();
+            }
+
+
+            // ==============================
+            // KIỂM TRA ĐƠN TỐI THIỂU
+            // ==============================
+
+            if (($voucher->min_order ?? 0) > $totalPrice) {
+                return back()
+                    ->with('error', 'Đơn hàng chưa đạt giá trị tối thiểu để dùng mã giảm giá.')
+                    ->withInput();
+            }
+
+
+            // ==============================
+            // TÍNH GIẢM GIÁ
+            // ==============================
+
+            if ($voucher->discount_type === 'percent') {
+
+                // Ví dụ:
+                // 25.470.000 × 10% = 2.547.000
+
+                $discountAmount =
+                    $totalPrice *
+                    ((float) $voucher->discount_value / 100);
+
+
+                // ==============================
+                // GIỚI HẠN GIẢM TỐI ĐA
+                // ==============================
+
+                if (
+                    $voucher->max_discount !== null &&
+                    $discountAmount > (float) $voucher->max_discount
+                ) {
+
+                    $discountAmount =
+                        (float) $voucher->max_discount;
                 }
             } else {
-                $discountAmount = min((float) ($voucher->discount_value ?? 0), $totalPrice);
+
+                // Voucher giảm tiền cố định
+
+                $discountAmount = min(
+                    (float) $voucher->discount_value,
+                    $totalPrice
+                );
             }
+
+
+            // Làm tròn
+            $discountAmount = round($discountAmount);
         }
 
-        $shippingFee = $this->calculateShippingFee($request->city, $request->ward, $voucher);
-        $finalTotal = max(0, $totalPrice + $shippingFee - $discountAmount);
-        $address = trim($request->address_detail) . ', ' . trim($request->ward) . ', ' . trim($request->city);
+
+        // ==============================
+        // TỔNG SAU GIẢM
+        // ==============================
+
+        $finalTotal = max(
+            0,
+            $totalPrice - $discountAmount
+        );
+
+
+        // ==============================
+        // ĐỊA CHỈ
+        // ==============================
+
+        $address =
+            trim($request->address_detail)
+            . ', '
+            . trim($request->ward)
+            . ', '
+            . trim($request->city);
+
+
+        // ==============================
+        // TẠO ĐƠN HÀNG
+        // ==============================
 
         DB::beginTransaction();
 
         try {
-            // All orders start with 'pending' status, awaiting admin confirmation
-            // For VNPay: Create with 'pending_payment' initially, then move to 'pending' after payment
-            // For COD: Create with 'pending' directly
-            $orderStatus = $request->payment_method === 'vnpay' ? 'pending_payment' : 'pending';
 
             $order = Order::create([
                 'customer_name' => $request->customer_name,
                 'phone' => $request->phone,
                 'email' => session('customer.email') ?? null,
+
                 'address' => $address,
                 'address_detail' => $request->address_detail,
                 'city' => $request->city,
                 'ward' => $request->ward,
-                'voucher_code' => $voucherCode !== '' ? strtoupper($voucherCode) : null,
+
+                'voucher_id' => $voucher ? $voucher->id : null,
+
+                'voucher_code' => $voucher
+                    ? strtoupper($voucher->code)
+                    : null,
+
                 'discount_amount' => $discountAmount,
-                'shipping_fee' => $shippingFee,
+
                 'note' => null,
-                'total_price' => $finalTotal,
+
+                // Tổng tiền trước giảm
+                'total_price' => $totalPrice,
+
+                // Tổng tiền sau giảm
+                'final_price' => $finalTotal,
+
                 'payment_method' => $request->payment_method,
                 'status' => $orderStatus,
             ]);
 
+
+            // ==============================
+            // CHI TIẾT ĐƠN HÀNG
+            // ==============================
+
             foreach ($cart as $item) {
+
                 OrderItem::create([
-                    'order_id' => $order->id,
-                    'product_variant_id' => $item['variant_id'],
-                    'quantity' => $item['quantity'],
-                    'price' => $item['price'],
+
+                    'order_id' =>
+                    $order->id,
+
+                    'product_variant_id' =>
+                    $item['variant_id'],
+
+                    'quantity' =>
+                    $item['quantity'],
+
+                    'price' =>
+                    $item['price'],
                 ]);
             }
 
-            if ($voucherCode !== '') {
+
+            // ==============================
+            // TĂNG SỐ LƯỢNG ĐÃ SỬ DỤNG
+            // ==============================
+
+            if ($voucher) {
+
                 $voucher->increment('used_quantity');
             }
 
+
             DB::commit();
         } catch (\Exception $e) {
+
             DB::rollBack();
 
-            return back()->with('error', 'Đặt hàng thất bại: ' . $e->getMessage())->withInput();
+            return back()
+                ->with(
+                    'error',
+                    'Đặt hàng thất bại: ' . $e->getMessage()
+                )
+                ->withInput();
         }
 
-        if ($request->payment_method === 'vnpay') {
-            return redirect()->route('payment.vnpay', $order->id);
-        }
 
-        session()->forget('cart');
+        // ==============================
+        // XÓA GIỎ HÀNG
+        // ==============================
+
+        $this->clearCartItems();
+
+        // Xóa voucher khỏi session
         session()->forget('voucher');
 
-        return redirect()->route('checkout.success')->with('success', 'Đặt hàng thành công! Chúng tôi sẽ liên hệ với bạn trong thời gian sớm nhất.');
+
+        // ==============================
+        // THANH TOÁN COD
+        // ==============================
+
+        if ($request->payment_method === 'cod') {
+
+            return redirect()
+                ->route('checkout.success');
+        }
+
+
+        // ==============================
+        // THANH TOÁN VNPAY
+        // ==============================
+
+        if ($request->payment_method === 'vnpay') {
+
+            return redirect()
+                ->route('payment.vnpay', [
+                    'order' => $order->id
+                ]);
+        }
+
+
+        return back()
+            ->with(
+                'error',
+                'Phương thức thanh toán không hợp lệ.'
+            );
     }
 }
-
