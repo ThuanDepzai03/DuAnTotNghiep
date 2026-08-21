@@ -33,6 +33,7 @@ class VoucherController extends Controller
         $request->validate([
             'code' => 'required|unique:vouchers,code',
             'name' => 'required',
+            'voucher_type' => 'required|in:normal,flash_sale,mid_autumn',
             'discount_value' => 'required|numeric|min:1|max:100',
             'max_discount' => 'nullable|numeric|min:0',
             'quantity' => 'required|integer|min:1',
@@ -44,9 +45,11 @@ class VoucherController extends Controller
         Voucher::create([
             'code' => $request->code,
             'name' => $request->name,
-            'discount_type' => 'percent',
+            'voucher_type' => $request->voucher_type,
+            'discount_type' => $request->discount_type,
             'discount_value' => $request->discount_value,
             'max_discount' => $request->max_discount,
+            'min_order' => $request->min_order,
             'quantity' => $request->quantity,
             'used_quantity' => 0,
             'start_date' => $request->start_date,

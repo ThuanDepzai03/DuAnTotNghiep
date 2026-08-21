@@ -509,111 +509,95 @@
 
 
 
-                                {{-- =================================================
-                                    DANH SÁCH VOUCHER
-                                ================================================== --}}
+{{-- =================================================
+    DANH SÁCH VOUCHER
+================================================= --}}
 
-                                @if(isset($vouchers) && $vouchers->count() > 0)
+@if(isset($vouchers) && $vouchers->count() > 0)
 
-                                    <div style="margin-top:18px;">
+    <div class="voucher-list-wrapper">
 
-                                        <strong>
-                                            Voucher khả dụng
-                                        </strong>
+        <div class="voucher-list-title">
+            <span>🎟 Voucher khả dụng</span>
+            <span class="voucher-count">
+                {{ $vouchers->count() }}
+            </span>
+        </div>
 
+        <div class="voucher-list">
 
-                                        <div
-                                            style="
-                                                margin-top:10px;
-                                                max-height:220px;
-                                                overflow-y:auto;
-                                            "
-                                        >
+            @foreach($vouchers as $item)
 
-                                            @foreach($vouchers as $item)
+                <div class="voucher-item">
 
-                                                <div
-                                                    style="
-                                                        display:flex;
-                                                        justify-content:space-between;
-                                                        align-items:center;
-                                                        gap:10px;
-                                                        padding:10px;
-                                                        margin-bottom:8px;
-                                                        border:1px dashed #ccc;
-                                                        border-radius:6px;
-                                                    "
-                                                >
+                    {{-- ICON --}}
+                    <div class="voucher-left">
+                        <div class="voucher-icon">
+                            %
+                        </div>
+                    </div>
 
-                                                    <div>
+                    {{-- THÔNG TIN --}}
+                    <div class="voucher-content">
 
-                                                        <strong>
-                                                            {{ $item->code }}
-                                                        </strong>
+                        <div class="voucher-code">
+                            {{ $item->code }}
+                        </div>
 
-                                                        <br>
+                        <div class="voucher-name">
+                            {{ $item->name }}
+                        </div>
 
-                                                        <small>
-                                                            {{ $item->name }}
-                                                        </small>
+                        <div class="voucher-discount">
 
-                                                        <br>
+                            Giảm {{ $item->discount_value }}%
 
-                                                        <small
-                                                            style="
-                                                                color:#dc3545;
-                                                            "
-                                                        >
+                            @if($item->max_discount)
 
-                                                            Giảm
-                                                            {{ $item->discount_value }}%
+                                <span>
+                                    · Tối đa
+                                    {{ number_format(
+                                        $item->max_discount,
+                                        0,
+                                        ',',
+                                        '.'
+                                    ) }}₫
+                                </span>
 
-                                                            @if($item->max_discount)
+                            @endif
 
-                                                                - tối đa
-                                                                {{ number_format(
-                                                                    $item->max_discount,
-                                                                    0,
-                                                                    ',',
-                                                                    '.'
-                                                                ) }}₫
+                        </div>
 
-                                                            @endif
+                    </div>
 
-                                                        </small>
+                    {{-- NÚT CHỌN --}}
+                    <div class="voucher-action">
 
-                                                    </div>
+                        <button
+                            type="button"
+                            class="voucher-select-btn"
+                            onclick="chooseVoucher('{{ $item->code }}')"
+                        >
+                            Chọn
+                        </button>
 
+                    </div>
 
-                                                    <button
-                                                        type="button"
-                                                        class="btn btn-outline-primary btn-sm"
-                                                        onclick="chooseVoucher('{{ $item->code }}')"
-                                                    >
-                                                        Chọn
-                                                    </button>
+                </div>
 
-                                                </div>
+            @endforeach
 
-                                            @endforeach
+        </div>
 
-                                        </div>
+    </div>
 
-                                    </div>
+@else
 
-                                @else
+    <div class="voucher-empty">
+        🎟 Hiện chưa có voucher khả dụng.
+    </div>
 
-                                    <small
-                                        style="
-                                            display:block;
-                                            margin-top:12px;
-                                            color:#888;
-                                        "
-                                    >
-                                        Không có voucher khả dụng.
-                                    </small>
-
-                                @endif
+@endif
 
                             </div>
 
@@ -832,7 +816,9 @@
             const city = this.value;
             const wards = cityMap[city] || [];
 
-            wardSelect.innerHTML = '<option value="">-- Chọn Xã/Phường --</option>';
+            wardSelect.innerHTML =
+                '<option value="">-- Chọn Xã/Phường --</option>';
+
             wards.forEach(function (ward) {
                 const option = document.createElement('option');
                 option.value = ward;
@@ -844,6 +830,7 @@
 
     function chooseVoucher(code) {
         const input = document.getElementById('voucher-code');
+
         if (input) {
             input.value = code;
             input.focus();
@@ -852,8 +839,10 @@
 
     function applyVoucher() {
         const input = document.getElementById('voucher-code');
-        const hiddenInput = document.getElementById('voucher-code-hidden');
-        const form = document.getElementById('voucher-form');
+        const hiddenInput =
+            document.getElementById('voucher-code-hidden');
+        const form =
+            document.getElementById('voucher-form');
 
         if (!input || !hiddenInput || !form) {
             alert('Không tìm thấy form voucher.');
@@ -861,6 +850,7 @@
         }
 
         const code = input.value.trim();
+
         if (code === '') {
             alert('Vui lòng nhập mã voucher.');
             input.focus();
@@ -871,4 +861,187 @@
         form.submit();
     }
 </script>
+
+
+{{-- =========================================================
+    CSS VOUCHER
+========================================================= --}}
+
+<style>
+
+.voucher-list-wrapper {
+    margin-top: 18px;
+}
+
+.voucher-list-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: #333;
+}
+
+.voucher-count {
+    min-width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e31837;
+    color: white;
+    border-radius: 50%;
+    font-size: 12px;
+}
+
+.voucher-list {
+    max-height: 250px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+.voucher-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.voucher-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.voucher-list::-webkit-scrollbar-thumb {
+    background: #bbb;
+    border-radius: 10px;
+}
+
+.voucher-list::-webkit-scrollbar-thumb:hover {
+    background: #999;
+}
+
+.voucher-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    margin-bottom: 10px;
+    border: 1px dashed #ccc;
+    border-radius: 8px;
+    background: #fff;
+    transition: all 0.2s ease;
+}
+
+.voucher-item:hover {
+    border-color: #e31837;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    transform: translateY(-1px);
+}
+
+.voucher-left {
+    flex-shrink: 0;
+}
+
+.voucher-icon {
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff0f2;
+    color: #e31837;
+    border-radius: 50%;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.voucher-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.voucher-code {
+    font-size: 15px;
+    font-weight: 700;
+    color: #222;
+    margin-bottom: 2px;
+}
+
+.voucher-name {
+    font-size: 13px;
+    color: #777;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.voucher-discount {
+    font-size: 13px;
+    color: #e31837;
+    font-weight: 600;
+}
+
+.voucher-discount span {
+    color: #777;
+    font-weight: 400;
+}
+
+.voucher-action {
+    flex-shrink: 0;
+}
+
+.voucher-select-btn {
+    border: none;
+    background: #e31837;
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 5px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.voucher-select-btn:hover {
+    background: #c8102e;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(227, 24, 55, 0.25);
+}
+
+.voucher-select-btn:active {
+    transform: scale(0.96);
+}
+
+.voucher-empty {
+    margin-top: 15px;
+    padding: 14px;
+    text-align: center;
+    background: #f8f8f8;
+    border-radius: 6px;
+    color: #888;
+    font-size: 13px;
+}
+
+@media (max-width: 576px) {
+
+    .voucher-item {
+        gap: 8px;
+        padding: 10px;
+    }
+
+    .voucher-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 17px;
+    }
+
+    .voucher-select-btn {
+        padding: 7px 11px;
+        font-size: 12px;
+    }
+
+}
+
+</style>
+
 @endsection
