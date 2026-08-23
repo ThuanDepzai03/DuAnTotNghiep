@@ -81,6 +81,7 @@ Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
 Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 Route::get('/verify-email', [AuthController::class, 'showVerificationNotice'])->name('verification.notice');
+Route::post('/verify-email/code', [AuthController::class, 'verifyEmailCode'])->name('verification.code');
 Route::get('/verify-email/{id}/{token}', [AuthController::class, 'verifyEmail'])->name('verification.verify');
 Route::post('/verify-email/resend', [AuthController::class, 'resendVerification'])->name('verification.resend');
 

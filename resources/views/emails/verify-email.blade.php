@@ -6,12 +6,9 @@
 </head>
 <body>
     <h2>Xác thực email tài khoản</h2>
-    <p>Vui lòng bấm nút bên dưới để xác thực email của bạn. Liên kết có hiệu lực trong 24 giờ.</p>
-    <p>
-        <a href="{{ $verificationUrl }}" style="display:inline-block;padding:10px 16px;background:#d10024;color:#fff;text-decoration:none;">
-            Xác thực email
-        </a>
-    </p>
+    <p>Mã xác thực email của bạn là:</p>
+    <p style="font-size: 30px; font-weight: bold; letter-spacing: 8px;">{{ $verificationCode }}</p>
+    <p>Mã có hiệu lực trong 10 phút.</p>
     <p>Nếu bạn không tạo tài khoản, hãy bỏ qua email này.</p>
 </body>
 </html>

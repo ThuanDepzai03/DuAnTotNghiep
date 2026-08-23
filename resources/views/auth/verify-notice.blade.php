@@ -8,9 +8,9 @@
             @if(session('success'))
                 <div class="alert alert-success">{{ session('success') }}</div>
             @endif
-            <p>Kiểm tra hộp thư của bạn và bấm liên kết xác thực để kích hoạt tài khoản.</p>
+            <p>Kiểm tra Gmail, lấy mã 6 số và nhập vào đây. Mã có hiệu lực trong 10 phút.</p>
 
-            <form method="POST" action="{{ route('verification.resend') }}">
+            <form method="POST" action="{{ route('verification.code') }}">
                 @csrf
                 <label for="verification-email">Email</label>
                 <input
@@ -22,7 +22,25 @@
                     required
                 >
                 @error('email')<div class="text-danger">{{ $message }}</div>@enderror
-                <button type="submit" class="primary-btn" style="margin-top: 14px;">Gửi lại email xác thực</button>
+                <label for="verification-code" style="margin-top: 14px;">Mã xác thực 6 số</label>
+                <input
+                    id="verification-code"
+                    type="text"
+                    name="code"
+                    class="input"
+                    inputmode="numeric"
+                    pattern="[0-9]{6}"
+                    maxlength="6"
+                    required
+                >
+                @error('code')<div class="text-danger">{{ $message }}</div>@enderror
+                <button type="submit" class="primary-btn" style="margin-top: 14px;">Xác thực email</button>
+            </form>
+
+            <form method="POST" action="{{ route('verification.resend') }}" style="margin-top: 12px;">
+                @csrf
+                <input type="hidden" name="email" value="{{ old('email', $email) }}">
+                <button type="submit" class="btn btn-link">Gửi lại mã</button>
             </form>
         </div>
     </div>
