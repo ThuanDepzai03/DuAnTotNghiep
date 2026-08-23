@@ -161,7 +161,7 @@ class ChatController extends Controller
         $customer = session('customer');
         $adminId = $admin['id'] ?? $customer['id'] ?? null;
 
-        if (!$adminId || (($customer['role'] ?? null) !== 1 && empty($admin))) {
+        if (!$adminId || ((int) ($customer['role'] ?? 0) !== 1 && empty($admin))) {
             abort(403);
         }
 
