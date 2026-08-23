@@ -269,6 +269,11 @@
                                 <label>Tỉnh / Thành phố</label>
                                 <select class="input" name="city" id="checkout-city" required>
                                     <option value="">-- Chọn Tỉnh/Thành phố --</option>
+                                    @foreach ($addressProvinces ?? [] as $province)
+                                        <option value="{{ $province['value'] }}" data-address-id="{{ $province['id'] }}" {{ old('city', $customerCity) === $province['value'] ? 'selected' : '' }}>
+                                            {{ $province['label'] }}
+                                        </option>
+                                    @endforeach
                                 </select>
                             </div>
 
@@ -276,6 +281,11 @@
                                 <label>Phường / Xã</label>
                                 <select class="input" name="ward" id="checkout-ward" required>
                                     <option value="">-- Chọn Phường/Xã --</option>
+                                    @foreach ($addressWards ?? [] as $ward)
+                                        <option value="{{ $ward['value'] }}" data-address-id="{{ $ward['id'] }}" {{ old('ward', $customerWard) === $ward['value'] ? 'selected' : '' }}>
+                                            {{ $ward['label'] }}
+                                        </option>
+                                    @endforeach
                                 </select>
                             </div>
                         </div>
@@ -714,8 +724,9 @@
         font-size: 18px;
     }
 
-{{-- =================================================
-    DANH SÁCH VOUCHER
+    /* =================================================
+       DANH SÁCH VOUCHER
+    ================================================= */
 
     .voucher-applied {
         display: flex;
@@ -943,420 +954,466 @@
 </style>
 
 <script>
-    const citySelect = document.getElementById('checkout-city');
-    const wardSelect = document.getElementById('checkout-ward');
-    const shippingFeeValue = document.getElementById('shipping-fee-value');
-    const shippingFeeRow = document.getElementById('shipping-fee-row');
-    const deliveryEstimateText = document.getElementById('delivery-estimate-text');
-    const deliveryEstimateNote = document.getElementById('delivery-estimate-note');
-    const deliveryMethodInputs = document.querySelectorAll('input[name="delivery_method"]');
-    const checkoutTotalValue = document.querySelector('.order-total');
-    const cartCountText = document.querySelector('.cart-count');
-    const discountAmountValue = document.getElementById('discount-amount-value');
+    function initializeCheckoutPage() {
+        const citySelect = document.getElementById('checkout-city');
+        const wardSelect = document.getElementById('checkout-ward');
+        const shippingFeeValue = document.getElementById('shipping-fee-value');
+        const shippingFeeRow = document.getElementById('shipping-fee-row');
+        const deliveryEstimateText = document.getElementById('delivery-estimate-text');
+        const deliveryEstimateNote = document.getElementById('delivery-estimate-note');
+        const deliveryMethodInputs = document.querySelectorAll('input[name="delivery_method"]');
+        const checkoutTotalValue = document.querySelector('.order-total');
+        const cartCountText = document.querySelector('.cart-count');
+        const discountAmountValue = document.getElementById('discount-amount-value');
 
-    const addressApiUrl = @json(route('checkout.addressOptions'));
-    const currentCity = @json(old('city', $customerCity));
-    const currentWard = @json(old('ward', $customerWard));
-    let addressRequestVersion = 0;
+        const addressApiUrl = window.location.origin + '/checkout/address-options';
+        const currentCity = @json(old('city', $customerCity));
+        const currentWard = @json(old('ward', $customerWard));
+        let addressRequestVersion = 0;
 
-    function formatMoney(value) {
-        return new Intl.NumberFormat('vi-VN').format(value) + '₫';
-    }
-
-    function normalizeAddressName(value) {
-        return String(value || '')
-            .toLowerCase()
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '')
-            .replace(/^(tinh|thanh pho|phuong|xa|thi tran)\s+/i, '')
-            .trim();
-    }
-
-    function recalculateCheckoutSummary() {
-        let subtotal = 0;
-        let quantity = 0;
-
-        document.querySelectorAll('.checkout-product-item').forEach(function (item) {
-            const input = item.querySelector('.checkout-qty-input');
-            if (!input) return;
-
-            const itemQty = Number(input.value || 0);
-            const itemPrice = Number(item.dataset.price || input.dataset.price || 0);
-            const lineTotal = itemQty * itemPrice;
-
-            subtotal += lineTotal;
-            quantity += itemQty;
-
-            const subtotalText = item.querySelector('.checkout-item-subtotal');
-            if (subtotalText) {
-                subtotalText.textContent = formatMoney(lineTotal);
-            }
-        });
-
-        if (cartCountText) {
-            cartCountText.textContent = quantity + ' sản phẩm';
+        function formatMoney(value) {
+            return new Intl.NumberFormat('vi-VN').format(value) + '₫';
         }
 
-        const firstOrderCol = document.querySelector('.summary-total-box .order-col');
-        if (firstOrderCol) {
-            const valueNode = firstOrderCol.lastElementChild;
-            if (valueNode) {
-                valueNode.textContent = formatMoney(subtotal);
+        function normalizeAddressName(value) {
+            return String(value || '')
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/^(tinh|thanh pho|phuong|xa|thi tran)\s+/i, '')
+                .trim();
+        }
+
+        function fillSelect(selectElement, items, selectedValue, placeholder) {
+            if (!selectElement) return;
+
+            selectElement.innerHTML = '';
+
+            const placeholderOption = document.createElement('option');
+            placeholderOption.value = '';
+            placeholderOption.textContent = placeholder;
+            selectElement.appendChild(placeholderOption);
+
+            let matched = false;
+
+            (Array.isArray(items) ? items : []).forEach(function (item) {
+                const option = document.createElement('option');
+                option.value = item.value ?? '';
+                option.textContent = item.label ?? item.value ?? '';
+                option.dataset.addressId = item.id ?? '';
+
+                if (normalizeAddressName(option.value) === normalizeAddressName(selectedValue)) {
+                    option.selected = true;
+                    matched = true;
+                }
+
+                selectElement.appendChild(option);
+            });
+
+            // Nếu không có giá trị cũ thì giữ placeholder.
+            if (!matched) {
+                selectElement.selectedIndex = 0;
             }
         }
 
-        updateCheckoutTotal(subtotal);
-    }
+        async function getAddressData(params) {
+            const query = new URLSearchParams(params).toString();
+            const url = addressApiUrl + '?' + query;
 
-    function updateCheckoutTotal(subtotal = null) {
-        if (!checkoutTotalValue) return;
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                cache: 'no-store'
+            });
 
-        if (subtotal === null) {
+            const text = await response.text();
+            let data;
+
+            try {
+                data = JSON.parse(text);
+            } catch (error) {
+                console.error('Address API trả về dữ liệu không phải JSON:', text);
+                throw new Error('Dữ liệu địa chỉ không hợp lệ.');
+            }
+
+            if (!response.ok) {
+                console.error('Address API lỗi:', response.status, data);
+                throw new Error(data.message || 'Không thể tải dữ liệu địa chỉ.');
+            }
+
+            const items = Array.isArray(data.items) ? data.items : [];
+            console.log('Address API:', url, '=>', items.length, 'items');
+            return items;
+        }
+
+        function showAddressError(selectElement, message) {
+            if (!selectElement) return;
+            selectElement.innerHTML = '';
+            const option = document.createElement('option');
+            option.value = '';
+            option.textContent = message;
+            selectElement.appendChild(option);
+        }
+
+        function updateShippingFee() {
+            if (!shippingFeeValue) return;
+
+            const isFreeShipping = shippingFeeRow?.dataset.freeShipping === '1';
+            const city = citySelect?.value || '';
+            const ward = wardSelect?.value || '';
+            let shippingFee = 30000;
+
+            if (isFreeShipping) {
+                shippingFee = 0;
+            } else {
+                if (city === 'Hà Nội' || city === 'Hồ Chí Minh' || city === 'Đà Nẵng') {
+                    shippingFee = 35000;
+                }
+
+                if (city === 'Bình Dương' || city === 'Đồng Nai' || city === 'Khánh Hòa') {
+                    shippingFee = 40000;
+                }
+
+                if (ward !== '') shippingFee += 5000;
+            }
+
+            shippingFeeValue.textContent = formatMoney(shippingFee);
+            shippingFeeValue.dataset.amount = String(shippingFee);
+
+            if (shippingFeeRow) {
+                shippingFeeRow.dataset.amount = String(shippingFee);
+            }
+
+            updateCheckoutTotal();
+        }
+
+        async function loadWards(provinceId, selectedWard = '') {
+            const version = ++addressRequestVersion;
+
+            if (!wardSelect) return;
+
+            wardSelect.disabled = true;
+            wardSelect.innerHTML = '<option value="">Đang tải Phường/Xã...</option>';
+
+            if (!provinceId) {
+                wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+                wardSelect.disabled = false;
+                updateShippingFee();
+                return;
+            }
+
+            try {
+                const wards = await getAddressData({
+                    type: 'wards',
+                    parent_id: provinceId
+                });
+
+                if (version !== addressRequestVersion) return;
+
+                fillSelect(
+                    wardSelect,
+                    wards,
+                    selectedWard,
+                    '-- Chọn Phường/Xã --'
+                );
+
+                wardSelect.disabled = false;
+                updateShippingFee();
+            } catch (error) {
+                console.error('Lỗi tải phường/xã:', error);
+
+                if (version === addressRequestVersion) {
+                    showAddressError(wardSelect, 'Không tải được Phường/Xã');
+                    wardSelect.disabled = false;
+                }
+            }
+        }
+
+        async function initializeAddressSelectors() {
+            if (!citySelect || !wardSelect) {
+                console.error('Không tìm thấy #checkout-city hoặc #checkout-ward.');
+                return;
+            }
+
+            citySelect.disabled = true;
+            wardSelect.disabled = true;
+            if (wardSelect.options.length <= 1) {
+                wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+            }
+
+            try {
+                // Chỉ gọi Laravel route, tuyệt đối không gọi trực tiếp provinces.open-api.vn từ browser.
+                const provinces = await getAddressData({ type: 'provinces' });
+
+                fillSelect(
+                    citySelect,
+                    provinces,
+                    currentCity,
+                    '-- Chọn Tỉnh/Thành phố --'
+                );
+
+                citySelect.disabled = false;
+
+                const selectedProvince = citySelect.options[citySelect.selectedIndex];
+                const provinceId = selectedProvince?.dataset.addressId || '';
+
+                if (provinceId) {
+                    await loadWards(provinceId, currentWard);
+                } else {
+                    wardSelect.disabled = false;
+                    updateShippingFee();
+                }
+            } catch (error) {
+                console.error('Lỗi tải tỉnh/thành phố:', error);
+                if (citySelect.options.length <= 1) {
+                    showAddressError(citySelect, 'Không tải được Tỉnh/Thành phố');
+                }
+                if (wardSelect.options.length <= 1) {
+                    showAddressError(wardSelect, 'Không tải được Phường/Xã');
+                }
+                citySelect.disabled = false;
+                wardSelect.disabled = false;
+            }
+        }
+
+        function recalculateCheckoutSummary() {
+            let subtotal = 0;
+            let quantity = 0;
+
+            document.querySelectorAll('.checkout-product-item').forEach(function (item) {
+                const input = item.querySelector('.checkout-qty-input');
+                if (!input) return;
+
+                const itemQty = Number(input.value || 0);
+                const itemPrice = Number(item.dataset.price || input.dataset.price || 0);
+                const lineTotal = itemQty * itemPrice;
+
+                subtotal += lineTotal;
+                quantity += itemQty;
+
+                const subtotalText = item.querySelector('.checkout-item-subtotal');
+                if (subtotalText) subtotalText.textContent = formatMoney(lineTotal);
+            });
+
+            if (cartCountText) cartCountText.textContent = quantity + ' sản phẩm';
+
             const firstOrderCol = document.querySelector('.summary-total-box .order-col');
-            const valueNode = firstOrderCol?.lastElementChild;
-            subtotal = Number(valueNode?.textContent?.replace(/[^\d]/g, '') || 0);
+            if (firstOrderCol) {
+                const valueNode = firstOrderCol.lastElementChild;
+                if (valueNode) valueNode.textContent = formatMoney(subtotal);
+            }
+
+            updateCheckoutTotal(subtotal);
         }
 
-        const shippingFee = Number(shippingFeeValue?.dataset.amount || 0);
-        const discountAmount = Number(discountAmountValue?.dataset.amount || 0);
-        const finalTotal = Math.max(0, subtotal + shippingFee - discountAmount);
+        function updateCheckoutTotal(subtotal = null) {
+            if (!checkoutTotalValue) return;
 
-        checkoutTotalValue.textContent = formatMoney(finalTotal);
-    }
-
-    async function updateCartQuantity(variantId, quantity) {
-        try {
-            const response = await fetch('{{ route('cart.update') }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-                body: JSON.stringify({
-                    quantities: {
-                        [variantId]: quantity
-                    }
-                })
-            });
-
-            if (!response.ok) {
-                alert('Không thể cập nhật số lượng.');
-                return;
+            if (subtotal === null) {
+                const firstOrderCol = document.querySelector('.summary-total-box .order-col');
+                const valueNode = firstOrderCol?.lastElementChild;
+                subtotal = Number(valueNode?.textContent?.replace(/[^\d]/g, '') || 0);
             }
 
-            const result = await response.json();
-            if (result.success) {
-                recalculateCheckoutSummary();
-            }
-        } catch (error) {
-            console.error(error);
-            alert('Không thể cập nhật số lượng.');
+            const shippingFee = Number(shippingFeeValue?.dataset.amount || 0);
+            const discountAmount = Number(discountAmountValue?.dataset.amount || 0);
+            const finalTotal = Math.max(0, subtotal + shippingFee - discountAmount);
+
+            checkoutTotalValue.textContent = formatMoney(finalTotal);
         }
-    }
 
-    async function removeCartItem(variantId) {
-        try {
-            const response = await fetch('{{ route('cart.remove') }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-                body: JSON.stringify({
-                    product_variant_id: variantId
-                })
-            });
+        async function updateCartQuantity(variantId, quantity) {
+            try {
+                const response = await fetch('{{ route('cart.update') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    body: JSON.stringify({ quantities: { [variantId]: quantity } })
+                });
 
-            if (!response.ok) {
-                alert('Không thể xóa sản phẩm.');
-                return;
-            }
-
-            const result = await response.json();
-            if (result.success) {
-                const item = document.querySelector('.checkout-product-item[data-variant-id="' + variantId + '"]');
-                if (item) item.remove();
-
-                if (document.querySelectorAll('.checkout-product-item').length === 0) {
-                    window.location.reload();
+                if (!response.ok) {
+                    alert('Không thể cập nhật số lượng.');
                     return;
                 }
 
-                recalculateCheckoutSummary();
+                const result = await response.json();
+                if (result.success) recalculateCheckoutSummary();
+            } catch (error) {
+                console.error(error);
+                alert('Không thể cập nhật số lượng.');
             }
-        } catch (error) {
-            console.error(error);
-            alert('Không thể xóa sản phẩm.');
-        }
-    }
-
-    document.addEventListener('click', function (event) {
-        const button = event.target.closest('.checkout-qty-btn');
-        if (!button) return;
-
-        const variantId = button.dataset.variantId;
-        const input = document.querySelector('.checkout-qty-input[data-variant-id="' + variantId + '"]');
-        if (!input) return;
-
-        let value = Number(input.value || 1);
-        const stock = Number(input.dataset.stock || 99);
-
-        if (button.dataset.action === 'minus') value = Math.max(1, value - 1);
-        if (button.dataset.action === 'plus') value = Math.min(stock, value + 1);
-
-        input.value = value;
-        updateCartQuantity(variantId, value);
-    });
-
-    document.addEventListener('change', function (event) {
-        const input = event.target.closest('.checkout-qty-input');
-        if (!input) return;
-
-        let value = Number(input.value || 1);
-        const stock = Number(input.dataset.stock || 99);
-        value = Math.min(stock, Math.max(1, value));
-        input.value = value;
-        updateCartQuantity(input.dataset.variantId, value);
-    });
-
-    function showDeleteConfirm(productName, onConfirm) {
-        const overlay = document.createElement('div');
-        overlay.className = 'custom-confirm-overlay';
-
-        const modal = document.createElement('div');
-        modal.className = 'custom-confirm-modal';
-
-        const title = document.createElement('h4');
-        title.textContent = 'Xác nhận xóa';
-
-        const message = document.createElement('p');
-        message.textContent = 'Bạn có chắc chắn muốn xóa "' + productName + '" khỏi đơn hàng không?';
-
-        const actions = document.createElement('div');
-        actions.className = 'custom-confirm-actions';
-
-        const cancelBtn = document.createElement('button');
-        cancelBtn.type = 'button';
-        cancelBtn.className = 'custom-confirm-btn cancel';
-        cancelBtn.textContent = 'Hủy';
-
-        const confirmBtn = document.createElement('button');
-        confirmBtn.type = 'button';
-        confirmBtn.className = 'custom-confirm-btn confirm';
-        confirmBtn.textContent = 'Xóa';
-
-        cancelBtn.addEventListener('click', () => overlay.remove());
-        confirmBtn.addEventListener('click', function () {
-            overlay.remove();
-            onConfirm();
-        });
-
-        actions.append(cancelBtn, confirmBtn);
-        modal.append(title, message, actions);
-        overlay.appendChild(modal);
-        document.body.appendChild(overlay);
-    }
-
-    document.addEventListener('click', function (event) {
-        const button = event.target.closest('.checkout-remove-btn');
-        if (!button) return;
-
-        const variantId = button.dataset.variantId;
-        const productName = button.closest('.checkout-product-item')?.querySelector('strong')?.textContent?.trim() || 'sản phẩm này';
-
-        showDeleteConfirm(productName, () => removeCartItem(variantId));
-    });
-
-    function updateDeliveryEstimate() {
-        if (!deliveryEstimateText || !deliveryEstimateNote) return;
-
-        const selectedMethod = document.querySelector('input[name="delivery_method"]:checked')?.value || 'home';
-
-        if (selectedMethod === 'store') {
-            deliveryEstimateText.textContent = '1 ngày làm việc';
-            deliveryEstimateNote.textContent = 'Tính từ lúc đơn hàng được chuyển cho đơn vị vận chuyển đến khi bạn nhận hàng tại cửa hàng.';
-            return;
         }
 
-        deliveryEstimateText.textContent = '1 - 2 ngày làm việc';
-        deliveryEstimateNote.textContent = 'Tính từ lúc đơn hàng được chuyển cho đơn vị vận chuyển đến khi hàng đến tay bạn.';
-    }
+        async function removeCartItem(variantId) {
+            try {
+                const response = await fetch('{{ route('cart.remove') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    body: JSON.stringify({ product_variant_id: variantId })
+                });
 
-    function updateShippingFee() {
-        if (!shippingFeeValue) return;
+                if (!response.ok) {
+                    alert('Không thể xóa sản phẩm.');
+                    return;
+                }
 
-        const isFreeShipping = shippingFeeRow?.dataset.freeShipping === '1';
-        const city = citySelect?.value || '';
-        const ward = wardSelect?.value || '';
-        let shippingFee = 30000;
+                const result = await response.json();
+                if (result.success) {
+                    const item = document.querySelector('.checkout-product-item[data-variant-id="' + variantId + '"]');
+                    if (item) item.remove();
 
-        if (isFreeShipping) {
-            shippingFee = 0;
-        } else {
-            if (city === 'Hà Nội' || city === 'Hồ Chí Minh' || city === 'Đà Nẵng') {
-                shippingFee = 35000;
+                    if (document.querySelectorAll('.checkout-product-item').length === 0) {
+                        window.location.reload();
+                        return;
+                    }
+
+                    recalculateCheckoutSummary();
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Không thể xóa sản phẩm.');
             }
-
-            if (city === 'Bình Dương' || city === 'Đồng Nai' || city === 'Khánh Hòa') {
-                shippingFee = 40000;
-            }
-
-            if (ward !== '') shippingFee += 5000;
         }
 
-        shippingFeeValue.textContent = formatMoney(shippingFee);
-        shippingFeeValue.dataset.amount = String(shippingFee);
+        function showDeleteConfirm(productName, onConfirm) {
+            const overlay = document.createElement('div');
+            overlay.className = 'custom-confirm-overlay';
 
-        if (shippingFeeRow) {
-            shippingFeeRow.dataset.amount = String(shippingFee);
-        }
+            const modal = document.createElement('div');
+            modal.className = 'custom-confirm-modal';
 
-        updateCheckoutTotal();
-    }
+            const title = document.createElement('h4');
+            title.textContent = 'Xác nhận xóa';
 
-    function fillSelect(selectElement, items, selectedValue, placeholder) {
-        selectElement.innerHTML = '';
+            const message = document.createElement('p');
+            message.textContent = 'Bạn có chắc chắn muốn xóa "' + productName + '" khỏi đơn hàng không?';
 
-        const placeholderOption = document.createElement('option');
-        placeholderOption.value = '';
-        placeholderOption.textContent = placeholder;
-        selectElement.appendChild(placeholderOption);
+            const actions = document.createElement('div');
+            actions.className = 'custom-confirm-actions';
 
-        (items || []).forEach(function (item) {
-            const option = document.createElement('option');
-            option.value = item.value || '';
-            option.textContent = item.label || item.value || '';
-            option.dataset.addressId = item.id || '';
+            const cancelBtn = document.createElement('button');
+            cancelBtn.type = 'button';
+            cancelBtn.className = 'custom-confirm-btn cancel';
+            cancelBtn.textContent = 'Hủy';
 
-            if (normalizeAddressName(option.value) === normalizeAddressName(selectedValue)) {
-                option.selected = true;
-            }
+            const confirmBtn = document.createElement('button');
+            confirmBtn.type = 'button';
+            confirmBtn.className = 'custom-confirm-btn confirm';
+            confirmBtn.textContent = 'Xóa';
 
-            selectElement.appendChild(option);
-        });
-    }
-
-    async function getAddressData(params) {
-        const query = new URLSearchParams(params).toString();
-        const response = await fetch(addressApiUrl + '?' + query, {
-            headers: {
-                'Accept': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error('Không thể tải dữ liệu địa chỉ.');
-        }
-
-        const data = await response.json();
-        return Array.isArray(data.items) ? data.items : [];
-    }
-
-    function showAddressError(selectElement, message) {
-        if (!selectElement) return;
-        selectElement.innerHTML = '<option value="">' + message + '</option>';
-    }
-
-    async function loadWards(provinceId, selectedWard = '') {
-        const version = ++addressRequestVersion;
-
-        wardSelect.disabled = true;
-        wardSelect.innerHTML = '<option value="">Đang tải Phường/Xã...</option>';
-
-        try {
-            const wards = await getAddressData({
-                type: 'wards',
-                parent_id: provinceId
+            cancelBtn.addEventListener('click', () => overlay.remove());
+            confirmBtn.addEventListener('click', function () {
+                overlay.remove();
+                onConfirm();
             });
 
-            if (version !== addressRequestVersion) return;
-
-            fillSelect(
-                wardSelect,
-                wards,
-                selectedWard,
-                '-- Chọn Phường/Xã --'
-            );
-
-            wardSelect.disabled = false;
-            updateShippingFee();
-        } catch (error) {
-            console.error('Lỗi tải phường/xã:', error);
-
-            if (version === addressRequestVersion) {
-                showAddressError(wardSelect, 'Không tải được Phường/Xã');
-                wardSelect.disabled = false;
-            }
+            actions.append(cancelBtn, confirmBtn);
+            modal.append(title, message, actions);
+            overlay.appendChild(modal);
+            document.body.appendChild(overlay);
         }
-    }
 
-    async function initializeAddressSelectors() {
-        citySelect.disabled = true;
-        wardSelect.disabled = true;
-        citySelect.innerHTML = '<option value="">Đang tải Tỉnh/Thành phố...</option>';
-        wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+        document.addEventListener('click', function (event) {
+            const qtyButton = event.target.closest('.checkout-qty-btn');
+            if (qtyButton) {
+                const variantId = qtyButton.dataset.variantId;
+                const input = document.querySelector('.checkout-qty-input[data-variant-id="' + variantId + '"]');
+                if (!input) return;
 
-        try {
-            const provinces = await getAddressData({ type: 'provinces' });
-
-            fillSelect(
-                citySelect,
-                provinces,
-                currentCity,
-                '-- Chọn Tỉnh/Thành phố --'
-            );
-
-            citySelect.disabled = false;
-
-            const selectedProvince = citySelect.options[citySelect.selectedIndex];
-            const provinceId = selectedProvince?.dataset.addressId;
-
-            if (provinceId) {
-                await loadWards(provinceId, currentWard);
-            } else {
-                wardSelect.disabled = false;
-            }
-        } catch (error) {
-            console.error('Lỗi tải tỉnh/thành phố:', error);
-            showAddressError(citySelect, 'Không tải được Tỉnh/Thành phố');
-            showAddressError(wardSelect, 'Không tải được Phường/Xã');
-            citySelect.disabled = false;
-            wardSelect.disabled = false;
-        }
-    }
-
-    if (citySelect && wardSelect) {
-        citySelect.addEventListener('change', async function () {
-            const selectedProvince = this.options[this.selectedIndex];
-            const provinceId = selectedProvince?.dataset.addressId;
-
-            wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
-            wardSelect.disabled = true;
-
-            if (!provinceId) {
-                updateShippingFee();
-                wardSelect.disabled = false;
+                let value = Number(input.value || 1);
+                const stock = Number(input.dataset.stock || 99);
+                if (qtyButton.dataset.action === 'minus') value = Math.max(1, value - 1);
+                if (qtyButton.dataset.action === 'plus') value = Math.min(stock, value + 1);
+                input.value = value;
+                updateCartQuantity(variantId, value);
                 return;
             }
 
-            await loadWards(provinceId);
-            updateShippingFee();
+            const removeButton = event.target.closest('.checkout-remove-btn');
+            if (removeButton) {
+                const variantId = removeButton.dataset.variantId;
+                const productName = removeButton.closest('.checkout-product-item')?.querySelector('strong')?.textContent?.trim() || 'sản phẩm này';
+                showDeleteConfirm(productName, () => removeCartItem(variantId));
+            }
         });
 
-        wardSelect.addEventListener('change', updateShippingFee);
+        document.addEventListener('change', function (event) {
+            const input = event.target.closest('.checkout-qty-input');
+            if (!input) return;
 
-        initializeAddressSelectors();
+            let value = Number(input.value || 1);
+            const stock = Number(input.dataset.stock || 99);
+            value = Math.min(stock, Math.max(1, value));
+            input.value = value;
+            updateCartQuantity(input.dataset.variantId, value);
+        });
+
+        function updateDeliveryEstimate() {
+            if (!deliveryEstimateText || !deliveryEstimateNote) return;
+
+            const selectedMethod = document.querySelector('input[name="delivery_method"]:checked')?.value || 'home';
+
+            if (selectedMethod === 'store') {
+                deliveryEstimateText.textContent = '1 ngày làm việc';
+                deliveryEstimateNote.textContent = 'Tính từ lúc đơn hàng được chuyển cho đơn vị vận chuyển đến khi bạn nhận hàng tại cửa hàng.';
+                return;
+            }
+
+            deliveryEstimateText.textContent = '1 - 2 ngày làm việc';
+            deliveryEstimateNote.textContent = 'Tính từ lúc đơn hàng được chuyển cho đơn vị vận chuyển đến khi hàng đến tay bạn.';
+        }
+
+        citySelect?.addEventListener('change', async function () {
+    const selectedOption = this.options[this.selectedIndex];
+    const provinceId = selectedOption?.dataset?.addressId
+        || selectedOption?.getAttribute('data-address-id')
+        || '';
+
+    wardSelect.innerHTML = '<option value="">-- Đang tải Phường/Xã... --</option>';
+    wardSelect.disabled = true;
+
+    if (!provinceId) {
+        wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+        wardSelect.disabled = false;
+        updateShippingFee();
+        return;
     }
 
-    deliveryMethodInputs.forEach(function (input) {
-        input.addEventListener('change', updateDeliveryEstimate);
-    });
+    try {
+        await loadWards(provinceId);
+    } catch (error) {
+        console.error('Không thể tải phường/xã:', error);
+        showAddressError(wardSelect, 'Không tải được Phường/Xã');
+    } finally {
+        wardSelect.disabled = false;
+    }
+});
+        wardSelect?.addEventListener('change', updateShippingFee);
 
-    updateShippingFee();
-    updateDeliveryEstimate();
+        deliveryMethodInputs.forEach(function (input) {
+            input.addEventListener('change', updateDeliveryEstimate);
+        });
+
+        updateDeliveryEstimate();
+        initializeAddressSelectors();
+        updateShippingFee();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeCheckoutPage, { once: true });
+    } else {
+        initializeCheckoutPage();
+    }
 
     function chooseVoucher(code, kind = 'order') {
         const input = document.getElementById(kind + '-voucher-code');

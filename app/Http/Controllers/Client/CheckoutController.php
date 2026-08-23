@@ -55,125 +55,16 @@ class CheckoutController extends Controller
         return round($baseFee);
     }
 
-    protected function cityList(): array
-    {
-        return [
-            'Hà Nội',
-            'Hải Phòng',
-            'Đà Nẵng',
-            'Hồ Chí Minh',
-            'Bình Dương',
-            'Đồng Nai',
-            'Khánh Hòa',
-            'Cần Thơ',
-            'Bình Định',
-            'Đà Lạt',
-            'Thừa Thiên Huế',
-            'Hải Dương',
-            'Nam Định',
-            'Quảng Ninh',
-            'Bắc Ninh',
-            'Vĩnh Phúc',
-            'Phú Thọ',
-            'Thái Nguyên',
-            'Bắc Giang',
-            'Lạng Sơn',
-            'Cao Bằng',
-            'Hà Giang',
-            'Lào Cai',
-            'Yên Bái',
-            'Tuyên Quang',
-            'Hòa Bình',
-            'Sơn La',
-            'Điện Biên',
-            'Lai Châu',
-            'Hà Nam',
-            'Ninh Bình',
-            'Thanh Hóa',
-            'Nghệ An',
-            'Hà Tĩnh',
-            'Quảng Bình',
-            'Quảng Trị',
-            'Thừa Thiên Huế',
-            'Quảng Nam',
-            'Quảng Ngãi',
-            'Bình Thuận',
-            'Ninh Thuận',
-            'Bình Phước',
-            'Tây Ninh',
-            'Long An',
-            'Đồng Tháp',
-            'An Giang',
-            'Kiên Giang',
-            'Cà Mau',
-            'Bạc Liêu',
-            'Sóc Trăng',
-            'Trà Vinh',
-            'Vĩnh Long',
-            'Tiền Giang',
-            'Bến Tre',
-            'Hậu Giang',
-            'Bà Rịa - Vũng Tàu',
-            'Dak Lak',
-            'Dak Nong',
-            'Lâm Đồng'
-        ];
-    }
-
-    protected function wardListByCity(): array
-    {
-        return [
-            'Hà Nội' => ['Phường Cống Vị', 'Phường Đội Cấn', 'Phường Liễu Giai', 'Phường Kim Liên', 'Phường Thanh Xuân Trung'],
-            'Hải Phòng' => ['Phường Máy Chai', 'Phường Hạ Long', 'Phường Lê Chân', 'Phường Tràng Cát', 'Phường Đồng Hoà'],
-            'Đà Nẵng' => ['Phường Hòa Cường Bắc', 'Phường Thanh Khê Đông', 'Phường Hải Châu I', 'Phường Nam Dương', 'Phường An Khê'],
-            'Hồ Chí Minh' => ['Phường Bến Nghé', 'Phường Tân Bình', 'Phường 7', 'Phường Phú Nhuận', 'Phường Thủ Đức'],
-            'Bình Dương' => ['Phường Thủ Dầu Một', 'Phường Chánh Nghĩa', 'Phường Hiệp An', 'Phường Bình Chuẩn', 'Phường Phú Hòa'],
-            'Đồng Nai' => ['Phường Tân Biên', 'Phường Long Bình', 'Phường Trảng Dài', 'Phường Long Tân', 'Phường Xuân Hòa'],
-            'Khánh Hòa' => ['Phường Lộc Thọ', 'Phường Vĩnh Hải', 'Phường Ngọc Hiển', 'Phường Xuân Hà', 'Phường Nha Trang'],
-            'Cần Thơ' => ['Phường Cái Khế', 'Phường Bãi H L', 'Phường Tân An', 'Phường Ninh Kiều', 'Phường Hưng Lợi'],
-        ];
-    }
-
-    protected function ghnAddressRequest(
-    string $endpoint,
-    array $data = [],
-    string $method = 'get'
-): array {
-    $token = config('services.ghn.token');
-
-    if (empty($token)) {
-        return [];
-    }
-
-    $http = Http::withHeaders([
-        'Token' => $token,
-        'ShopId' => config('services.ghn.shop_id') ?: '',
-        'Content-Type' => 'application/json',
-    ]);
-
-    $response = $method === 'post'
-        ? $http->post(config('services.ghn.api_url') . $endpoint, $data)
-        : $http->get(config('services.ghn.api_url') . $endpoint, $data);
-
-   if (!$response->successful()) {
-    \Log::error('GHN API Error', [
-        'endpoint' => $endpoint,
-        'status' => $response->status(),
-        'body' => $response->body(),
-    ]);
-
-    return [];
-}
-
-    $data = $response->json('data', []);
-
-    return is_array($data) ? $data : [];
-}
-
     protected function publicAddressRequest(string $url): array
     {
         try {
-            $response = Http::timeout(8)->get($url);
+            $http = Http::timeout(10)->acceptJson();
+
+            if (app()->environment('local')) {
+                $http = $http->withoutVerifying();
+            }
+
+            $response = $http->get($url);
 
             if (!$response->successful()) {
                 return [];
@@ -193,64 +84,93 @@ class CheckoutController extends Controller
     }
 
     public function addressOptions(Request $request)
-    {
-        $type = $request->query('type');
-        $parentId = $request->query('parent_id');
+{
+    $type = (string) $request->query('type', '');
+    $parentId = $request->query('parent_id');
+    $baseUrl = 'https://provinces.open-api.vn/api/v2';
 
-        // API v2: dữ liệu địa giới hành chính hiện hành (2025+)
-        $baseUrl = 'https://provinces.open-api.vn/api/v2';
-
-        // ==============================
-        // TỈNH / THÀNH PHỐ
-        // ==============================
+    try {
         if ($type === 'provinces') {
-            $items = $this->publicAddressRequest($baseUrl . '/p/');
+            $data = $this->publicAddressRequest($baseUrl . '/p/');
 
-            return response()->json([
-                'items' => collect($items)
-                    ->map(function ($item) {
-                        $name = (string) ($item['name'] ?? '');
+            if (isset($data['data']) && is_array($data['data'])) {
+                $data = $data['data'];
+            } elseif (isset($data['items']) && is_array($data['items'])) {
+                $data = $data['items'];
+            }
 
-                        return [
-                            'id' => $item['code'] ?? null,
-                            'value' => preg_replace('/^(Tỉnh|Thành phố)\s+/iu', '', $name),
-                            'label' => $name,
-                        ];
-                    })
-                    ->filter(fn ($item) => !empty($item['id']) && $item['value'] !== '')
-                    ->values()
-                    ->all(),
-            ]);
+            $items = collect(is_array($data) ? $data : [])
+                ->map(function ($item) {
+                    if (!is_array($item)) return null;
+
+                    $name = trim((string) ($item['name'] ?? ''));
+                    $code = $item['code'] ?? null;
+
+                    if ($name === '' || empty($code)) return null;
+
+                    $value = preg_replace('/^(Tỉnh|Thành phố)\s+/iu', '', $name);
+
+                    return [
+                        'id' => (int) $code,
+                        'value' => trim((string) $value),
+                        'label' => $name,
+                    ];
+                })
+                ->filter()
+                ->values()
+                ->all();
+
+            return response()->json(['items' => $items]);
         }
 
-        // ==============================
-        // PHƯỜNG / XÃ THEO TỈNH
-        // API v2 không còn cấp Quận/Huyện trong luồng này.
-        // ==============================
-        if ($type === 'wards' && $parentId !== null && $parentId !== '') {
-            $items = $this->publicAddressRequest(
-                $baseUrl . '/w/?province=' . (int) $parentId
-            );
+        if ($type === 'wards') {
+            if (empty($parentId) || !is_numeric($parentId)) {
+                return response()->json([
+                    'items' => [],
+                    'message' => 'Thiếu mã Tỉnh/Thành phố.',
+                ], 422);
+            }
 
-            return response()->json([
-                'items' => collect($items)
-                    ->map(function ($item) {
-                        return [
-                            'id' => $item['code'] ?? null,
-                            'value' => $item['name'] ?? '',
-                            'label' => $item['name'] ?? '',
-                        ];
-                    })
-                    ->filter(fn ($item) => !empty($item['id']) && $item['value'] !== '')
-                    ->values()
-                    ->all(),
-            ]);
+            // Gọi chi tiết tỉnh kèm danh sách đơn vị con (depth=2)
+            $url = $baseUrl . '/p/' . (int) $parentId . '?depth=2';
+            $data = $this->publicAddressRequest($url);
+
+            // API trả về object tỉnh, danh sách xã/phường hoặc quận/huyện nằm trong 'wards' hoặc 'districts'
+            $rawWards = $data['wards'] ?? $data['data']['wards'] ?? [];
+
+            // Nếu dữ liệu chia theo quận/huyện (depth=3)
+            if (empty($rawWards) && !empty($data['districts'])) {
+                $rawWards = collect($data['districts'])->pluck('wards')->flatten(1)->filter()->all();
+            }
+
+            $items = collect($rawWards)
+                ->map(function ($item) {
+                    if (!is_array($item)) return null;
+
+                    $name = trim((string) ($item['name'] ?? ''));
+                    $code = $item['code'] ?? null;
+
+                    if ($name === '' || empty($code)) return null;
+
+                    return [
+                        'id' => (int) $code,
+                        'value' => $name,
+                        'label' => $name,
+                    ];
+                })
+                ->filter()
+                ->values()
+                ->all();
+
+            return response()->json(['items' => $items]);
         }
 
-        return response()->json([
-            'items' => [],
-        ], 400);
+        return response()->json(['items' => [], 'message' => 'Loại dữ liệu không hợp lệ.'], 400);
+    } catch (\Throwable $e) {
+        \Log::error('Address API error: ' . $e->getMessage());
+        return response()->json(['items' => [], 'message' => 'Không thể tải dữ liệu.'], 500);
     }
+}
 
     public function index()
     {
@@ -310,8 +230,35 @@ class CheckoutController extends Controller
             return (float) ($item['price'] ?? 0) * (int) ($item['quantity'] ?? 0);
         });
 
-        $cityOptions = $this->cityList();
-        $wardOptions = $this->wardListByCity();
+        $addressData = $this->publicAddressRequest('https://provinces.open-api.vn/api/v2/');
+        $addressProvinces = collect($addressData)
+            ->filter(fn ($item) => is_array($item) && !empty($item['code']) && !empty($item['name']))
+            ->map(fn ($item) => [
+                'id' => (int) $item['code'],
+                'value' => trim((string) preg_replace('/^(Tỉnh|Thành phố)\s+/iu', '', $item['name'])),
+                'label' => (string) $item['name'],
+            ])
+            ->values()
+            ->all();
+
+        $savedProvince = collect($addressProvinces)->first(function ($province) use ($defaultCustomer) {
+            return mb_strtolower($province['value']) === mb_strtolower(trim((string) ($defaultCustomer['city'] ?? '')));
+        });
+        $addressWards = [];
+        if ($savedProvince) {
+            $wardData = $this->publicAddressRequest(
+                'https://provinces.open-api.vn/api/v2/w/?province=' . $savedProvince['id']
+            );
+            $addressWards = collect($wardData)
+                ->filter(fn ($item) => is_array($item) && !empty($item['code']) && !empty($item['name']))
+                ->map(fn ($item) => [
+                    'id' => (int) $item['code'],
+                    'value' => (string) $item['name'],
+                    'label' => (string) $item['name'],
+                ])
+                ->values()
+                ->all();
+        }
 
         $shippingVoucher = $this->voucherFromSession('shipping_voucher');
         $orderVoucher = $this->voucherFromSession('order_voucher');
@@ -377,9 +324,9 @@ class CheckoutController extends Controller
 
         return view('checkout', compact(
             'cart',
-            'cityOptions',
-            'wardOptions',
             'defaultCustomer',
+            'addressProvinces',
+            'addressWards',
             'totalPrice',
             'shippingFee',
             'discountAmount',
@@ -541,7 +488,6 @@ class CheckoutController extends Controller
             'customer_name' => 'required|string|max:255',
             'phone' => 'required|string|max:20',
             'city' => 'required|string|max:255',
-            'district' => 'nullable|string|max:255',
             'ward' => 'required|string|max:255',
             'address_detail' => 'required|string|max:255',
             'payment_method' => 'required|in:cod,vnpay',
@@ -592,7 +538,6 @@ class CheckoutController extends Controller
         $addressParts = array_filter([
             trim($request->address_detail),
             trim($request->ward),
-            trim((string) $request->district),
             trim($request->city),
         ]);
         $address = implode(', ', $addressParts);
@@ -651,39 +596,6 @@ class CheckoutController extends Controller
 
             $shippingVoucher?->increment('used_quantity');
             $orderVoucher?->increment('used_quantity');
-
-            $customerId = session('customer.id');
-            if ($customerId && Schema::hasTable('nguoidung')) {
-                $customerData = [
-                    'address' => $address,
-                    'tel' => $request->phone,
-                ];
-
-                if (Schema::hasColumn('nguoidung', 'city')) {
-                    $customerData['city'] = $request->city;
-                }
-                if (Schema::hasColumn('nguoidung', 'district')) {
-                    $customerData['district'] = $request->district;
-                }
-                if (Schema::hasColumn('nguoidung', 'ward')) {
-                    $customerData['ward'] = $request->ward;
-                }
-                if (Schema::hasColumn('nguoidung', 'address_detail')) {
-                    $customerData['address_detail'] = $request->address_detail;
-                }
-                if (Schema::hasColumn('nguoidung', 'updated_at')) {
-                    $customerData['updated_at'] = now();
-                }
-
-                DB::table('nguoidung')->where('id', $customerId)->update($customerData);
-                session()->put('customer.address', $address);
-                session()->put('customer.tel', $request->phone);
-                session()->put('customer.city', $request->city);
-                session()->put('customer.district', $request->district);
-                session()->put('customer.ward', $request->ward);
-                session()->put('customer.address_detail', $request->address_detail);
-            }
-
 
             DB::commit();
         } catch (\Exception $e) {
