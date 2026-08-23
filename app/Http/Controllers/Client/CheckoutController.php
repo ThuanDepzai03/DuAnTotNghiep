@@ -9,6 +9,7 @@ use App\Models\Voucher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Schema;
 
 class CheckoutController extends Controller
 {
@@ -169,6 +170,28 @@ class CheckoutController extends Controller
     return is_array($data) ? $data : [];
 }
 
+    protected function publicAddressRequest(string $url): array
+    {
+        try {
+            $response = Http::timeout(8)->get($url);
+
+            if (!$response->successful()) {
+                return [];
+            }
+
+            $data = $response->json();
+
+            return is_array($data) ? $data : [];
+        } catch (\Throwable $exception) {
+            \Log::warning('Public address API error', [
+                'url' => $url,
+                'message' => $exception->getMessage(),
+            ]);
+
+            return [];
+        }
+    }
+
     public function addressOptions(Request $request)
 {
     $type = $request->query('type');
@@ -180,13 +203,17 @@ class CheckoutController extends Controller
             '/master-data/province'
         );
 
+        if (empty($items)) {
+            $items = $this->publicAddressRequest('https://provinces.open-api.vn/api/?depth=1');
+        }
+
         return response()->json([
             'items' => collect($items)
                 ->map(function ($item) {
                     return [
-                        'value' => $item['ProvinceName'] ?? '',
-                        'label' => $item['ProvinceName'] ?? '',
-                        'id' => $item['ProvinceID'] ?? '',
+                        'value' => $item['ProvinceName'] ?? $item['name'] ?? '',
+                        'label' => $item['ProvinceName'] ?? $item['name'] ?? '',
+                        'id' => $item['ProvinceID'] ?? $item['code'] ?? '',
                     ];
                 })
                 ->filter(fn ($item) => !empty($item['id']))
@@ -204,13 +231,20 @@ class CheckoutController extends Controller
             'get'
         );
 
+        if (empty($items)) {
+            $items = $this->publicAddressRequest(
+                'https://provinces.open-api.vn/api/p/' . (int) $parentId . '?depth=2'
+            );
+            $items = $items['districts'] ?? [];
+        }
+
         return response()->json([
             'items' => collect($items)
                 ->map(function ($item) {
                     return [
-                        'value' => $item['DistrictName'] ?? '',
-                        'label' => $item['DistrictName'] ?? '',
-                        'id' => $item['DistrictID'] ?? '',
+                        'value' => $item['DistrictName'] ?? $item['name'] ?? '',
+                        'label' => $item['DistrictName'] ?? $item['name'] ?? '',
+                        'id' => $item['DistrictID'] ?? $item['code'] ?? '',
                     ];
                 })
                 ->filter(fn ($item) => !empty($item['id']))
@@ -228,13 +262,20 @@ class CheckoutController extends Controller
             'post'
         );
 
+        if (empty($items)) {
+            $items = $this->publicAddressRequest(
+                'https://provinces.open-api.vn/api/d/' . (int) $parentId . '?depth=2'
+            );
+            $items = $items['wards'] ?? [];
+        }
+
         return response()->json([
             'items' => collect($items)
                 ->map(function ($item) {
                     return [
-                        'value' => $item['WardName'] ?? '',
-                        'label' => $item['WardName'] ?? '',
-                        'id' => $item['WardCode'] ?? '',
+                        'value' => $item['WardName'] ?? $item['name'] ?? '',
+                        'label' => $item['WardName'] ?? $item['name'] ?? '',
+                        'id' => $item['WardCode'] ?? $item['code'] ?? '',
                     ];
                 })
                 ->filter(fn ($item) => !empty($item['id']))
@@ -262,6 +303,14 @@ class CheckoutController extends Controller
         // ==============================
 
         $customer = session('customer');
+        $customerRecord = DB::table('nguoidung')->where('id', $customer['id'] ?? 0)->first();
+        $defaultCustomer = [
+            'customer_name' => $customerRecord->user ?? $customer['user'] ?? '',
+            'phone' => $customerRecord->tel ?? $customer['tel'] ?? '',
+            'city' => $customerRecord->city ?? $customer['city'] ?? '',
+            'ward' => $customerRecord->ward ?? $customer['ward'] ?? '',
+            'address_detail' => $customerRecord->address_detail ?? $customer['address_detail'] ?? $customerRecord->address ?? $customer['address'] ?? '',
+        ];
 
 
         // ==============================
@@ -272,29 +321,47 @@ class CheckoutController extends Controller
             ? 'cart.' . $customer['id']
             : 'cart.guest';
 
-        $cart = session($cartKey, []);
+        $shippingVoucher = session('shipping_voucher');
+        $orderVoucher = session('order_voucher');
+        $voucher = $orderVoucher ?: $shippingVoucher;
+        $discountAmount = 0;
+        $shippingFee = $this->calculateShippingFee($defaultCustomer['city'] ?? '', $defaultCustomer['ward'] ?? '', $shippingVoucher);
 
+        foreach ([$shippingVoucher, $orderVoucher] as $voucherPayload) {
+            if ($voucherPayload && isset($voucherPayload['id'])) {
+                $voucherModel = Voucher::find($voucherPayload['id']);
 
-        // ==============================
-        // LẤY VOUCHER
-        // ==============================
+                if ($voucherModel && (int) $voucherModel->status === 1) {
+                $validVoucher = (
+                    ($voucherModel->quantity === null || $voucherModel->used_quantity < $voucherModel->quantity)
+                    && (!$voucherModel->start_date || now()->toDateString() >= $voucherModel->start_date)
+                    && (!$voucherModel->end_date || now()->toDateString() <= $voucherModel->end_date)
+                );
 
-        $vouchers = Voucher::where('status', 1)
-            ->where('discount_type', 'percent')
-            ->where(function ($query) {
-                $query->whereNull('quantity')
-                    ->orWhereColumn('used_quantity', '<', 'quantity');
-            })
-            ->where(function ($query) {
-                $query->whereNull('start_date')
-                    ->orWhereDate('start_date', '<=', now());
-            })
-            ->where(function ($query) {
-                $query->whereNull('end_date')
-                    ->orWhereDate('end_date', '>=', now());
-            })
-            ->latest()
-            ->get();
+                    if ($validVoucher) {
+                    if ($voucherModel->discount_type === 'free_shipping') {
+                        $shippingFee = 0;
+                    } elseif ($voucherModel->discount_type === 'percent') {
+                        $discountAmount = $totalPrice * ((float) $voucherModel->discount_value / 100);
+                        if (!empty($voucherModel->max_discount) && $discountAmount > (float) $voucherModel->max_discount) {
+                            $discountAmount = (float) $voucherModel->max_discount;
+                        }
+                    } elseif ($voucherModel->discount_type === 'fixed') {
+                        $discountAmount = (float) $voucherModel->discount_value;
+                    }
+
+                    if ($discountAmount > $totalPrice) {
+                        $discountAmount = $totalPrice;
+                    }
+                    $discountAmount = round($discountAmount);
+                    } else {
+                        session()->forget($voucherModel->discount_type === 'free_shipping' ? 'shipping_voucher' : 'order_voucher');
+                    }
+                } else {
+                    session()->forget($voucherModel->discount_type === 'free_shipping' ? 'shipping_voucher' : 'order_voucher');
+                }
+            }
+        }
 
 
         // ==============================
@@ -303,7 +370,16 @@ class CheckoutController extends Controller
 
         return view('checkout', compact(
             'cart',
-            'vouchers'
+            'cityOptions',
+            'wardOptions',
+            'defaultCustomer',
+            'totalPrice',
+            'shippingFee',
+            'discountAmount',
+            'finalTotal',
+            'voucher',
+            'shippingVoucher',
+            'orderVoucher'
         ));
     }
 
@@ -343,6 +419,13 @@ class CheckoutController extends Controller
             return redirect()->route('checkout.show')->with('voucher_error', 'Voucher đã hết hạn.');
         }
 
+        $voucherKind = $request->input('voucher_kind', 'order');
+        if (($voucherKind === 'shipping') !== ($voucher->discount_type === 'free_shipping')) {
+            return redirect()->route('checkout.show')->with('voucher_error', $voucherKind === 'shipping'
+                ? 'Ô này chỉ nhận voucher phí vận chuyển.'
+                : 'Ô này chỉ nhận voucher đơn hàng.');
+        }
+
         $voucherPayload = [
             'id' => $voucher->id,
             'code' => $voucher->code,
@@ -350,6 +433,7 @@ class CheckoutController extends Controller
             'discount_type' => $voucher->discount_type,
             'discount_value' => $voucher->discount_value,
             'max_discount' => $voucher->max_discount,
+            'min_order' => $voucher->min_order,
         ];
 
         if ($voucher->discount_type === 'free_shipping') {
@@ -359,13 +443,22 @@ class CheckoutController extends Controller
             $voucherPayload['is_free_shipping'] = true;
         }
 
-        session()->put('voucher', $voucherPayload);
+        $sessionKey = $voucher->discount_type === 'free_shipping'
+            ? 'shipping_voucher'
+            : 'order_voucher';
 
-        return redirect()->route('checkout.show')->with('voucher_success', $voucher->discount_type === 'free_shipping' ? 'Áp dụng voucher miễn phí vận chuyển thành công!' : 'Áp dụng voucher thành công!');
+        session()->put($sessionKey, $voucherPayload);
+        session()->forget('voucher');
+
+        return redirect()->route('checkout.show')->with('voucher_success', $voucher->discount_type === 'free_shipping' ? 'Áp dụng voucher phí vận chuyển thành công!' : 'Áp dụng voucher đơn hàng thành công!');
     }
 
-    public function removeVoucher()
+    public function removeVoucher(Request $request)
     {
+        $key = $request->input('voucher_kind') === 'shipping'
+            ? 'shipping_voucher'
+            : 'order_voucher';
+        session()->forget($key);
         session()->forget('voucher');
 
         return redirect()->route('checkout.show')->with('voucher_success', 'Đã bỏ mã voucher.');
@@ -407,6 +500,7 @@ class CheckoutController extends Controller
             'customer_name' => 'required|string|max:255',
             'phone' => 'required|string|max:20',
             'city' => 'required|string|max:255',
+            'district' => 'required|string|max:255',
             'ward' => 'required|string|max:255',
             'address_detail' => 'required|string|max:255',
             'payment_method' => 'required|in:cod,vnpay',
@@ -427,134 +521,22 @@ class CheckoutController extends Controller
             $totalPrice += $price * $quantity;
         }
 
-
-        // ==============================
-        // LẤY VOUCHER TỪ SESSION
-        // ==============================
-
-        $sessionVoucher = session('voucher');
-
-        $voucher = null;
         $discountAmount = 0;
+        $shippingVoucher = $this->voucherFromSession('shipping_voucher');
+        $orderVoucher = $this->voucherFromSession('order_voucher');
 
-
-        // ==============================
-        // XỬ LÝ VOUCHER
-        // ==============================
-
-        if ($sessionVoucher) {
-
-            $voucher = Voucher::find($sessionVoucher['id']);
-
-            // Voucher không tồn tại
-            if (!$voucher) {
-
-                session()->forget('voucher');
-
-                return back()
-                    ->with('error', 'Voucher không tồn tại.')
-                    ->withInput();
+        if ($orderVoucher) {
+            if (($orderVoucher->min_order ?? 0) > $totalPrice) {
+                return back()->with('error', 'Đơn hàng chưa đạt giá trị tối thiểu để dùng voucher.')->withInput();
             }
 
-
-            // Voucher bị khóa
-            if ((int) $voucher->status !== 1) {
-
-                session()->forget('voucher');
-
-                return back()
-                    ->with('error', 'Voucher hiện đang bị khóa.')
-                    ->withInput();
-            }
-
-
-            // Kiểm tra số lượng
-            if (
-                $voucher->quantity !== null &&
-                $voucher->used_quantity >= $voucher->quantity
-            ) {
-
-                session()->forget('voucher');
-
-                return back()
-                    ->with('error', 'Voucher đã hết lượt sử dụng.')
-                    ->withInput();
-            }
-
-
-            // Kiểm tra ngày bắt đầu
-            if (
-                $voucher->start_date &&
-                now()->toDateString() < $voucher->start_date
-            ) {
-
-                session()->forget('voucher');
-
-                return back()
-                    ->with('error', 'Voucher chưa đến thời gian sử dụng.')
-                    ->withInput();
-            }
-
-
-            // Kiểm tra ngày kết thúc
-            if (
-                $voucher->end_date &&
-                now()->toDateString() > $voucher->end_date
-            ) {
-
-                session()->forget('voucher');
-
-                return back()
-                    ->with('error', 'Voucher đã hết hạn.')
-                    ->withInput();
-            }
-
-
-            // ==============================
-            // KIỂM TRA ĐƠN TỐI THIỂU
-            // ==============================
-
-            if (($voucher->min_order ?? 0) > $totalPrice) {
-                return back()
-                    ->with('error', 'Đơn hàng chưa đạt giá trị tối thiểu để dùng mã giảm giá.')
-                    ->withInput();
-            }
-
-
-            // ==============================
-            // TÍNH GIẢM GIÁ
-            // ==============================
-
-            if ($voucher->discount_type === 'percent') {
-
-                // Ví dụ:
-                // 25.470.000 × 10% = 2.547.000
-
-                $discountAmount =
-                    $totalPrice *
-                    ((float) $voucher->discount_value / 100);
-
-
-                // ==============================
-                // GIỚI HẠN GIẢM TỐI ĐA
-                // ==============================
-
-                if (
-                    $voucher->max_discount !== null &&
-                    $discountAmount > (float) $voucher->max_discount
-                ) {
-
-                    $discountAmount =
-                        (float) $voucher->max_discount;
+            if ($orderVoucher->discount_type === 'percent') {
+                $discountAmount = round($totalPrice * ((float) $orderVoucher->discount_value / 100), 2);
+                if (!empty($orderVoucher->max_discount) && $discountAmount > (float) $orderVoucher->max_discount) {
+                    $discountAmount = (float) $orderVoucher->max_discount;
                 }
             } else {
-
-                // Voucher giảm tiền cố định
-
-                $discountAmount = min(
-                    (float) $voucher->discount_value,
-                    $totalPrice
-                );
+                $discountAmount = min((float) $orderVoucher->discount_value, $totalPrice);
             }
 
 
@@ -562,32 +544,15 @@ class CheckoutController extends Controller
             $discountAmount = round($discountAmount);
         }
 
-
-        // ==============================
-        // TỔNG SAU GIẢM
-        // ==============================
-
-        $finalTotal = max(
-            0,
-            $totalPrice - $discountAmount
-        );
-
-
-        // ==============================
-        // ĐỊA CHỈ
-        // ==============================
-
-        $address =
-            trim($request->address_detail)
-            . ', '
-            . trim($request->ward)
-            . ', '
-            . trim($request->city);
-
-
-        // ==============================
-        // TẠO ĐƠN HÀNG
-        // ==============================
+        $shippingFee = $this->calculateShippingFee($request->city, $request->ward, $shippingVoucher);
+        $finalTotal = max(0, $totalPrice + $shippingFee - $discountAmount);
+        $addressParts = array_filter([
+            trim($request->address_detail),
+            trim($request->ward),
+            trim($request->district),
+            trim($request->city),
+        ]);
+        $address = implode(', ', $addressParts);
 
         DB::beginTransaction();
 
@@ -602,13 +567,7 @@ class CheckoutController extends Controller
                 'address_detail' => $request->address_detail,
                 'city' => $request->city,
                 'ward' => $request->ward,
-
-                'voucher_id' => $voucher ? $voucher->id : null,
-
-                'voucher_code' => $voucher
-                    ? strtoupper($voucher->code)
-                    : null,
-
+                'voucher_code' => collect([$shippingVoucher?->code, $orderVoucher?->code])->filter()->implode(', '),
                 'discount_amount' => $discountAmount,
 
                 'note' => null,
@@ -646,15 +605,8 @@ class CheckoutController extends Controller
                 ]);
             }
 
-
-            // ==============================
-            // TĂNG SỐ LƯỢNG ĐÃ SỬ DỤNG
-            // ==============================
-
-            if ($voucher) {
-
-                $voucher->increment('used_quantity');
-            }
+            $shippingVoucher?->increment('used_quantity');
+            $orderVoucher?->increment('used_quantity');
 
 
             DB::commit();
@@ -704,11 +656,66 @@ class CheckoutController extends Controller
                 ]);
         }
 
+        session()->forget('cart');
+        session()->forget('voucher');
+        session()->forget('shipping_voucher');
+        session()->forget('order_voucher');
 
         return back()
             ->with(
                 'error',
                 'Phương thức thanh toán không hợp lệ.'
             );
+    }
+
+    protected function voucherFromSession(string $key): ?Voucher
+    {
+        $payload = session($key);
+
+        if (!$payload || empty($payload['id'])) {
+            return null;
+        }
+
+        $voucher = Voucher::whereKey($payload['id'])
+            ->where('code', $payload['code'] ?? '')
+            ->where('status', 1)
+            ->first();
+
+        if (!$voucher || ($voucher->quantity !== null && $voucher->used_quantity >= $voucher->quantity)
+            || ($voucher->start_date && now()->toDateString() < $voucher->start_date)
+            || ($voucher->end_date && now()->toDateString() > $voucher->end_date)) {
+            session()->forget($key);
+
+                    $customerId = session('customer.id');
+                    if ($customerId && Schema::hasTable('nguoidung')) {
+                        $customerData = [
+                            'address' => $address,
+                            'tel' => $request->phone,
+                        ];
+
+                        if (Schema::hasColumn('nguoidung', 'city')) {
+                            $customerData['city'] = $request->city;
+                        }
+                        if (Schema::hasColumn('nguoidung', 'ward')) {
+                            $customerData['ward'] = $request->ward;
+                        }
+                        if (Schema::hasColumn('nguoidung', 'address_detail')) {
+                            $customerData['address_detail'] = $request->address_detail;
+                        }
+                        if (Schema::hasColumn('nguoidung', 'updated_at')) {
+                            $customerData['updated_at'] = now();
+                        }
+
+                        DB::table('nguoidung')->where('id', $customerId)->update($customerData);
+                        session()->put('customer.address', $address);
+                        session()->put('customer.tel', $request->phone);
+                        session()->put('customer.city', $request->city);
+                        session()->put('customer.ward', $request->ward);
+                        session()->put('customer.address_detail', $request->address_detail);
+                    }
+            return null;
+        }
+
+        return $voucher;
     }
 }

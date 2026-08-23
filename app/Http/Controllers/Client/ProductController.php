@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use App\Models\Attribute;
+use App\Models\Review;
 
 class ProductController extends Controller
 {
@@ -181,6 +182,7 @@ class ProductController extends Controller
         'category',
         'brand',
         'variants.attributeValues.attribute',
+        'reviews' => fn ($query) => $query->where('status', 'approved')->latest(),
     ])
         ->where('status', 1)
         ->findOrFail($id);
@@ -263,4 +265,35 @@ class ProductController extends Controller
         'recentProducts'
     ));
 }
+
+    public function storeReview(Request $request, $id)
+    {
+        $customer = session('customer');
+
+        if (!$customer) {
+            return redirect()->route('login')->with('error', 'Vui lòng đăng nhập để đánh giá sản phẩm.');
+        }
+
+        $data = $request->validate([
+            'rating' => ['required', 'integer', 'between:1,5'],
+            'comment' => ['required', 'string', 'max:2000'],
+        ]);
+
+        $product = Product::where('status', 1)->findOrFail($id);
+
+        Review::updateOrCreate(
+            [
+                'product_id' => $product->id,
+                'customer_id' => $customer['id'],
+            ],
+            [
+                'customer_name' => $customer['user'] ?? 'Khách hàng',
+                'rating' => $data['rating'],
+                'comment' => $data['comment'],
+                'status' => 'approved',
+            ]
+        );
+
+        return back()->with('success', 'Đã lưu đánh giá sản phẩm.');
+    }
 }

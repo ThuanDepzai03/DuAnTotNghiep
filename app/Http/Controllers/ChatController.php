@@ -157,8 +157,13 @@ class ChatController extends Controller
 
         $conversation = Conversation::findOrFail($id);
 
-        // Lấy ID admin hiện tại nếu có
-        $adminId = session('customer')['id'] ?? null;
+        $admin = session('admin');
+        $customer = session('customer');
+        $adminId = $admin['id'] ?? $customer['id'] ?? null;
+
+        if (!$adminId || ((int) ($customer['role'] ?? 0) !== 1 && empty($admin))) {
+            abort(403);
+        }
 
         Message::create([
             'conversation_id' => $conversation->id,

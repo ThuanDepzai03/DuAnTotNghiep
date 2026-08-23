@@ -15,9 +15,12 @@
                     <a href="{{ route('account.profile') }}" class="list-group-item list-group-item-action">
                         <i class="fa fa-clipboard"></i> Đơn hàng của tôi
                     </a>
-                    <a href="{{ route('logout') }}" class="list-group-item list-group-item-action">
-                        <i class="fa fa-sign-out"></i> Đăng xuất
-                    </a>
+                    <form action="{{ route('logout') }}" method="POST">
+                        @csrf
+                        <button type="submit" class="list-group-item list-group-item-action w-100 text-start">
+                            <i class="fa fa-sign-out"></i> Đăng xuất
+                        </button>
+                    </form>
                 </div>
             </div>
             <div class="col-md-9">

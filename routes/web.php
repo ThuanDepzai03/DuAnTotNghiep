@@ -9,10 +9,12 @@ use App\Http\Controllers\Client\ProductController as ClientProductController;
 use App\Http\Controllers\Client\CartController as ClientCartController;
 use App\Http\Controllers\Client\CheckoutController as ClientCheckoutController;
 use App\Http\Controllers\Client\PaymentController;
+use App\Http\Controllers\Client\WishlistController;
 use App\Http\Controllers\ProductVariantController;
 use App\Http\Controllers\VoucherController;
 use App\Http\Controllers\Admin\BrandController;
 use App\Http\Controllers\Admin\BannerController;
+use App\Http\Controllers\Admin\FeedbackController;
 // Admin Controllers cũ của nhóm
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminAuthController;
@@ -28,6 +30,9 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/shop', [ClientProductController::class, 'index'])->name('shop');
 
 Route::get('/detail/{id}', [ClientProductController::class, 'show'])->name('product.detail');
+Route::post('/detail/{id}/reviews', [ClientProductController::class, 'storeReview'])->name('product.review.store');
+Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist.index');
+Route::post('/wishlist/toggle', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
 
 Route::get('/cart', [ClientCartController::class, 'index'])->name('cart.index');
 Route::post('/cart/add', [ClientCartController::class, 'add'])->name('cart.add');
@@ -63,6 +68,8 @@ Route::get('/about', [HomeController::class, 'about'])->name('about');
 Route::get('/news', [HomeController::class, 'news'])->name('news');
 
 Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
+Route::post('/contact', [HomeController::class, 'submitContact'])->name('contact.submit');
+Route::get('/vouchers', [HomeController::class, 'vouchers'])->name('vouchers.index');
 
 Route::post('/chat/send', [ChatController::class, 'send'])
     ->name('chat.send');
@@ -75,8 +82,12 @@ Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
 Route::post('/register', [AuthController::class, 'register'])->name('register.post');
+Route::get('/verify-email', [AuthController::class, 'showVerificationNotice'])->name('verification.notice');
+Route::post('/verify-email/code', [AuthController::class, 'verifyEmailCode'])->name('verification.code');
+Route::get('/verify-email/{id}/{token}', [AuthController::class, 'verifyEmail'])->name('verification.verify');
+Route::post('/verify-email/resend', [AuthController::class, 'resendVerification'])->name('verification.resend');
 
-Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::get('/admin/login', [AdminAuthController::class, 'showLogin'])->name('admin.login');
 Route::post('/admin/login', [AdminAuthController::class, 'login'])->name('admin.login.post');
@@ -84,6 +95,7 @@ Route::post('/admin/logout', [AdminAuthController::class, 'logout'])->name('admi
 
 Route::get('/account/profile', [AuthController::class, 'profile'])->name('account.profile');
 Route::post('/account/profile', [AuthController::class, 'updateProfile'])->name('account.update');
+Route::post('/account/password', [AuthController::class, 'updatePassword'])->name('account.password.update');
 
 Route::get('/account/orders/{id}', [AuthController::class, 'orderDetail'])
     ->name('account.order.detail');
@@ -146,6 +158,11 @@ Route::middleware(['web', 'admin'])
         Route::patch('/banners/{banner}/toggle-status', [BannerController::class, 'toggleStatus'])
             ->name('banners.toggle-status');
         Route::resource('vouchers', VoucherController::class);
+        Route::get('/feedback', [FeedbackController::class, 'index'])->name('feedback.index');
+        Route::patch('/feedback/contacts/{id}', [FeedbackController::class, 'updateContact'])->name('feedback.contacts.update');
+        Route::delete('/feedback/contacts/{id}', [FeedbackController::class, 'destroyContact'])->name('feedback.contacts.destroy');
+        Route::patch('/feedback/reviews/{id}', [FeedbackController::class, 'updateReview'])->name('feedback.reviews.update');
+        Route::delete('/feedback/reviews/{id}', [FeedbackController::class, 'destroyReview'])->name('feedback.reviews.destroy');
         Route::get('/statistics/revenue', [OrderController::class, 'revenue'])
     ->name('statistics.revenue');
 Route::get('/chat', [ChatController::class, 'adminIndex'])

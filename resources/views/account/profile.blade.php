@@ -55,6 +55,31 @@
 
 <div class="card mt-4">
     <div class="card-header">
+        <h4 class="mb-0">Đổi mật khẩu</h4>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ route('account.password.update') }}">
+            @csrf
+            <div class="mb-3">
+                <label class="form-label">Mật khẩu hiện tại</label>
+                <input type="password" name="current_password" class="form-control" required>
+                @error('current_password')<div class="text-danger mt-1">{{ $message }}</div>@enderror
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Mật khẩu mới</label>
+                <input type="password" name="password" class="form-control" minlength="8" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Nhập lại mật khẩu mới</label>
+                <input type="password" name="password_confirmation" class="form-control" minlength="8" required>
+            </div>
+            <button class="btn btn-primary">Đổi mật khẩu</button>
+        </form>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header">
         <h4 class="mb-0">Đơn hàng của tôi</h4>
     </div>
 

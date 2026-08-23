@@ -69,6 +69,9 @@
         $defaultCustomer['phone'] ?? ''
     );
 
+    $customerCity = old('city', $defaultCustomer['city'] ?? '');
+    $customerWard = old('ward', $defaultCustomer['ward'] ?? '');
+
 
     /*
     |--------------------------------------------------------------------------
@@ -76,7 +79,9 @@
     |--------------------------------------------------------------------------
     */
 
-    $voucher = session('voucher');
+    $shippingVoucher = $shippingVoucher ?? session('shipping_voucher');
+    $orderVoucher = $orderVoucher ?? session('order_voucher');
+    $voucher = $orderVoucher ?: $shippingVoucher;
 
 
     /*
@@ -88,7 +93,7 @@
     $discountAmount = 0;
     $shippingFee = 30000;
 
-    if ($voucher && (($voucher['discount_type'] ?? '') === 'free_shipping' || ($voucher['is_free_shipping'] ?? false))) {
+    if ($shippingVoucher) {
         $shippingFee = 0;
     } else {
         $shippingFee = 30000;
@@ -106,20 +111,20 @@
         }
     }
 
-    if ($voucher) {
+    if ($orderVoucher) {
 
-        $discountValue = (float) ($voucher['discount_value'] ?? 0);
+        $discountValue = (float) ($orderVoucher['discount_value'] ?? 0);
 
-        if (($voucher['discount_type'] ?? '') !== 'free_shipping' && !($voucher['is_free_shipping'] ?? false)) {
+        if (($orderVoucher['discount_type'] ?? '') !== 'free_shipping' && !($orderVoucher['is_free_shipping'] ?? false)) {
             $discountAmount = $totalPrice * ($discountValue / 100);
 
             if (
-                !empty($voucher['max_discount']) &&
-                $discountAmount > (float) $voucher['max_discount']
+                !empty($orderVoucher['max_discount']) &&
+                $discountAmount > (float) $orderVoucher['max_discount']
             ) {
 
                 $discountAmount =
-                    (float) $voucher['max_discount'];
+                    (float) $orderVoucher['max_discount'];
             }
 
             if ($discountAmount > $totalPrice) {
@@ -141,32 +146,11 @@
     $finalTotal =
         $totalPrice + $shippingFee - $discountAmount;
 
-    $defaultCustomer = [
-        'customer_name' => $customer['user'] ?? '',
-        'phone' => $customer['tel'] ?? '',
-        'city' => $customer['city'] ?? '',
-        'ward' => $customer['ward'] ?? '',
-        'address_detail' => $customer['address_detail'] ?? $customer['address'] ?? '',
-    ];
-
     $customerName = old('customer_name', $defaultCustomer['customer_name'] ?? '');
     $customerPhone = old('phone', $defaultCustomer['phone'] ?? '');
     $customerCity = old('city', $defaultCustomer['city'] ?? '');
     $customerWard = old('ward', $defaultCustomer['ward'] ?? '');
     $customerAddressDetail = old('address_detail', $defaultCustomer['address_detail'] ?? '');
-    $cityOptions = [
-        'Hà Nội', 'Hải Phòng', 'Đà Nẵng', 'Hồ Chí Minh', 'Bình Dương', 'Đồng Nai', 'Khánh Hòa', 'Cần Thơ'
-    ];
-    $wardOptions = [
-        'Hà Nội' => ['Phường Cống Vị', 'Phường Đội Cấn', 'Phường Liễu Giai', 'Phường Kim Liên', 'Phường Thanh Xuân Trung'],
-        'Hải Phòng' => ['Phường Máy Chai', 'Phường Hạ Long', 'Phường Lê Chân', 'Phường Tràng Cát', 'Phường Đồng Hoà'],
-        'Đà Nẵng' => ['Phường Hòa Cường Bắc', 'Phường Thanh Khê Đông', 'Phường Hải Châu I', 'Phường Nam Dương', 'Phường An Khê'],
-        'Hồ Chí Minh' => ['Phường Bến Nghé', 'Phường Tân Bình', 'Phường 7', 'Phường Phú Nhuận', 'Phường Thủ Đức'],
-        'Bình Dương' => ['Phường Thủ Dầu Một', 'Phường Chánh Nghĩa', 'Phường Hiệp An', 'Phường Bình Chuẩn', 'Phường Phú Hòa'],
-        'Đồng Nai' => ['Phường Tân Biên', 'Phường Long Bình', 'Phường Trảng Dài', 'Phường Long Tân', 'Phường Xuân Hòa'],
-        'Khánh Hòa' => ['Phường Lộc Thọ', 'Phường Vĩnh Hải', 'Phường Ngọc Hiển', 'Phường Xuân Hà', 'Phường Nha Trang'],
-        'Cần Thơ' => ['Phường Cái Khế', 'Phường Bãi H L', 'Phường Tân An', 'Phường Ninh Kiều', 'Phường Hưng Lợi'],
-    ];
 @endphp
 
 
@@ -310,7 +294,7 @@
 
                         <div class="form-group">
                             <label>Địa chỉ chi tiết</label>
-                            <input class="input" type="text" name="address_detail" placeholder="Số nhà, tên đường, khu vực...” value="{{ $customerAddressDetail }}" required>
+                            <input class="input" type="text" name="address_detail" placeholder="Số nhà, tên đường, khu vực..." value="{{ $customerAddressDetail }}" required>
                         </div>
 
                         <div class="delivery-block">
@@ -466,43 +450,42 @@
 
                             <div class="voucher-box">
                                 <div class="voucher-header">
-                                    <h4>🎟 Voucher giảm giá</h4>
+                                    <h4>🎟 Voucher phí vận chuyển</h4>
                                 </div>
 
-                                @if($voucher)
+                                @if($shippingVoucher)
                                     <div class="voucher-applied">
                                         <div>
-                                            <strong>{{ $voucher['code'] }}</strong>
-                                            <small>{{ $voucher['name'] }}</small>
+                                            <strong>{{ $shippingVoucher['code'] }}</strong>
+                                            <small>{{ $shippingVoucher['name'] }}</small>
                                         </div>
-                                        <button type="submit" form="remove-voucher-form" class="btn btn-danger btn-sm">Bỏ mã</button>
+                                        <button type="submit" form="remove-shipping-voucher-form" class="btn btn-danger btn-sm">Bỏ mã</button>
                                     </div>
                                 @endif
 
                                 <div class="voucher-input-row">
-                                    <input type="text" id="voucher-code" class="input" placeholder="Nhập mã voucher" value="{{ old('voucher_code', $voucher['code'] ?? '') }}">
-                                    <button type="button" class="primary-btn" onclick="applyVoucher()">Áp dụng</button>
+                                    <input type="text" id="shipping-voucher-code" class="input" placeholder="Mã freeship" value="{{ old('shipping_voucher_code', $shippingVoucher['code'] ?? '') }}">
+                                    <button type="button" class="primary-btn" onclick="applyVoucher('shipping')">Áp dụng</button>
                                 </div>
+                            </div>
 
-                                @if(isset($vouchers) && $vouchers->count() > 0)
-                                    <div class="voucher-list">
-                                        @foreach($vouchers as $item)
-                                            <div class="voucher-item">
-                                                <div>
-                                                    <strong>{{ $item->code }}</strong>
-                                                    <small>{{ $item->name }}</small>
-                                                    <small class="voucher-discount">
-                                                        Giảm {{ $item->discount_value }}%
-                                                        @if($item->max_discount)
-                                                            - tối đa {{ number_format($item->max_discount, 0, ',', '.') }}₫
-                                                        @endif
-                                                    </small>
-                                                </div>
-                                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="chooseVoucher('{{ $item->code }}')">Chọn</button>
-                                            </div>
-                                        @endforeach
+                            <div class="voucher-box">
+                                <div class="voucher-header">
+                                    <h4>🎟 Voucher đơn hàng</h4>
+                                </div>
+                                @if($orderVoucher)
+                                    <div class="voucher-applied">
+                                        <div>
+                                            <strong>{{ $orderVoucher['code'] }}</strong>
+                                            <small>{{ $orderVoucher['name'] }}</small>
+                                        </div>
+                                        <button type="submit" form="remove-order-voucher-form" class="btn btn-danger btn-sm">Bỏ mã</button>
                                     </div>
                                 @endif
+                                <div class="voucher-input-row">
+                                    <input type="text" id="order-voucher-code" class="input" placeholder="Mã giảm giá đơn hàng" value="{{ old('order_voucher_code', $orderVoucher['code'] ?? '') }}">
+                                    <button type="button" class="primary-btn" onclick="applyVoucher('order')">Áp dụng</button>
+                                </div>
                             </div>
 
                             <div class="summary-total-box">
@@ -511,7 +494,7 @@
                                     <div>{{ number_format($totalPrice, 0, ',', '.') }}₫</div>
                                 </div>
 
-                                <div class="order-col" id="shipping-fee-row" data-free-shipping="{{ ($voucher && (($voucher['discount_type'] ?? '') === 'free_shipping' || ($voucher['is_free_shipping'] ?? false))) ? '1' : '0' }}" data-amount="{{ $shippingFee }}">
+                                <div class="order-col" id="shipping-fee-row" data-free-shipping="{{ $shippingVoucher ? '1' : '0' }}" data-amount="{{ $shippingFee }}">
                                     <div><strong>Phí vận chuyển</strong></div>
                                     <div id="shipping-fee-value" data-amount="{{ $shippingFee }}" style="font-weight:600;">{{ number_format($shippingFee, 0, ',', '.') }}₫</div>
                                 </div>
@@ -523,7 +506,7 @@
                                     </div>
                                 @endif
 
-                                @if($voucher && (($voucher['discount_type'] ?? '') === 'free_shipping' || ($voucher['is_free_shipping'] ?? false)))
+                                @if($shippingVoucher)
                                     <div class="order-col">
                                         <div><strong>Voucher miễn phí ship</strong></div>
                                         <div style="color:#28a745;font-weight:bold;">Miễn phí</div>
@@ -559,23 +542,26 @@
     FORM ÁP DỤNG VOUCHER
 ========================================================= --}}
 
-<form
-    id="voucher-form"
-    action="{{ route('checkout.applyVoucher') }}"
-    method="POST"
-    style="display:none;"
->
+<form id="shipping-voucher-form" action="{{ route('checkout.applyVoucher') }}" method="POST" style="display:none;">
     @csrf
-    <input type="hidden" name="voucher_code" id="voucher-code-hidden">
+    <input type="hidden" name="voucher_code" id="shipping-voucher-code-hidden">
+    <input type="hidden" name="voucher_kind" value="shipping">
 </form>
 
-<form
-    id="remove-voucher-form"
-    action="{{ route('checkout.removeVoucher') }}"
-    method="POST"
-    style="display:none;"
->
+<form id="order-voucher-form" action="{{ route('checkout.applyVoucher') }}" method="POST" style="display:none;">
     @csrf
+    <input type="hidden" name="voucher_code" id="order-voucher-code-hidden">
+    <input type="hidden" name="voucher_kind" value="order">
+</form>
+
+<form id="remove-shipping-voucher-form" action="{{ route('checkout.removeVoucher') }}" method="POST" style="display:none;">
+    @csrf
+    <input type="hidden" name="voucher_kind" value="shipping">
+</form>
+
+<form id="remove-order-voucher-form" action="{{ route('checkout.removeVoucher') }}" method="POST" style="display:none;">
+    @csrf
+    <input type="hidden" name="voucher_kind" value="order">
 </form>
 
 <style>
@@ -925,7 +911,7 @@
     const ghnAddressEndpoint = '{{ route('checkout.addressOptions') }}';
     const fallbackCityOptions = @json($cityOptions);
     const fallbackWardOptions = @json($wardOptions);
-    const ghnEnabled = {{ !empty(config('services.ghn.token')) ? 'true' : 'false' }};
+    const ghnEnabled = true;
 
     function formatMoney(value) {
         return new Intl.NumberFormat('vi-VN').format(value) + '₫';
@@ -1239,21 +1225,45 @@
             }
 
             const data = await response.json();
-            const items = (data.items || []).map(item => ({
-                value: item.value || item.label || '',
-                label: item.label || item.value || '',
-                id: item.id || ''
+            let rawItems = data.items || [];
+
+            if (rawItems.length === 0) {
+                const publicUrl = type === 'provinces'
+                    ? 'https://provinces.open-api.vn/api/?depth=1'
+                    : type === 'districts'
+                        ? 'https://provinces.open-api.vn/api/p/' + parentId + '?depth=2'
+                        : 'https://provinces.open-api.vn/api/d/' + parentId + '?depth=2';
+
+                const publicResponse = await fetch(publicUrl);
+                if (publicResponse.ok) {
+                    const publicData = await publicResponse.json();
+                    rawItems = type === 'provinces'
+                        ? publicData
+                        : (type === 'districts' ? (publicData.districts || []) : (publicData.wards || []));
+                }
+            }
+
+            const items = rawItems.map(item => ({
+                value: item.value || item.label || item.name || '',
+                label: item.label || item.value || item.name || '',
+                id: item.id || item.code || ''
             }));
 
             if (type === 'provinces') {
                 populateSelectByValues(citySelect, items, selectedValue || '{{ old('city', $customerCity) }}');
                 const selectedCity = citySelect.value;
-                const fallbackDistricts = [];
-                populateSelectByValues(districtSelect, fallbackDistricts, '');
-                const fallbackWards = cityMap[selectedCity] || [];
-                populateSelectByValues(wardSelect, fallbackWards.map(function (ward) {
-                    return { value: ward, label: ward };
-                }), '{{ old('ward', $customerWard) }}');
+                const selectedOption = citySelect.selectedOptions[0];
+                const provinceId = selectedOption?.dataset?.ghnId || null;
+
+                if (provinceId) {
+                    await loadGhnAddressData('districts', provinceId, '{{ old('district', '') }}');
+                } else {
+                    const fallbackWards = cityMap[selectedCity] || [];
+                    populateSelectByValues(districtSelect, [], '');
+                    populateSelectByValues(wardSelect, fallbackWards.map(function (ward) {
+                        return { value: ward, label: ward };
+                    }), '{{ old('ward', $customerWard) }}');
+                }
                 return;
             }
 
@@ -1341,21 +1351,18 @@ if (ghnEnabled) {
 updateShippingFee();
 updateDeliveryEstimate();
 
-    function chooseVoucher(code) {
-        const input = document.getElementById('voucher-code');
-
+    function chooseVoucher(code, kind = 'order') {
+        const input = document.getElementById(kind + '-voucher-code');
         if (input) {
             input.value = code;
             input.focus();
         }
     }
 
-    function applyVoucher() {
-        const input = document.getElementById('voucher-code');
-        const hiddenInput =
-            document.getElementById('voucher-code-hidden');
-        const form =
-            document.getElementById('voucher-form');
+    function applyVoucher(kind) {
+        const input = document.getElementById(kind + '-voucher-code');
+        const hiddenInput = document.getElementById(kind + '-voucher-code-hidden');
+        const form = document.getElementById(kind + '-voucher-form');
 
         if (!input || !hiddenInput || !form) {
             alert('Không tìm thấy form voucher.');

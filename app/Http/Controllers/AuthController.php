@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\VerifyEmail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
 use App\Models\Order;
 class AuthController extends Controller
@@ -104,7 +107,12 @@ class AuthController extends Controller
 
     $customer = $customerQuery->first();
 
-    if (!$customer || $password !== $customer->pass) {
+    $passwordMatches = $customer && (
+        Hash::check($password, $customer->pass)
+        || hash_equals((string) $customer->pass, $password)
+    );
+
+    if (!$passwordMatches) {
         $errorMessage = 'Tài khoản, email hoặc mật khẩu không đúng.';
 
         if ($request->expectsJson()) {
@@ -120,6 +128,20 @@ class AuthController extends Controller
                 'user' => $errorMessage,
             ])
             ->withInput();
+    }
+
+    if (Schema::hasColumn('nguoidung', 'email_verified_at')
+        && !empty($customer->email)
+        && empty($customer->email_verified_at)) {
+        return back()->withErrors([
+            'user' => 'Vui lòng xác thực email trước khi đăng nhập.',
+        ]);
+    }
+
+    if (!Hash::check($password, $customer->pass)) {
+        DB::table('nguoidung')
+            ->where('id', $customer->id)
+            ->update(['pass' => Hash::make($password)]);
     }
 
     // Nếu tài khoản bị khóa thì không được đăng nhập.
@@ -202,8 +224,8 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $request->validate([
-            'user' => 'required|string|max:255|unique:nguoidung,user',
-            'email' => 'nullable|email',
+            'user' => 'required|string|max:255',
+            'email' => 'required|email',
             'pass' => 'required|string|min:4',
             'city' => 'nullable|string|max:255',
             'ward' => 'nullable|string|max:255',
@@ -224,12 +246,29 @@ class AuthController extends Controller
 
         $data = [
             'user' => $request->user,
-            'pass' => $request->pass,
+            'pass' => Hash::make($request->pass),
             'email' => $request->email,
             'address' => $parsedAddress,
             'tel' => $request->tel,
             'role' => 0,
         ];
+
+        $existingByUser = DB::table('nguoidung')->where('user', $request->user)->first();
+        $existingByEmail = DB::table('nguoidung')->where('email', $request->email)->first();
+        $verificationEnabled = Schema::hasColumn('nguoidung', 'email_verification_token');
+
+        if ($verificationEnabled && (($existingByUser && $existingByUser->email_verified_at)
+            || ($existingByEmail && $existingByEmail->email_verified_at))) {
+            throw ValidationException::withMessages([
+                'user' => 'Tên đăng nhập hoặc email đã được sử dụng.',
+            ]);
+        }
+
+        if ($existingByUser && $existingByEmail && $existingByUser->id !== $existingByEmail->id) {
+            throw ValidationException::withMessages([
+                'email' => 'Email đang thuộc về một tài khoản khác.',
+            ]);
+        }
 
         if (Schema::hasColumn('nguoidung', 'city')) {
             $data['city'] = $city;
@@ -248,7 +287,36 @@ class AuthController extends Controller
             $data['updated_at'] = now();
         }
 
-        $id = DB::table('nguoidung')->insertGetId($data);
+        $verificationToken = (string) random_int(100000, 999999);
+
+        if ($verificationEnabled) {
+            $data['email_verification_token'] = Hash::make($verificationToken);
+            $data['email_verification_expires_at'] = now()->addMinutes(10);
+        }
+
+        $pendingUser = $existingByUser ?: $existingByEmail;
+
+        if ($pendingUser) {
+            DB::table('nguoidung')->where('id', $pendingUser->id)->update($data);
+            $id = $pendingUser->id;
+        } else {
+            $id = DB::table('nguoidung')->insertGetId($data);
+        }
+
+        if ($verificationEnabled) {
+            Mail::to($request->email)->send(new VerifyEmail($verificationToken));
+            session(['verification_email' => $request->email]);
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'redirect' => route('verification.notice'),
+                    'message' => 'Vui lòng kiểm tra email để kích hoạt tài khoản.',
+                ]);
+            }
+
+            return redirect()->route('verification.notice');
+        }
 
         session(['customer' => [
             'id' => $id,
@@ -273,6 +341,112 @@ class AuthController extends Controller
         }
 
         return redirect()->route('account.profile');
+    }
+
+    public function showVerificationNotice()
+    {
+        return view('auth.verify-notice', [
+            'email' => session('verification_email'),
+        ]);
+    }
+
+    public function verifyEmail(Request $request, $id, $token)
+    {
+        $user = DB::table('nguoidung')->where('id', $id)->first();
+
+        if (!$user || empty($user->email_verification_token)
+            || ($user->email_verification_expires_at
+                && now()->greaterThan($user->email_verification_expires_at))
+            || !Hash::check($token, $user->email_verification_token)) {
+            return redirect()->route('login')->withErrors([
+                'user' => 'Liên kết xác thực không hợp lệ hoặc đã hết hạn.',
+            ]);
+        }
+
+        DB::table('nguoidung')->where('id', $id)->update([
+            'email_verified_at' => now(),
+            'email_verification_token' => null,
+            'email_verification_expires_at' => null,
+        ]);
+
+        session()->forget('verification_email');
+
+        $request->session()->regenerate();
+        session(['customer' => [
+            'id' => $user->id,
+            'user' => $user->user,
+            'email' => $user->email,
+            'address' => $user->address ?? null,
+            'tel' => $user->tel ?? null,
+            'role' => (int) ($user->role ?? 0),
+        ]]);
+
+        $this->migrateGuestCartToCustomer();
+
+        return redirect()->route('home')->with('success', 'Email đã được xác thực và đăng nhập thành công.');
+    }
+
+    public function verifyEmailCode(Request $request)
+    {
+        $data = $request->validate([
+            'email' => ['required', 'email'],
+            'code' => ['required', 'digits:6'],
+        ]);
+
+        $user = DB::table('nguoidung')->where('email', $data['email'])->first();
+
+        if (!$user || empty($user->email_verification_token)
+            || ($user->email_verification_expires_at
+                && now()->greaterThan($user->email_verification_expires_at))
+            || !Hash::check($data['code'], $user->email_verification_token)) {
+            return back()->withErrors([
+                'code' => 'Mã xác thực không đúng hoặc đã hết hạn.',
+            ])->withInput();
+        }
+
+        DB::table('nguoidung')->where('id', $user->id)->update([
+            'email_verified_at' => now(),
+            'email_verification_token' => null,
+            'email_verification_expires_at' => null,
+        ]);
+
+        session()->forget('verification_email');
+
+        $request->session()->regenerate();
+        session(['customer' => [
+            'id' => $user->id,
+            'user' => $user->user,
+            'email' => $user->email,
+            'address' => $user->address ?? null,
+            'tel' => $user->tel ?? null,
+            'role' => (int) ($user->role ?? 0),
+        ]]);
+
+        $this->migrateGuestCartToCustomer();
+
+        return redirect()->route('home')->with('success', 'Email đã được xác thực và đăng nhập thành công.');
+    }
+
+    public function resendVerification(Request $request)
+    {
+        $data = $request->validate([
+            'email' => ['required', 'email'],
+        ]);
+
+        $user = DB::table('nguoidung')->where('email', $data['email'])->first();
+
+        if ($user && empty($user->email_verified_at)) {
+            $token = (string) random_int(100000, 999999);
+
+            DB::table('nguoidung')->where('id', $user->id)->update([
+                'email_verification_token' => Hash::make($token),
+                'email_verification_expires_at' => now()->addMinutes(10),
+            ]);
+
+            Mail::to($user->email)->send(new VerifyEmail($token));
+        }
+
+        return back()->with('success', 'Nếu email tồn tại, liên kết xác thực mới đã được gửi.');
     }
 
     public function profile()
@@ -364,6 +538,36 @@ class AuthController extends Controller
 
         return back()->with('success', 'Cập nhật thông tin thành công.');
     }
+
+    public function updatePassword(Request $request)
+    {
+        $customer = session('customer');
+
+        if (!$customer) {
+            return redirect()->route('login');
+        }
+
+        $data = $request->validate([
+            'current_password' => ['required', 'string'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $user = DB::table('nguoidung')->where('id', $customer['id'])->first();
+
+        if (!$user || (!Hash::check($data['current_password'], $user->pass)
+            && !hash_equals((string) $user->pass, $data['current_password']))) {
+            return back()->withErrors([
+                'current_password' => 'Mật khẩu hiện tại không đúng.',
+            ]);
+        }
+
+        DB::table('nguoidung')
+            ->where('id', $customer['id'])
+            ->update(['pass' => Hash::make($data['password'])]);
+
+        return back()->with('success', 'Đổi mật khẩu thành công.');
+    }
+
     public function orderDetail($id)
 {
     $customer = session('customer');
@@ -396,6 +600,10 @@ if (
 public function cancelOrder($id)
 {
     $customer = session('customer');
+
+    if (!$customer) {
+        return redirect()->route('login');
+    }
 
     $order = Order::findOrFail($id);
 

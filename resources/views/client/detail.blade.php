@@ -143,10 +143,14 @@
                     </form>
 
                     <div class="product-btns" style="margin-top: 20px;">
-                        <button type="button" class="add-to-wishlist">
-                            <i class="fa fa-heart-o"></i>
-                            Yêu thích
-                        </button>
+                        <form action="{{ route('wishlist.toggle') }}" method="POST" style="display: inline-block;">
+                            @csrf
+                            <input type="hidden" name="product_id" value="{{ $product->id }}">
+                            <button type="submit" class="add-to-wishlist">
+                                <i class="fa fa-heart-o"></i>
+                                Yêu thích
+                            </button>
+                        </form>
 
                         <button type="button" class="add-to-compare">
                             <i class="fa fa-exchange"></i>
@@ -165,6 +169,39 @@
                 <div class="product-description">
                     {!! nl2br(e($product->description ?? 'Thông tin sản phẩm đang được cập nhật.')) !!}
                 </div>
+            </div>
+
+            <div class="col-md-12" style="margin-top: 35px;">
+                <div class="section-title">
+                    <h3 class="title">Đánh giá sản phẩm</h3>
+                </div>
+
+                @if(session('success'))
+                    <div class="alert alert-success">{{ session('success') }}</div>
+                @endif
+
+                @forelse($product->reviews as $review)
+                    <div style="border-bottom: 1px solid #eee; padding: 14px 0;">
+                        <strong>{{ $review->customer_name }}</strong>
+                        <span style="color: #f0ad00; margin-left: 10px;">{{ str_repeat('★', $review->rating) }}{{ str_repeat('☆', 5 - $review->rating) }}</span>
+                        <p style="margin: 8px 0 0;">{{ $review->comment }}</p>
+                    </div>
+                @empty
+                    <p>Chưa có đánh giá nào cho sản phẩm này.</p>
+                @endforelse
+
+                <form action="{{ route('product.review.store', $product->id) }}" method="POST" style="margin-top: 20px; max-width: 650px;">
+                    @csrf
+                    <label for="review-rating">Số sao</label>
+                    <select id="review-rating" name="rating" class="input" required>
+                        @for($rating = 5; $rating >= 1; $rating--)
+                            <option value="{{ $rating }}">{{ $rating }} sao</option>
+                        @endfor
+                    </select>
+                    <label for="review-comment" style="margin-top: 12px;">Nhận xét</label>
+                    <textarea id="review-comment" name="comment" class="input" rows="4" maxlength="2000" required>{{ old('comment') }}</textarea>
+                    <button type="submit" class="primary-btn" style="margin-top: 12px;">Gửi đánh giá</button>
+                </form>
             </div>
 
             @if(!empty($recentProducts) && $recentProducts->count())

@@ -38,12 +38,18 @@
                         @if($customer)
                             @if((int) $customer['role'] === 0)
                                 <li><a href="{{ route('account.profile') }}"><i class="fa fa-user"></i> Tài khoản</a></li>
-                                <li><a href="{{ route('orders.tracking') }}"><i class="fa fa-map-marker"></i> Theo dõi đơn hàng</a></li>
                                 <li><a href="{{ route('orders.tracking') }}"><i class="fa fa-clipboard"></i> Đơn hàng</a></li>
                             @else
                                 <li><a href="{{ route('admin.dashboard') }}"><i class="fa fa-cogs"></i> Quản trị</a></li>
                             @endif
-                            <li><a href="{{ route('logout') }}"><i class="fa fa-sign-out"></i> Đăng xuất</a></li>
+                            <li>
+                                <form action="{{ route('logout') }}" method="POST" style="display: inline;">
+                                    @csrf
+                                    <button type="submit" style="background: none; border: 0; padding: 0; color: inherit;">
+                                        <i class="fa fa-sign-out"></i> Đăng xuất
+                                    </button>
+                                </form>
+                            </li>
                         @else
                             <li><a href="#" id="btn-open-auth-modal"><i class="fa fa-sign-in"></i> Đăng ký/Đăng nhập</a></li>
                         @endif
@@ -93,6 +99,9 @@
 
                         <li class="{{ request()->routeIs('contact') ? 'active' : '' }}">
                             <a href="{{ route('contact') }}">Liên hệ</a>
+                        </li>
+                        <li class="{{ request()->routeIs('vouchers.index') ? 'active' : '' }}">
+                            <a href="{{ route('vouchers.index') }}">Kho voucher</a>
                         </li>
                         @php $customer = session('customer'); @endphp
                         @if($customer && (int) $customer['role'] === 1)
@@ -237,6 +246,7 @@
     <script src="{{ asset('js/bootstrap.min.js') }}"></script>
     <script src="{{ asset('js/slick.min.js') }}"></script>
     <script src="{{ asset('js/main.js') }}"></script>
+    <script src="{{ asset('js/app-interactions.js') }}?v={{ filemtime(public_path('js/app-interactions.js')) }}"></script>
  <script>
         var CHAT_ROUTE = "{{ route('chat.send') }}";
     </script>

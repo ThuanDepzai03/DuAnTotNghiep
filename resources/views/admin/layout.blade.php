@@ -89,6 +89,12 @@
         <span>Voucher</span>
     </a>
 </li>
+                    <li class="sidebar-item {{ request()->routeIs('admin.feedback.*') ? 'active' : '' }}">
+                        <a href="{{ route('admin.feedback.index') }}" class="sidebar-link">
+                            <i class="bi bi-chat-left-text"></i>
+                            <span>Liên hệ và đánh giá</span>
+                        </a>
+                    </li>
                     <li class="sidebar-item {{ request()->routeIs('admin.statistics.revenue') ? 'active' : '' }}">
                         <a href="{{ route('admin.statistics.revenue') }}" class="sidebar-link">
                             <i class="bi bi-bar-chart-line-fill"></i>

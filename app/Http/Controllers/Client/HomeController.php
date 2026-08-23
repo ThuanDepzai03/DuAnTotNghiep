@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Banner;
 use App\Models\Brand;
 use App\Models\Category;
+use App\Models\Contact;
 use App\Models\Product;
+use App\Models\Voucher;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
@@ -65,8 +67,41 @@ class HomeController extends Controller
         return view('client.news');
     }
 
-    public function contact()
+public function contact()
+{
+    return view('client.contact');
+}
+
+    public function vouchers()
     {
-        return view('client.contact');
+        $vouchers = Voucher::where('status', 1)
+            ->where(function ($query) {
+                $query->whereNull('start_date')->orWhereDate('start_date', '<=', today());
+            })
+            ->where(function ($query) {
+                $query->whereNull('end_date')->orWhereDate('end_date', '>=', today());
+            })
+            ->where(function ($query) {
+                $query->whereNull('quantity')->orWhereColumn('used_quantity', '<', 'quantity');
+            })
+            ->latest()
+            ->get();
+
+        return view('client.vouchers', compact('vouchers'));
+    }
+
+    public function submitContact(Request $request)
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:20'],
+            'subject' => ['nullable', 'string', 'max:255'],
+            'message' => ['required', 'string', 'max:2000'],
+        ]);
+
+        Contact::create($data + ['status' => 'new']);
+
+        return back()->with('success', 'Đã gửi yêu cầu. Cửa hàng sẽ phản hồi sớm nhất.');
     }
 }

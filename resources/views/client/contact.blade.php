@@ -91,6 +91,14 @@
             {{-- Form liên hệ --}}
             <div class="col-md-7">
                 <div class="contact-form">
+                    @if(session('success'))
+                        <div class="alert alert-success">{{ session('success') }}</div>
+                    @endif
+
+                    @if($errors->any())
+                        <div class="alert alert-danger">Vui lòng kiểm tra lại thông tin.</div>
+                    @endif
+
                     <div class="contact-form-title">
                         <div>
                             <span>HỖ TRỢ NHANH</span>
@@ -100,14 +108,17 @@
                         <i class="fa fa-paper-plane"></i>
                     </div>
 
-                    <form>
+                    <form action="{{ route('contact.submit') }}" method="POST">
+                        @csrf
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label>Họ và tên</label>
                                     <input
                                         type="text"
+                                        name="name"
                                         class="input"
+                                        value="{{ old('name') }}"
                                         placeholder="Nhập họ và tên"
                                     >
                                 </div>
@@ -118,7 +129,9 @@
                                     <label>Số điện thoại</label>
                                     <input
                                         type="text"
+                                        name="phone"
                                         class="input"
+                                        value="{{ old('phone') }}"
                                         placeholder="Nhập số điện thoại"
                                     >
                                 </div>
@@ -129,8 +142,21 @@
                             <label>Email</label>
                             <input
                                 type="email"
+                                name="email"
                                 class="input"
+                                value="{{ old('email') }}"
                                 placeholder="Nhập email của bạn"
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label>Chủ đề</label>
+                            <input
+                                type="text"
+                                name="subject"
+                                class="input"
+                                value="{{ old('subject') }}"
+                                placeholder="Ví dụ: Tư vấn sản phẩm"
                             >
                         </div>
 
@@ -138,12 +164,12 @@
                             <label>Nội dung cần hỗ trợ</label>
                             <textarea
                                 class="input"
+                                name="message"
                                 rows="5"
-                                placeholder="Ví dụ: Tôi cần tư vấn iPhone phù hợp với ngân sách..."
-                            ></textarea>
+                            >{{ old('message') }}</textarea>
                         </div>
 
-                        <button type="button" class="primary-btn contact-submit-btn">
+                        <button type="submit" class="primary-btn contact-submit-btn">
                             <i class="fa fa-paper-plane"></i>
                             Gửi yêu cầu
                         </button>
