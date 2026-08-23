@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
 use App\Models\Order;
 class AuthController extends Controller
@@ -223,8 +224,8 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $request->validate([
-            'user' => 'required|string|max:255|unique:nguoidung,user',
-            'email' => 'required|email|unique:nguoidung,email',
+            'user' => 'required|string|max:255',
+            'email' => 'required|email',
             'pass' => 'required|string|min:4',
             'city' => 'nullable|string|max:255',
             'ward' => 'nullable|string|max:255',
@@ -252,6 +253,23 @@ class AuthController extends Controller
             'role' => 0,
         ];
 
+        $existingByUser = DB::table('nguoidung')->where('user', $request->user)->first();
+        $existingByEmail = DB::table('nguoidung')->where('email', $request->email)->first();
+        $verificationEnabled = Schema::hasColumn('nguoidung', 'email_verification_token');
+
+        if ($verificationEnabled && (($existingByUser && $existingByUser->email_verified_at)
+            || ($existingByEmail && $existingByEmail->email_verified_at))) {
+            throw ValidationException::withMessages([
+                'user' => 'Tên đăng nhập hoặc email đã được sử dụng.',
+            ]);
+        }
+
+        if ($existingByUser && $existingByEmail && $existingByUser->id !== $existingByEmail->id) {
+            throw ValidationException::withMessages([
+                'email' => 'Email đang thuộc về một tài khoản khác.',
+            ]);
+        }
+
         if (Schema::hasColumn('nguoidung', 'city')) {
             $data['city'] = $city;
         }
@@ -269,7 +287,6 @@ class AuthController extends Controller
             $data['updated_at'] = now();
         }
 
-        $verificationEnabled = Schema::hasColumn('nguoidung', 'email_verification_token');
         $verificationToken = (string) random_int(100000, 999999);
 
         if ($verificationEnabled) {
@@ -277,7 +294,14 @@ class AuthController extends Controller
             $data['email_verification_expires_at'] = now()->addMinutes(10);
         }
 
-        $id = DB::table('nguoidung')->insertGetId($data);
+        $pendingUser = $existingByUser ?: $existingByEmail;
+
+        if ($pendingUser) {
+            DB::table('nguoidung')->where('id', $pendingUser->id)->update($data);
+            $id = $pendingUser->id;
+        } else {
+            $id = DB::table('nguoidung')->insertGetId($data);
+        }
 
         if ($verificationEnabled) {
             Mail::to($request->email)->send(new VerifyEmail($verificationToken));
@@ -326,7 +350,7 @@ class AuthController extends Controller
         ]);
     }
 
-    public function verifyEmail($id, $token)
+    public function verifyEmail(Request $request, $id, $token)
     {
         $user = DB::table('nguoidung')->where('id', $id)->first();
 
