@@ -47,11 +47,18 @@
                                                 $variant = $item->variant;
                                                 $product = $variant?->product;
                                                 $productName = $product?->name ?? 'Sản phẩm';
-                                                $productImage = $variant?->image ?? $product?->thumbnail ?? asset('img/logo.png');
+                                                $productImage = $variant?->image ?? $product?->thumbnail ?? 'img/logo.png';
+                                                $productImage = ltrim(str_replace('\\', '/', $productImage), '/');
+                                                if (str_starts_with($productImage, 'public/')) {
+                                                    $productImage = substr($productImage, 7);
+                                                }
+                                                $productImage = preg_match('#^https?://#', $productImage)
+                                                    ? $productImage
+                                                    : asset($productImage);
                                             @endphp
                                             <div class="col-md-6 col-sm-12" style="padding: 10px;">
                                                 <div style="display: flex; gap: 14px; padding: 12px; border: 1px solid #edf2f7; border-radius: 14px; background: #fff; align-items: center;">
-                                                    <img src="{{ $productImage }}" alt="{{ $productName }}" style="width: 90px; height: 90px; object-fit: cover; border-radius: 10px; background: #f3f4f6; border: 1px solid #e5e7eb;">
+                                                    <img src="{{ $productImage }}" alt="{{ $productName }}" style="width: 90px; height: 90px; object-fit: cover; border-radius: 10px; background: #f3f4f6; border: 1px solid #e5e7eb;" onerror="this.onerror=null;this.src='{{ asset('img/product01.png') }}';">
                                                     <div style="flex: 1; min-width: 0;">
                                                         <div style="font-weight: 700; color: #111827; margin-bottom: 6px; line-height: 1.4;">{{ $productName }}</div>
                                                         <div style="font-size: 13px; color: #6b7280; margin-bottom: 6px;">
