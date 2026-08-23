@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\VerifyEmail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use App\Models\Order;
@@ -127,6 +129,14 @@ class AuthController extends Controller
             ->withInput();
     }
 
+    if (Schema::hasColumn('nguoidung', 'email_verified_at')
+        && !empty($customer->email)
+        && empty($customer->email_verified_at)) {
+        return back()->withErrors([
+            'user' => 'Vui lòng xác thực email trước khi đăng nhập.',
+        ]);
+    }
+
     if (!Hash::check($password, $customer->pass)) {
         DB::table('nguoidung')
             ->where('id', $customer->id)
@@ -214,7 +224,7 @@ class AuthController extends Controller
     {
         $request->validate([
             'user' => 'required|string|max:255|unique:nguoidung,user',
-            'email' => 'nullable|email',
+            'email' => 'required|email|unique:nguoidung,email',
             'pass' => 'required|string|min:4',
             'city' => 'nullable|string|max:255',
             'ward' => 'nullable|string|max:255',
@@ -259,7 +269,35 @@ class AuthController extends Controller
             $data['updated_at'] = now();
         }
 
+        $verificationEnabled = Schema::hasColumn('nguoidung', 'email_verification_token');
+        $verificationToken = Str::random(64);
+
+        if ($verificationEnabled) {
+            $data['email_verification_token'] = Hash::make($verificationToken);
+            $data['email_verification_expires_at'] = now()->addDay();
+        }
+
         $id = DB::table('nguoidung')->insertGetId($data);
+
+        if ($verificationEnabled) {
+            $verificationUrl = route('verification.verify', [
+                'id' => $id,
+                'token' => $verificationToken,
+            ]);
+
+            Mail::to($request->email)->send(new VerifyEmail($verificationUrl));
+            session(['verification_email' => $request->email]);
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'redirect' => route('verification.notice'),
+                    'message' => 'Vui lòng kiểm tra email để kích hoạt tài khoản.',
+                ]);
+            }
+
+            return redirect()->route('verification.notice');
+        }
 
         session(['customer' => [
             'id' => $id,
@@ -284,6 +322,60 @@ class AuthController extends Controller
         }
 
         return redirect()->route('account.profile');
+    }
+
+    public function showVerificationNotice()
+    {
+        return view('auth.verify-notice', [
+            'email' => session('verification_email'),
+        ]);
+    }
+
+    public function verifyEmail($id, $token)
+    {
+        $user = DB::table('nguoidung')->where('id', $id)->first();
+
+        if (!$user || empty($user->email_verification_token)
+            || ($user->email_verification_expires_at
+                && now()->greaterThan($user->email_verification_expires_at))
+            || !Hash::check($token, $user->email_verification_token)) {
+            return redirect()->route('login')->withErrors([
+                'user' => 'Liên kết xác thực không hợp lệ hoặc đã hết hạn.',
+            ]);
+        }
+
+        DB::table('nguoidung')->where('id', $id)->update([
+            'email_verified_at' => now(),
+            'email_verification_token' => null,
+            'email_verification_expires_at' => null,
+        ]);
+
+        session()->forget('verification_email');
+
+        return redirect()->route('login')->with('success', 'Email đã được xác thực. Bạn có thể đăng nhập.');
+    }
+
+    public function resendVerification(Request $request)
+    {
+        $data = $request->validate([
+            'email' => ['required', 'email'],
+        ]);
+
+        $user = DB::table('nguoidung')->where('email', $data['email'])->first();
+
+        if ($user && empty($user->email_verified_at)) {
+            $token = Str::random(64);
+
+            DB::table('nguoidung')->where('id', $user->id)->update([
+                'email_verification_token' => Hash::make($token),
+                'email_verification_expires_at' => now()->addDay(),
+            ]);
+
+            $url = route('verification.verify', ['id' => $user->id, 'token' => $token]);
+            Mail::to($user->email)->send(new VerifyEmail($url));
+        }
+
+        return back()->with('success', 'Nếu email tồn tại, liên kết xác thực mới đã được gửi.');
     }
 
     public function profile()

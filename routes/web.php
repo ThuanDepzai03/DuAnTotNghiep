@@ -80,6 +80,9 @@ Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
 Route::post('/register', [AuthController::class, 'register'])->name('register.post');
+Route::get('/verify-email', [AuthController::class, 'showVerificationNotice'])->name('verification.notice');
+Route::get('/verify-email/{id}/{token}', [AuthController::class, 'verifyEmail'])->name('verification.verify');
+Route::post('/verify-email/resend', [AuthController::class, 'resendVerification'])->name('verification.resend');
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
