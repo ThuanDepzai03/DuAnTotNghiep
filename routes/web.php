@@ -9,6 +9,7 @@ use App\Http\Controllers\Client\ProductController as ClientProductController;
 use App\Http\Controllers\Client\CartController as ClientCartController;
 use App\Http\Controllers\Client\CheckoutController as ClientCheckoutController;
 use App\Http\Controllers\Client\PaymentController;
+use App\Http\Controllers\Client\WishlistController;
 use App\Http\Controllers\ProductVariantController;
 use App\Http\Controllers\VoucherController;
 use App\Http\Controllers\Admin\BrandController;
@@ -29,6 +30,8 @@ Route::get('/shop', [ClientProductController::class, 'index'])->name('shop');
 
 Route::get('/detail/{id}', [ClientProductController::class, 'show'])->name('product.detail');
 Route::post('/detail/{id}/reviews', [ClientProductController::class, 'storeReview'])->name('product.review.store');
+Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist.index');
+Route::post('/wishlist/toggle', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
 
 Route::get('/cart', [ClientCartController::class, 'index'])->name('cart.index');
 Route::post('/cart/add', [ClientCartController::class, 'add'])->name('cart.add');

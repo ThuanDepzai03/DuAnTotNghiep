@@ -143,10 +143,14 @@
                     </form>
 
                     <div class="product-btns" style="margin-top: 20px;">
-                        <button type="button" class="add-to-wishlist">
-                            <i class="fa fa-heart-o"></i>
-                            Yêu thích
-                        </button>
+                        <form action="{{ route('wishlist.toggle') }}" method="POST" style="display: inline-block;">
+                            @csrf
+                            <input type="hidden" name="product_id" value="{{ $product->id }}">
+                            <button type="submit" class="add-to-wishlist">
+                                <i class="fa fa-heart-o"></i>
+                                Yêu thích
+                            </button>
+                        </form>
 
                         <button type="button" class="add-to-compare">
                             <i class="fa fa-exchange"></i>
