@@ -14,6 +14,7 @@ use App\Http\Controllers\ProductVariantController;
 use App\Http\Controllers\VoucherController;
 use App\Http\Controllers\Admin\BrandController;
 use App\Http\Controllers\Admin\BannerController;
+use App\Http\Controllers\Admin\FeedbackController;
 // Admin Controllers cũ của nhóm
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminAuthController;
@@ -88,6 +89,7 @@ Route::post('/admin/logout', [AdminAuthController::class, 'logout'])->name('admi
 
 Route::get('/account/profile', [AuthController::class, 'profile'])->name('account.profile');
 Route::post('/account/profile', [AuthController::class, 'updateProfile'])->name('account.update');
+Route::post('/account/password', [AuthController::class, 'updatePassword'])->name('account.password.update');
 
 Route::get('/account/orders/{id}', [AuthController::class, 'orderDetail'])
     ->name('account.order.detail');
@@ -150,6 +152,11 @@ Route::middleware(['web', 'admin'])
         Route::patch('/banners/{banner}/toggle-status', [BannerController::class, 'toggleStatus'])
             ->name('banners.toggle-status');
         Route::resource('vouchers', VoucherController::class);
+        Route::get('/feedback', [FeedbackController::class, 'index'])->name('feedback.index');
+        Route::patch('/feedback/contacts/{id}', [FeedbackController::class, 'updateContact'])->name('feedback.contacts.update');
+        Route::delete('/feedback/contacts/{id}', [FeedbackController::class, 'destroyContact'])->name('feedback.contacts.destroy');
+        Route::patch('/feedback/reviews/{id}', [FeedbackController::class, 'updateReview'])->name('feedback.reviews.update');
+        Route::delete('/feedback/reviews/{id}', [FeedbackController::class, 'destroyReview'])->name('feedback.reviews.destroy');
         Route::get('/statistics/revenue', [OrderController::class, 'revenue'])
     ->name('statistics.revenue');
 Route::get('/chat', [ChatController::class, 'adminIndex'])

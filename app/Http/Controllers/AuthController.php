@@ -375,6 +375,36 @@ class AuthController extends Controller
 
         return back()->with('success', 'Cập nhật thông tin thành công.');
     }
+
+    public function updatePassword(Request $request)
+    {
+        $customer = session('customer');
+
+        if (!$customer) {
+            return redirect()->route('login');
+        }
+
+        $data = $request->validate([
+            'current_password' => ['required', 'string'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $user = DB::table('nguoidung')->where('id', $customer['id'])->first();
+
+        if (!$user || (!Hash::check($data['current_password'], $user->pass)
+            && !hash_equals((string) $user->pass, $data['current_password']))) {
+            return back()->withErrors([
+                'current_password' => 'Mật khẩu hiện tại không đúng.',
+            ]);
+        }
+
+        DB::table('nguoidung')
+            ->where('id', $customer['id'])
+            ->update(['pass' => Hash::make($data['password'])]);
+
+        return back()->with('success', 'Đổi mật khẩu thành công.');
+    }
+
     public function orderDetail($id)
 {
     $customer = session('customer');
