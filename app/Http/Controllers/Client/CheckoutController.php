@@ -193,100 +193,64 @@ class CheckoutController extends Controller
     }
 
     public function addressOptions(Request $request)
-{
-    $type = $request->query('type');
-    $parentId = $request->query('parent_id');
+    {
+        $type = $request->query('type');
+        $parentId = $request->query('parent_id');
 
-    if ($type === 'provinces') {
+        // API v2: dữ liệu địa giới hành chính hiện hành (2025+)
+        $baseUrl = 'https://provinces.open-api.vn/api/v2';
 
-        $items = $this->ghnAddressRequest(
-            '/master-data/province'
-        );
+        // ==============================
+        // TỈNH / THÀNH PHỐ
+        // ==============================
+        if ($type === 'provinces') {
+            $items = $this->publicAddressRequest($baseUrl . '/p/');
 
-        if (empty($items)) {
-            $items = $this->publicAddressRequest('https://provinces.open-api.vn/api/?depth=1');
+            return response()->json([
+                'items' => collect($items)
+                    ->map(function ($item) {
+                        $name = (string) ($item['name'] ?? '');
+
+                        return [
+                            'id' => $item['code'] ?? null,
+                            'value' => preg_replace('/^(Tỉnh|Thành phố)\s+/iu', '', $name),
+                            'label' => $name,
+                        ];
+                    })
+                    ->filter(fn ($item) => !empty($item['id']) && $item['value'] !== '')
+                    ->values()
+                    ->all(),
+            ]);
         }
 
-        return response()->json([
-            'items' => collect($items)
-                ->map(function ($item) {
-                    return [
-                        'value' => $item['ProvinceName'] ?? $item['name'] ?? '',
-                        'label' => $item['ProvinceName'] ?? $item['name'] ?? '',
-                        'id' => $item['ProvinceID'] ?? $item['code'] ?? '',
-                    ];
-                })
-                ->filter(fn ($item) => !empty($item['id']))
-                ->values(),
-        ]);
-    }
-
-    if ($type === 'districts' && $parentId !== null) {
-
-        $items = $this->ghnAddressRequest(
-            '/master-data/district',
-            [
-                'province_id' => (int) $parentId,
-            ],
-            'get'
-        );
-
-        if (empty($items)) {
+        // ==============================
+        // PHƯỜNG / XÃ THEO TỈNH
+        // API v2 không còn cấp Quận/Huyện trong luồng này.
+        // ==============================
+        if ($type === 'wards' && $parentId !== null && $parentId !== '') {
             $items = $this->publicAddressRequest(
-                'https://provinces.open-api.vn/api/p/' . (int) $parentId . '?depth=2'
+                $baseUrl . '/w/?province=' . (int) $parentId
             );
-            $items = $items['districts'] ?? [];
+
+            return response()->json([
+                'items' => collect($items)
+                    ->map(function ($item) {
+                        return [
+                            'id' => $item['code'] ?? null,
+                            'value' => $item['name'] ?? '',
+                            'label' => $item['name'] ?? '',
+                        ];
+                    })
+                    ->filter(fn ($item) => !empty($item['id']) && $item['value'] !== '')
+                    ->values()
+                    ->all(),
+            ]);
         }
 
         return response()->json([
-            'items' => collect($items)
-                ->map(function ($item) {
-                    return [
-                        'value' => $item['DistrictName'] ?? $item['name'] ?? '',
-                        'label' => $item['DistrictName'] ?? $item['name'] ?? '',
-                        'id' => $item['DistrictID'] ?? $item['code'] ?? '',
-                    ];
-                })
-                ->filter(fn ($item) => !empty($item['id']))
-                ->values(),
-        ]);
+            'items' => [],
+        ], 400);
     }
-
-    if ($type === 'wards' && $parentId !== null) {
-
-        $items = $this->ghnAddressRequest(
-            '/master-data/ward',
-            [
-                'district_id' => (int) $parentId,
-            ],
-            'post'
-        );
-
-        if (empty($items)) {
-            $items = $this->publicAddressRequest(
-                'https://provinces.open-api.vn/api/d/' . (int) $parentId . '?depth=2'
-            );
-            $items = $items['wards'] ?? [];
-        }
-
-        return response()->json([
-            'items' => collect($items)
-                ->map(function ($item) {
-                    return [
-                        'value' => $item['WardName'] ?? $item['name'] ?? '',
-                        'label' => $item['WardName'] ?? $item['name'] ?? '',
-                        'id' => $item['WardCode'] ?? $item['code'] ?? '',
-                    ];
-                })
-                ->filter(fn ($item) => !empty($item['id']))
-                ->values(),
-        ]);
-    }
-
-    return response()->json([
-        'items' => []
-    ], 400);
-}
 
     public function index()
     {
@@ -304,13 +268,27 @@ class CheckoutController extends Controller
 
         $customer = session('customer');
         $customerRecord = DB::table('nguoidung')->where('id', $customer['id'] ?? 0)->first();
+        $customerValue = function (string $recordField, string $sessionField, string $fallback = '') use ($customerRecord, $customer): string {
+            $recordValue = $customerRecord->{$recordField} ?? null;
+            if (is_string($recordValue) && trim($recordValue) !== '') {
+                return trim($recordValue);
+            }
+
+            $sessionValue = $customer[$sessionField] ?? '';
+            return trim((string) ($sessionValue !== '' ? $sessionValue : $fallback));
+        };
+
         $defaultCustomer = [
-            'customer_name' => $customerRecord->user ?? $customer['user'] ?? '',
-            'phone' => $customerRecord->tel ?? $customer['tel'] ?? '',
-            'city' => $customerRecord->city ?? $customer['city'] ?? '',
-            'district' => $customerRecord->district ?? $customer['district'] ?? '',
-            'ward' => $customerRecord->ward ?? $customer['ward'] ?? '',
-            'address_detail' => $customerRecord->address_detail ?? $customer['address_detail'] ?? $customerRecord->address ?? $customer['address'] ?? '',
+            'customer_name' => $customerValue('user', 'user'),
+            'phone' => $customerValue('tel', 'tel'),
+            'city' => $customerValue('city', 'city'),
+            'district' => $customerValue('district', 'district'),
+            'ward' => $customerValue('ward', 'ward'),
+            'address_detail' => $customerValue(
+                'address_detail',
+                'address_detail',
+                $customerValue('address', 'address')
+            ),
         ];
 
 
@@ -563,7 +541,7 @@ class CheckoutController extends Controller
             'customer_name' => 'required|string|max:255',
             'phone' => 'required|string|max:20',
             'city' => 'required|string|max:255',
-            'district' => 'required|string|max:255',
+            'district' => 'nullable|string|max:255',
             'ward' => 'required|string|max:255',
             'address_detail' => 'required|string|max:255',
             'payment_method' => 'required|in:cod,vnpay',
@@ -614,7 +592,7 @@ class CheckoutController extends Controller
         $addressParts = array_filter([
             trim($request->address_detail),
             trim($request->ward),
-            trim($request->district),
+            trim((string) $request->district),
             trim($request->city),
         ]);
         $address = implode(', ', $addressParts);

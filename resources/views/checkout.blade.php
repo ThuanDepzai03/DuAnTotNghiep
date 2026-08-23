@@ -268,30 +268,14 @@
                             <div class="form-group">
                                 <label>Tỉnh / Thành phố</label>
                                 <select class="input" name="city" id="checkout-city" required>
-                                    <option value="">-- Chọn Thành phố --</option>
-                                    @foreach ($cityOptions as $city)
-                                        <option value="{{ $city }}" {{ old('city', $customerCity) == $city ? 'selected' : '' }}>{{ $city }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            <div class="form-group">
-                                <label>Quận / Huyện</label>
-                                <select class="input" name="district" id="checkout-district" required>
-                                    <option value="">-- Chọn Quận/Huyện --</option>
-                                    @if($customerDistrict)
-                                        <option value="{{ $customerDistrict }}" selected>{{ $customerDistrict }}</option>
-                                    @endif
+                                    <option value="">-- Chọn Tỉnh/Thành phố --</option>
                                 </select>
                             </div>
 
                             <div class="form-group">
                                 <label>Phường / Xã</label>
                                 <select class="input" name="ward" id="checkout-ward" required>
-                                    <option value="">-- Chọn Xã/Phường --</option>
-                                    @foreach (($wardOptions[$customerCity] ?? []) as $ward)
-                                        <option value="{{ $ward }}" {{ old('ward', $customerWard) == $ward ? 'selected' : '' }}>{{ $ward }}</option>
-                                    @endforeach
+                                    <option value="">-- Chọn Phường/Xã --</option>
                                 </select>
                             </div>
                         </div>
@@ -959,9 +943,7 @@
 </style>
 
 <script>
-    const cityMap = @json($wardOptions);
     const citySelect = document.getElementById('checkout-city');
-    const districtSelect = document.getElementById('checkout-district');
     const wardSelect = document.getElementById('checkout-ward');
     const shippingFeeValue = document.getElementById('shipping-fee-value');
     const shippingFeeRow = document.getElementById('shipping-fee-row');
@@ -971,13 +953,23 @@
     const checkoutTotalValue = document.querySelector('.order-total');
     const cartCountText = document.querySelector('.cart-count');
     const discountAmountValue = document.getElementById('discount-amount-value');
-    const ghnAddressEndpoint = '{{ route('checkout.addressOptions') }}';
-    const fallbackCityOptions = @json($cityOptions);
-    const fallbackWardOptions = @json($wardOptions);
-    const ghnEnabled = true;
+
+    const addressApiUrl = @json(route('checkout.addressOptions'));
+    const currentCity = @json(old('city', $customerCity));
+    const currentWard = @json(old('ward', $customerWard));
+    let addressRequestVersion = 0;
 
     function formatMoney(value) {
         return new Intl.NumberFormat('vi-VN').format(value) + '₫';
+    }
+
+    function normalizeAddressName(value) {
+        return String(value || '')
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/^(tinh|thanh pho|phuong|xa|thi tran)\s+/i, '')
+            .trim();
     }
 
     function recalculateCheckoutSummary() {
@@ -989,7 +981,7 @@
             if (!input) return;
 
             const itemQty = Number(input.value || 0);
-            const itemPrice = Number(input.dataset.price || 0);
+            const itemPrice = Number(item.dataset.price || input.dataset.price || 0);
             const lineTotal = itemQty * itemPrice;
 
             subtotal += lineTotal;
@@ -1013,82 +1005,90 @@
             }
         }
 
-        const shippingFeeAmount = Number(shippingFeeRow?.dataset.amount || shippingFeeValue?.dataset.amount || 0);
+        updateCheckoutTotal(subtotal);
+    }
+
+    function updateCheckoutTotal(subtotal = null) {
+        if (!checkoutTotalValue) return;
+
+        if (subtotal === null) {
+            const firstOrderCol = document.querySelector('.summary-total-box .order-col');
+            const valueNode = firstOrderCol?.lastElementChild;
+            subtotal = Number(valueNode?.textContent?.replace(/[^\d]/g, '') || 0);
+        }
+
+        const shippingFee = Number(shippingFeeValue?.dataset.amount || 0);
         const discountAmount = Number(discountAmountValue?.dataset.amount || 0);
-        const finalTotal = Math.max(0, subtotal + shippingFeeAmount - discountAmount);
+        const finalTotal = Math.max(0, subtotal + shippingFee - discountAmount);
 
-        if (checkoutTotalValue) {
-            checkoutTotalValue.textContent = formatMoney(finalTotal);
-        }
-
-        if (shippingFeeValue) {
-            shippingFeeValue.textContent = formatMoney(shippingFeeAmount);
-            shippingFeeValue.dataset.amount = String(shippingFeeAmount);
-        }
-
-        if (shippingFeeRow) {
-            shippingFeeRow.dataset.amount = String(shippingFeeAmount);
-        }
+        checkoutTotalValue.textContent = formatMoney(finalTotal);
     }
 
     async function updateCartQuantity(variantId, quantity) {
-        const response = await fetch('{{ route('cart.update') }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'X-Requested-With': 'XMLHttpRequest',
-            },
-            body: JSON.stringify({
-                quantities: {
-                    [variantId]: quantity
-                }
-            })
-        });
+        try {
+            const response = await fetch('{{ route('cart.update') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({
+                    quantities: {
+                        [variantId]: quantity
+                    }
+                })
+            });
 
-        if (!response.ok) {
+            if (!response.ok) {
+                alert('Không thể cập nhật số lượng.');
+                return;
+            }
+
+            const result = await response.json();
+            if (result.success) {
+                recalculateCheckoutSummary();
+            }
+        } catch (error) {
+            console.error(error);
             alert('Không thể cập nhật số lượng.');
-            return;
-        }
-
-        const result = await response.json();
-        if (result.success) {
-            recalculateCheckoutSummary();
         }
     }
 
     async function removeCartItem(variantId) {
-        const response = await fetch('{{ route('cart.remove') }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'X-Requested-With': 'XMLHttpRequest',
-            },
-            body: JSON.stringify({
-                product_variant_id: variantId
-            })
-        });
+        try {
+            const response = await fetch('{{ route('cart.remove') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({
+                    product_variant_id: variantId
+                })
+            });
 
-        if (!response.ok) {
-            alert('Không thể xóa sản phẩm.');
-            return;
-        }
-
-        const result = await response.json();
-        if (result.success) {
-            const item = document.querySelector('.checkout-product-item[data-variant-id="' + variantId + '"]');
-            if (item) {
-                item.remove();
-            }
-
-            const remainingItems = document.querySelectorAll('.checkout-product-item');
-            if (remainingItems.length === 0) {
-                window.location.reload();
+            if (!response.ok) {
+                alert('Không thể xóa sản phẩm.');
                 return;
             }
 
-            recalculateCheckoutSummary();
+            const result = await response.json();
+            if (result.success) {
+                const item = document.querySelector('.checkout-product-item[data-variant-id="' + variantId + '"]');
+                if (item) item.remove();
+
+                if (document.querySelectorAll('.checkout-product-item').length === 0) {
+                    window.location.reload();
+                    return;
+                }
+
+                recalculateCheckoutSummary();
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Không thể xóa sản phẩm.');
         }
     }
 
@@ -1103,13 +1103,8 @@
         let value = Number(input.value || 1);
         const stock = Number(input.dataset.stock || 99);
 
-        if (button.dataset.action === 'minus') {
-            value = Math.max(1, value - 1);
-        }
-
-        if (button.dataset.action === 'plus') {
-            value = Math.min(stock, value + 1);
-        }
+        if (button.dataset.action === 'minus') value = Math.max(1, value - 1);
+        if (button.dataset.action === 'plus') value = Math.min(stock, value + 1);
 
         input.value = value;
         updateCartQuantity(variantId, value);
@@ -1152,20 +1147,14 @@
         confirmBtn.className = 'custom-confirm-btn confirm';
         confirmBtn.textContent = 'Xóa';
 
-        cancelBtn.addEventListener('click', function () {
-            overlay.remove();
-        });
-
+        cancelBtn.addEventListener('click', () => overlay.remove());
         confirmBtn.addEventListener('click', function () {
             overlay.remove();
             onConfirm();
         });
 
-        actions.appendChild(cancelBtn);
-        actions.appendChild(confirmBtn);
-        modal.appendChild(title);
-        modal.appendChild(message);
-        modal.appendChild(actions);
+        actions.append(cancelBtn, confirmBtn);
+        modal.append(title, message, actions);
         overlay.appendChild(modal);
         document.body.appendChild(overlay);
     }
@@ -1177,15 +1166,11 @@
         const variantId = button.dataset.variantId;
         const productName = button.closest('.checkout-product-item')?.querySelector('strong')?.textContent?.trim() || 'sản phẩm này';
 
-        showDeleteConfirm(productName, function () {
-            removeCartItem(variantId);
-        });
+        showDeleteConfirm(productName, () => removeCartItem(variantId));
     });
 
     function updateDeliveryEstimate() {
-        if (!deliveryEstimateText || !deliveryEstimateNote) {
-            return;
-        }
+        if (!deliveryEstimateText || !deliveryEstimateNote) return;
 
         const selectedMethod = document.querySelector('input[name="delivery_method"]:checked')?.value || 'home';
 
@@ -1200,13 +1185,11 @@
     }
 
     function updateShippingFee() {
-        if (!shippingFeeValue) {
-            return;
-        }
+        if (!shippingFeeValue) return;
 
-        const isFreeShipping = shippingFeeRow && shippingFeeRow.dataset.freeShipping === '1';
-        const city = citySelect ? citySelect.value : '';
-        const ward = wardSelect ? wardSelect.value : '';
+        const isFreeShipping = shippingFeeRow?.dataset.freeShipping === '1';
+        const city = citySelect?.value || '';
+        const ward = wardSelect?.value || '';
         let shippingFee = 30000;
 
         if (isFreeShipping) {
@@ -1220,321 +1203,160 @@
                 shippingFee = 40000;
             }
 
-            if (ward !== '') {
-                shippingFee += 5000;
-            }
+            if (ward !== '') shippingFee += 5000;
         }
 
         shippingFeeValue.textContent = formatMoney(shippingFee);
         shippingFeeValue.dataset.amount = String(shippingFee);
+
         if (shippingFeeRow) {
             shippingFeeRow.dataset.amount = String(shippingFee);
         }
+
+        updateCheckoutTotal();
     }
 
-    function populateSelectByValues(selectElement, items, selectedValue) {
-        if (!selectElement) return;
+    function fillSelect(selectElement, items, selectedValue, placeholder) {
+        selectElement.innerHTML = '';
 
-        const normalizeAddressName = function (value) {
-            return String(value || '')
-                .toLowerCase()
-                .replace(/^(thành phố|tỉnh|quận|huyện|thị xã|phường|xã)\s+/i, '')
-                .trim();
-        };
+        const placeholderOption = document.createElement('option');
+        placeholderOption.value = '';
+        placeholderOption.textContent = placeholder;
+        selectElement.appendChild(placeholderOption);
 
-        selectElement.innerHTML = '<option value="">-- Chọn --</option>';
-        items.forEach(function (item) {
+        (items || []).forEach(function (item) {
             const option = document.createElement('option');
-            option.value = item.value;
-            option.textContent = item.label;
-            option.dataset.ghnId = item.id || '';
-            if (selectedValue && normalizeAddressName(item.value) === normalizeAddressName(selectedValue)) {
+            option.value = item.value || '';
+            option.textContent = item.label || item.value || '';
+            option.dataset.addressId = item.id || '';
+
+            if (normalizeAddressName(option.value) === normalizeAddressName(selectedValue)) {
                 option.selected = true;
             }
+
             selectElement.appendChild(option);
         });
     }
 
-    function fallbackCityWard() {
-        if (!citySelect || !wardSelect || !districtSelect) return;
-
-        const currentCity = citySelect.value || '{{ old('city', $customerCity) }}';
-        const wards = cityMap[currentCity] || [];
-
-        districtSelect.innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>';
-        wardSelect.innerHTML = '<option value="">-- Chọn Xã/Phường --</option>';
-        wards.forEach(function (ward) {
-            const option = document.createElement('option');
-            option.value = ward;
-            option.textContent = ward;
-            if ('{{ old('ward', $customerWard) }}' === ward) {
-                option.selected = true;
+    async function getAddressData(params) {
+        const query = new URLSearchParams(params).toString();
+        const response = await fetch(addressApiUrl + '?' + query, {
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
             }
-            wardSelect.appendChild(option);
         });
+
+        if (!response.ok) {
+            throw new Error('Không thể tải dữ liệu địa chỉ.');
+        }
+
+        const data = await response.json();
+        return Array.isArray(data.items) ? data.items : [];
     }
 
-    async function loadGhnAddressData(type, parentId = null, selectedValue = '') {
-        if (!citySelect || !wardSelect || !districtSelect) return;
+    function showAddressError(selectElement, message) {
+        if (!selectElement) return;
+        selectElement.innerHTML = '<option value="">' + message + '</option>';
+    }
 
-        if (!ghnEnabled) {
-            fallbackCityWard();
-            return;
-        }
+    async function loadWards(provinceId, selectedWard = '') {
+        const version = ++addressRequestVersion;
 
-        const url = new URL(ghnAddressEndpoint, window.location.origin);
-        url.searchParams.set('type', type);
-        if (parentId !== null) {
-            url.searchParams.set('parent_id', parentId);
-        }
+        wardSelect.disabled = true;
+        wardSelect.innerHTML = '<option value="">Đang tải Phường/Xã...</option>';
 
         try {
-            const response = await fetch(url);
-            if (!response.ok) {
-                throw new Error('GHN request failed');
-            }
-
-            const data = await response.json();
-            let rawItems = data.items || [];
-
-            if (rawItems.length === 0) {
-                const publicUrl = type === 'provinces'
-                    ? 'https://provinces.open-api.vn/api/?depth=1'
-                    : type === 'districts'
-                        ? 'https://provinces.open-api.vn/api/p/' + parentId + '?depth=2'
-                        : 'https://provinces.open-api.vn/api/d/' + parentId + '?depth=2';
-
-                const publicResponse = await fetch(publicUrl);
-                if (publicResponse.ok) {
-                    const publicData = await publicResponse.json();
-                    rawItems = type === 'provinces'
-                        ? publicData
-                        : (type === 'districts' ? (publicData.districts || []) : (publicData.wards || []));
-                }
-            }
-
-            const items = rawItems.map(item => ({
-                value: item.value || item.label || item.name || '',
-                label: item.label || item.value || item.name || '',
-                id: item.id || item.code || ''
-            }));
-
-            if (type === 'provinces') {
-                populateSelectByValues(citySelect, items, selectedValue || '{{ old('city', $customerCity) }}');
-                const selectedCity = citySelect.value;
-                const selectedOption = citySelect.selectedOptions[0];
-                const provinceId = selectedOption?.dataset?.ghnId || await resolveProvinceId(selectedCity);
-
-                if (provinceId) {
-                    await loadGhnAddressData('districts', provinceId, '{{ $customerDistrict }}');
-                } else {
-                    const fallbackWards = cityMap[selectedCity] || [];
-                    populateSelectByValues(districtSelect, [], '');
-                    populateSelectByValues(wardSelect, fallbackWards.map(function (ward) {
-                        return { value: ward, label: ward };
-                    }), '{{ old('ward', $customerWard) }}');
-                }
-                return;
-            }
-
-            if (type === 'districts') {
-                populateSelectByValues(districtSelect, items, selectedValue || '');
-                wardSelect.innerHTML = '<option value="">-- Chọn Xã/Phường --</option>';
-                return;
-            }
-
-            if (type === 'wards') {
-                populateSelectByValues(wardSelect, items, selectedValue || '{{ old('ward', $customerWard) }}');
-            }
-        } catch (error) {
-            fallbackCityWard();
-        }
-    }
-
-    async function resolveProvinceId(cityName) {
-        const knownProvinceIds = {
-            'Hà Nội': 1,
-            'Hải Phòng': 31,
-            'Đà Nẵng': 48,
-            'Hồ Chí Minh': 79,
-            'Bình Dương': 74,
-            'Đồng Nai': 75,
-            'Khánh Hòa': 56,
-            'Cần Thơ': 92
-        };
-
-        const selectedOption = citySelect?.selectedOptions[0];
-        if (selectedOption?.dataset?.ghnId) {
-            return selectedOption.dataset.ghnId;
-        }
-
-        if (knownProvinceIds[cityName]) {
-            return knownProvinceIds[cityName];
-        }
-
-        try {
-            const response = await fetch('https://provinces.open-api.vn/api/?depth=2');
-            if (!response.ok) return null;
-
-            const provinces = await response.json();
-            const province = provinces.find(item => item.name === cityName);
-
-            return province?.code || null;
-        } catch (error) {
-            return null;
-        }
-    }
-
-    if (citySelect && districtSelect && wardSelect) {
-        citySelect.addEventListener('change', async function () {
-            const city = this.value;
-
-            districtSelect.innerHTML = '<option value="">Đang tải Quận/Huyện...</option>';
-            wardSelect.innerHTML = '<option value="">-- Chọn Xã/Phường --</option>';
-
-            if (ghnEnabled) {
-                const provinceId = await resolveProvinceId(city);
-                if (provinceId) {
-                    await loadGhnAddressData('districts', provinceId);
-                    updateShippingFee();
-                    return;
-                }
-            }
-
-            districtSelect.innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>';
-            const wards = cityMap[city] || [];
-            wards.forEach(function (ward) {
-                const option = document.createElement('option');
-                option.value = ward;
-                option.textContent = ward;
-                wardSelect.appendChild(option);
+            const wards = await getAddressData({
+                type: 'wards',
+                parent_id: provinceId
             });
+
+            if (version !== addressRequestVersion) return;
+
+            fillSelect(
+                wardSelect,
+                wards,
+                selectedWard,
+                '-- Chọn Phường/Xã --'
+            );
+
+            wardSelect.disabled = false;
             updateShippingFee();
-        });
+        } catch (error) {
+            console.error('Lỗi tải phường/xã:', error);
 
-        districtSelect.addEventListener('change', function () {
-            const selectedOption = this.selectedOptions[0];
-            const districtId = selectedOption?.dataset?.ghnId || null;
+            if (version === addressRequestVersion) {
+                showAddressError(wardSelect, 'Không tải được Phường/Xã');
+                wardSelect.disabled = false;
+            }
+        }
+    }
 
-            if (ghnEnabled && districtId) {
-                loadGhnAddressData('wards', districtId);
+    async function initializeAddressSelectors() {
+        citySelect.disabled = true;
+        wardSelect.disabled = true;
+        citySelect.innerHTML = '<option value="">Đang tải Tỉnh/Thành phố...</option>';
+        wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+
+        try {
+            const provinces = await getAddressData({ type: 'provinces' });
+
+            fillSelect(
+                citySelect,
+                provinces,
+                currentCity,
+                '-- Chọn Tỉnh/Thành phố --'
+            );
+
+            citySelect.disabled = false;
+
+            const selectedProvince = citySelect.options[citySelect.selectedIndex];
+            const provinceId = selectedProvince?.dataset.addressId;
+
+            if (provinceId) {
+                await loadWards(provinceId, currentWard);
             } else {
-                const city = citySelect.value;
-                const wards = cityMap[city] || [];
-                wardSelect.innerHTML = '<option value="">-- Chọn Xã/Phường --</option>';
-                wards.forEach(function (ward) {
-                    const option = document.createElement('option');
-                    option.value = ward;
-                    option.textContent = ward;
-                    wardSelect.appendChild(option);
-                });
+                wardSelect.disabled = false;
+            }
+        } catch (error) {
+            console.error('Lỗi tải tỉnh/thành phố:', error);
+            showAddressError(citySelect, 'Không tải được Tỉnh/Thành phố');
+            showAddressError(wardSelect, 'Không tải được Phường/Xã');
+            citySelect.disabled = false;
+            wardSelect.disabled = false;
+        }
+    }
+
+    if (citySelect && wardSelect) {
+        citySelect.addEventListener('change', async function () {
+            const selectedProvince = this.options[this.selectedIndex];
+            const provinceId = selectedProvince?.dataset.addressId;
+
+            wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+            wardSelect.disabled = true;
+
+            if (!provinceId) {
+                updateShippingFee();
+                wardSelect.disabled = false;
+                return;
             }
 
+            await loadWards(provinceId);
             updateShippingFee();
         });
 
         wardSelect.addEventListener('change', updateShippingFee);
 
-        if (typeof window !== 'undefined' && citySelect && wardSelect) {
-            const currentCity = '{{ $customerCity }}';
-            if (currentCity) {
-                const currentWards = cityMap[currentCity] || [];
-                if (currentWards.length > 0) {
-                    wardSelect.innerHTML = '<option value="">-- Chọn Xã/Phường --</option>';
-                    currentWards.forEach(function (ward) {
-                        const option = document.createElement('option');
-                        option.value = ward;
-                        option.textContent = ward;
-                        if ('{{ old('ward', $customerWard) }}' === ward) {
-                            option.selected = true;
-                        }
-                        wardSelect.appendChild(option);
-                    });
-                }
-            }
-        }
+        initializeAddressSelectors();
     }
 
     deliveryMethodInputs.forEach(function (input) {
-    input.addEventListener('change', updateDeliveryEstimate);
-});
-
-// Thay vì phụ thuộc API ngoài dễ bị lỗi, ta nạp trực tiếp danh sách thành phố từ dữ liệu có sẵn
-if (citySelect) {
-    const currentCityVal = citySelect.value || '{{ old('city', $customerCity) }}';
-    
-    // Đổ danh sách Tỉnh/Thành phố nếu ô đang trống
-    if (citySelect.options.length <= 1) {
-        citySelect.innerHTML = '<option value="">-- Chọn Thành phố --</option>';
-        Object.keys(cityMap).forEach(cityName => {
-            const opt = document.createElement('option');
-            opt.value = cityName;
-            opt.textContent = cityName;
-            if (cityName === currentCityVal) {
-                opt.selected = true;
-            }
-            citySelect.appendChild(opt);
-        });
-    }
-
-    // Nếu đã có tỉnh được chọn (ví dụ: Hải Phòng), tự động load Quận/Huyện tương ứng
-    if (currentCityVal && cityMap[currentCityVal]) {
-        const districts = Object.keys(cityMap[currentCityVal]);
-        districtSelect.innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>';
-        districts.forEach(distName => {
-            const opt = document.createElement('option');
-            opt.value = distName;
-            opt.textContent = distName;
-            if (distName === '{{ old('district', $customerDistrict) }}') {
-                opt.selected = true;
-            }
-            districtSelect.appendChild(opt);
-        });
-    }
-}
-
-// Lắng nghe sự kiện thay đổi Tỉnh/Thành phố
-if (citySelect) {
-    citySelect.addEventListener('change', function() {
-        const selectedCity = this.value;
-        districtSelect.innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>';
-        wardSelect.innerHTML = '<option value="">-- Chọn Xã/Phường --</option>';
-
-        if (selectedCity && cityMap[selectedCity]) {
-            const districts = Object.keys(cityMap[selectedCity]);
-            districts.forEach(distName => {
-                const opt = document.createElement('option');
-                opt.value = distName;
-                opt.textContent = distName;
-                districtSelect.appendChild(opt);
-            });
-        }
-        updateShippingFee();
+        input.addEventListener('change', updateDeliveryEstimate);
     });
-}
 
-// Lắng nghe sự kiện thay đổi Quận/Huyện để load Xã/Phường tương ứng
-if (districtSelect) {
-    districtSelect.addEventListener('change', function() {
-        const selectedCity = citySelect.value;
-        const selectedDistrict = this.value;
-        wardSelect.innerHTML = '<option value="">-- Chọn Xã/Phường --</option>';
-
-        if (selectedCity && selectedDistrict && cityMap[selectedCity][selectedDistrict]) {
-            const wards = cityMap[selectedCity][selectedDistrict];
-            wards.forEach(wardName => {
-                const opt = document.createElement('option');
-                opt.value = wardName;
-                opt.textContent = wardName;
-                wardSelect.appendChild(opt);
-            });
-        }
-        updateShippingFee();
-    });
-}
-
-updateShippingFee();
-updateDeliveryEstimate();
+    updateShippingFee();
+    updateDeliveryEstimate();
 
     function chooseVoucher(code, kind = 'order') {
         const input = document.getElementById(kind + '-voucher-code');
