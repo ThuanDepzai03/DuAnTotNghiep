@@ -397,6 +397,10 @@ public function cancelOrder($id)
 {
     $customer = session('customer');
 
+    if (!$customer) {
+        return redirect()->route('login');
+    }
+
     $order = Order::findOrFail($id);
 
     if (
