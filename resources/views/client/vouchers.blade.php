@@ -31,8 +31,7 @@
                         @endif
                         <small>Hạn dùng: {{ $voucher->end_date ? \Carbon\Carbon::parse($voucher->end_date)->format('d/m/Y') : 'Không giới hạn' }}</small>
                         <div style="margin-top:18px;">
-                            <button type="button" class="primary-btn copy-voucher" data-code="{{ $voucher->code }}">Sao chép mã</button>
-                            <a href="{{ route('checkout.show') }}" class="btn btn-link">Dùng ngay</a>
+                            <a href="{{ route('vouchers.claim', $voucher->id) }}" class="primary-btn">Lấy mã</a>
                         </div>
                     </div>
                 </div>
@@ -42,13 +41,4 @@
         </div>
     </div>
 </div>
-<script>
-document.querySelectorAll('.copy-voucher').forEach(function (button) {
-    button.addEventListener('click', async function () {
-        await navigator.clipboard.writeText(button.dataset.code);
-        button.textContent = 'Đã sao chép';
-        setTimeout(function () { button.textContent = 'Sao chép mã'; }, 1600);
-    });
-});
-</script>
 @endsection

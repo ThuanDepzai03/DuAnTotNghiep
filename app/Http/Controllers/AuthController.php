@@ -274,6 +274,10 @@ class AuthController extends Controller
             $data['city'] = $city;
         }
 
+        if (Schema::hasColumn('nguoidung', 'district')) {
+            $data['district'] = trim((string) $request->district);
+        }
+
         if (Schema::hasColumn('nguoidung', 'ward')) {
             $data['ward'] = $ward;
         }
@@ -324,6 +328,7 @@ class AuthController extends Controller
             'email' => $request->email,
             'address' => $parsedAddress,
             'city' => $city,
+            'district' => trim((string) $request->district),
             'ward' => $ward,
             'address_detail' => $addressDetail,
             'tel' => $request->tel,
@@ -515,6 +520,10 @@ class AuthController extends Controller
             $data['city'] = $city;
         }
 
+        if (Schema::hasColumn('nguoidung', 'district')) {
+            $data['district'] = trim((string) $request->district);
+        }
+
         if (Schema::hasColumn('nguoidung', 'ward')) {
             $data['ward'] = $ward;
         }
@@ -532,6 +541,7 @@ class AuthController extends Controller
         session()->put('customer.email', $request->email);
         session()->put('customer.address', $parsedAddress);
         session()->put('customer.city', $city);
+        session()->put('customer.district', trim((string) $request->district));
         session()->put('customer.ward', $ward);
         session()->put('customer.address_detail', $addressDetail);
         session()->put('customer.tel', $request->tel);

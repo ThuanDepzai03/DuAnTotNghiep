@@ -70,6 +70,7 @@
     );
 
     $customerCity = old('city', $defaultCustomer['city'] ?? '');
+    $customerDistrict = old('district', $defaultCustomer['district'] ?? '');
     $customerWard = old('ward', $defaultCustomer['ward'] ?? '');
 
 
@@ -278,6 +279,9 @@
                                 <label>Quận / Huyện</label>
                                 <select class="input" name="district" id="checkout-district" required>
                                     <option value="">-- Chọn Quận/Huyện --</option>
+                                    @if($customerDistrict)
+                                        <option value="{{ $customerDistrict }}" selected>{{ $customerDistrict }}</option>
+                                    @endif
                                 </select>
                             </div>
 
@@ -406,8 +410,8 @@
                                         $image = $item['image'] ?? null;
                                     @endphp
 
-                                    <div class="product-item checkout-product-item" data-variant-id="{{ $item['variant_id'] ?? $loop->index }}" data-price="{{ $price }}">
-                                        <div class="product-thumb">
+                                    <div class="product-item checkout-product-item checkout-product-card" data-variant-id="{{ $item['variant_id'] ?? $loop->index }}" data-price="{{ $price }}">
+                                        <div class="product-thumb checkout-product-card__image">
                                             @if($image)
                                                 <img src="{{ asset($image) }}" alt="{{ $item['name'] ?? 'Sản phẩm' }}">
                                             @else
@@ -415,28 +419,13 @@
                                             @endif
                                         </div>
 
-                                        <div class="product-info">
+                                        <div class="product-info checkout-product-card__info">
                                             <div class="product-row">
                                                 <strong>{{ $item['name'] ?? 'Sản phẩm' }}</strong>
                                                 <span class="checkout-item-subtotal">{{ number_format($price * $quantity, 0, ',', '.') }}₫</span>
                                             </div>
 
-                                            <div class="checkout-item-actions">
-                                                <div class="checkout-qty-control">
-                                                    <button type="button" class="checkout-qty-btn" data-action="minus" data-variant-id="{{ $item['variant_id'] ?? $loop->index }}">−</button>
-                                                    <input
-                                                        type="number"
-                                                        min="1"
-                                                        max="{{ $item['stock'] ?? 99 }}"
-                                                        value="{{ $quantity }}"
-                                                        class="checkout-qty-input"
-                                                        data-variant-id="{{ $item['variant_id'] ?? $loop->index }}"
-                                                        data-stock="{{ $item['stock'] ?? 99 }}"
-                                                        data-price="{{ $price }}"
-                                                    >
-                                                    <button type="button" class="checkout-qty-btn" data-action="plus" data-variant-id="{{ $item['variant_id'] ?? $loop->index }}">+</button>
-                                                </div>
-
+                                            <div class="checkout-item-actions checkout-product-card__meta">
                                                 <button type="button" class="checkout-remove-btn" data-variant-id="{{ $item['variant_id'] ?? $loop->index }}">Xóa</button>
                                             </div>
 
@@ -450,42 +439,47 @@
 
                             <div class="voucher-box">
                                 <div class="voucher-header">
-                                    <h4>🎟 Voucher phí vận chuyển</h4>
+                                    <h4>1. Voucher đã áp dụng</h4>
                                 </div>
-
-                                @if($shippingVoucher)
-                                    <div class="voucher-applied">
-                                        <div>
-                                            <strong>{{ $shippingVoucher['code'] }}</strong>
-                                            <small>{{ $shippingVoucher['name'] }}</small>
+                                @if($shippingVoucher || $orderVoucher)
+                                    @if($shippingVoucher)
+                                        <div class="voucher-applied voucher-applied--shipping">
+                                            <div><strong>{{ $shippingVoucher['code'] }}</strong><small>Phí vận chuyển: {{ $shippingVoucher['name'] }}</small></div>
+                                            <span class="voucher-choice">Lựa chọn hợp lý</span>
                                         </div>
-                                        <button type="submit" form="remove-shipping-voucher-form" class="btn btn-danger btn-sm">Bỏ mã</button>
-                                    </div>
+                                    @endif
+                                    @if($orderVoucher)
+                                        <div class="voucher-applied voucher-applied--order">
+                                            <div><strong>{{ $orderVoucher['code'] }}</strong><small>Đơn hàng: {{ $orderVoucher['name'] }}</small></div>
+                                            <span class="voucher-choice">Lựa chọn hợp lý</span>
+                                        </div>
+                                    @endif
+                                @else
+                                    <small>Chưa có voucher nào được áp dụng.</small>
                                 @endif
-
-                                <div class="voucher-input-row">
-                                    <input type="text" id="shipping-voucher-code" class="input" placeholder="Mã freeship" value="{{ old('shipping_voucher_code', $shippingVoucher['code'] ?? '') }}">
-                                    <button type="button" class="primary-btn" onclick="applyVoucher('shipping')">Áp dụng</button>
-                                </div>
                             </div>
 
                             <div class="voucher-box">
                                 <div class="voucher-header">
-                                    <h4>🎟 Voucher đơn hàng</h4>
+                                    <h4>2. Kho voucher</h4>
                                 </div>
-                                @if($orderVoucher)
-                                    <div class="voucher-applied">
+                                @forelse($availableVouchers as $availableVoucher)
+                                    @php $isShippingVoucher = $availableVoucher->discount_type === 'free_shipping'; @endphp
+                                    <div class="voucher-item {{ $isShippingVoucher ? 'voucher-item--shipping' : 'voucher-item--order' }} {{ ($shippingVoucher && $isShippingVoucher && $shippingVoucher['id'] == $availableVoucher->id) || ($orderVoucher && !$isShippingVoucher && $orderVoucher['id'] == $availableVoucher->id) ? 'is-applied' : '' }}">
                                         <div>
-                                            <strong>{{ $orderVoucher['code'] }}</strong>
-                                            <small>{{ $orderVoucher['name'] }}</small>
+                                            <strong>{{ $availableVoucher->code }}</strong>
+                                            <small>{{ $availableVoucher->name }}</small>
+                                            <small>{{ $isShippingVoucher ? 'Miễn phí vận chuyển' : ($availableVoucher->discount_type === 'fixed' ? 'Giảm ' . number_format($availableVoucher->discount_value, 0, ',', '.') . '₫' : 'Giảm ' . $availableVoucher->discount_value . '%') }}</small>
                                         </div>
-                                        <button type="submit" form="remove-order-voucher-form" class="btn btn-danger btn-sm">Bỏ mã</button>
+                                        @if(($shippingVoucher && $isShippingVoucher && $shippingVoucher['id'] == $availableVoucher->id) || ($orderVoucher && !$isShippingVoucher && $orderVoucher['id'] == $availableVoucher->id))
+                                            <span class="voucher-choice">Đã áp dụng</span>
+                                        @else
+                                            <a href="{{ route('vouchers.claim', $availableVoucher->id) }}" class="btn btn-outline-primary btn-sm">Lấy mã</a>
+                                        @endif
                                     </div>
-                                @endif
-                                <div class="voucher-input-row">
-                                    <input type="text" id="order-voucher-code" class="input" placeholder="Mã giảm giá đơn hàng" value="{{ old('order_voucher_code', $orderVoucher['code'] ?? '') }}">
-                                    <button type="button" class="primary-btn" onclick="applyVoucher('order')">Áp dụng</button>
-                                </div>
+                                @empty
+                                    <small>Hiện chưa có voucher khả dụng.</small>
+                                @endforelse
                             </div>
 
                             <div class="summary-total-box">
@@ -777,9 +771,66 @@
         justify-content: space-between;
         gap: 10px;
         padding: 10px 12px;
-        border: 1px dashed #d1d5db;
+        border: 1px solid #e5e7eb;
         border-radius: 10px;
-        background: #fff;
+        background: linear-gradient(90deg, rgba(255,255,255,.98), rgba(255,255,255,.72));
+        align-items: center;
+        margin-top: 8px;
+    }
+
+    .voucher-item--shipping {
+        border-left: 4px solid #00ff00;
+        background: linear-gradient(90deg, rgba(0,255,0,.14), rgba(255,255,255,.95) 76%);
+    }
+
+    .voucher-item--order {
+        border-left: 4px solid #FF6633;
+        background: linear-gradient(90deg, rgba(255,102,51,.16), rgba(255,255,255,.95) 76%);
+    }
+
+    .voucher-item.is-applied {
+        opacity: .48;
+        filter: saturate(.55);
+    }
+
+    .voucher-applied {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 11px 12px;
+        margin-top: 8px;
+        border-radius: 10px;
+        opacity: .62;
+        background: linear-gradient(90deg, rgba(255,255,255,.92), rgba(255,255,255,.3));
+    }
+
+    .voucher-applied--shipping {
+        border-left: 4px solid #00ff00;
+        background: linear-gradient(90deg, rgba(0,255,0,.12), rgba(255,255,255,.65) 78%);
+    }
+
+    .voucher-applied--order {
+        border-left: 4px solid #FF6633;
+        background: linear-gradient(90deg, rgba(255,102,51,.13), rgba(255,255,255,.65) 78%);
+    }
+
+    .voucher-applied strong,
+    .voucher-applied small,
+    .voucher-item strong,
+    .voucher-item small {
+        display: block;
+    }
+
+    .voucher-choice {
+        flex-shrink: 0;
+        padding: 4px 8px;
+        border: 1px solid rgba(17, 24, 39, .15);
+        border-radius: 999px;
+        color: #374151;
+        font-size: 10px;
+        font-weight: 700;
+        white-space: nowrap;
     }
 
     .voucher-item strong,
@@ -794,7 +845,13 @@
     .summary-total-box {
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 0;
+        margin-top: 18px;
+        padding: 16px;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #fff, #f8fafc);
+        box-shadow: 0 8px 22px rgba(15, 23, 42, .06);
     }
 
     .order-col {
@@ -802,17 +859,23 @@
         align-items: center;
         justify-content: space-between;
         gap: 12px;
-        padding: 4px 0;
+        padding: 9px 0;
+        color: #4b5563;
+        font-size: 13px;
+    }
+
+    .order-col strong {
+        color: #1f2937;
     }
 
     .total-row {
-        border-top: 1px solid #e5e7eb;
+        border-top: 1px solid #dbe3ee;
         margin-top: 6px;
-        padding-top: 12px;
+        padding-top: 15px;
     }
 
     .order-total {
-        font-size: 22px;
+        font-size: 24px;
         color: #111827;
         font-weight: 800;
     }
@@ -1172,13 +1235,20 @@
     function populateSelectByValues(selectElement, items, selectedValue) {
         if (!selectElement) return;
 
+        const normalizeAddressName = function (value) {
+            return String(value || '')
+                .toLowerCase()
+                .replace(/^(thành phố|tỉnh|quận|huyện|thị xã|phường|xã)\s+/i, '')
+                .trim();
+        };
+
         selectElement.innerHTML = '<option value="">-- Chọn --</option>';
         items.forEach(function (item) {
             const option = document.createElement('option');
             option.value = item.value;
             option.textContent = item.label;
             option.dataset.ghnId = item.id || '';
-            if (selectedValue && item.value === selectedValue) {
+            if (selectedValue && normalizeAddressName(item.value) === normalizeAddressName(selectedValue)) {
                 option.selected = true;
             }
             selectElement.appendChild(option);
@@ -1253,10 +1323,10 @@
                 populateSelectByValues(citySelect, items, selectedValue || '{{ old('city', $customerCity) }}');
                 const selectedCity = citySelect.value;
                 const selectedOption = citySelect.selectedOptions[0];
-                const provinceId = selectedOption?.dataset?.ghnId || null;
+                const provinceId = selectedOption?.dataset?.ghnId || await resolveProvinceId(selectedCity);
 
                 if (provinceId) {
-                    await loadGhnAddressData('districts', provinceId, '{{ old('district', '') }}');
+                    await loadGhnAddressData('districts', provinceId, '{{ $customerDistrict }}');
                 } else {
                     const fallbackWards = cityMap[selectedCity] || [];
                     populateSelectByValues(districtSelect, [], '');
@@ -1281,20 +1351,65 @@
         }
     }
 
+    async function resolveProvinceId(cityName) {
+        const knownProvinceIds = {
+            'Hà Nội': 1,
+            'Hải Phòng': 31,
+            'Đà Nẵng': 48,
+            'Hồ Chí Minh': 79,
+            'Bình Dương': 74,
+            'Đồng Nai': 75,
+            'Khánh Hòa': 56,
+            'Cần Thơ': 92
+        };
+
+        const selectedOption = citySelect?.selectedOptions[0];
+        if (selectedOption?.dataset?.ghnId) {
+            return selectedOption.dataset.ghnId;
+        }
+
+        if (knownProvinceIds[cityName]) {
+            return knownProvinceIds[cityName];
+        }
+
+        try {
+            const response = await fetch('https://provinces.open-api.vn/api/?depth=2');
+            if (!response.ok) return null;
+
+            const provinces = await response.json();
+            const province = provinces.find(item => item.name === cityName);
+
+            return province?.code || null;
+        } catch (error) {
+            return null;
+        }
+    }
+
     if (citySelect && districtSelect && wardSelect) {
-        citySelect.addEventListener('change', function () {
+        citySelect.addEventListener('change', async function () {
             const city = this.value;
+
+            districtSelect.innerHTML = '<option value="">Đang tải Quận/Huyện...</option>';
+            wardSelect.innerHTML = '<option value="">-- Chọn Xã/Phường --</option>';
+
+            if (ghnEnabled) {
+                const provinceId = await resolveProvinceId(city);
+                if (provinceId) {
+                    await loadGhnAddressData('districts', provinceId);
+                    updateShippingFee();
+                    return;
+                }
+            }
+
+            districtSelect.innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>';
             const wards = cityMap[city] || [];
-
-            wardSelect.innerHTML =
-                '<option value="">-- Chọn Xã/Phường --</option>';
-
             wards.forEach(function (ward) {
                 const option = document.createElement('option');
                 option.value = ward;
                 option.textContent = ward;
                 wardSelect.appendChild(option);
             });
+            updateShippingFee();
         });
 
         districtSelect.addEventListener('change', function () {
@@ -1321,7 +1436,7 @@
         wardSelect.addEventListener('change', updateShippingFee);
 
         if (typeof window !== 'undefined' && citySelect && wardSelect) {
-            const currentCity = '{{ old('city', $customerCity) }}';
+            const currentCity = '{{ $customerCity }}';
             if (currentCity) {
                 const currentWards = cityMap[currentCity] || [];
                 if (currentWards.length > 0) {
@@ -1344,8 +1459,78 @@
     input.addEventListener('change', updateDeliveryEstimate);
 });
 
-if (ghnEnabled) {
-    loadGhnAddressData('provinces');
+// Thay vì phụ thuộc API ngoài dễ bị lỗi, ta nạp trực tiếp danh sách thành phố từ dữ liệu có sẵn
+if (citySelect) {
+    const currentCityVal = citySelect.value || '{{ old('city', $customerCity) }}';
+    
+    // Đổ danh sách Tỉnh/Thành phố nếu ô đang trống
+    if (citySelect.options.length <= 1) {
+        citySelect.innerHTML = '<option value="">-- Chọn Thành phố --</option>';
+        Object.keys(cityMap).forEach(cityName => {
+            const opt = document.createElement('option');
+            opt.value = cityName;
+            opt.textContent = cityName;
+            if (cityName === currentCityVal) {
+                opt.selected = true;
+            }
+            citySelect.appendChild(opt);
+        });
+    }
+
+    // Nếu đã có tỉnh được chọn (ví dụ: Hải Phòng), tự động load Quận/Huyện tương ứng
+    if (currentCityVal && cityMap[currentCityVal]) {
+        const districts = Object.keys(cityMap[currentCityVal]);
+        districtSelect.innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>';
+        districts.forEach(distName => {
+            const opt = document.createElement('option');
+            opt.value = distName;
+            opt.textContent = distName;
+            if (distName === '{{ old('district', $customerDistrict) }}') {
+                opt.selected = true;
+            }
+            districtSelect.appendChild(opt);
+        });
+    }
+}
+
+// Lắng nghe sự kiện thay đổi Tỉnh/Thành phố
+if (citySelect) {
+    citySelect.addEventListener('change', function() {
+        const selectedCity = this.value;
+        districtSelect.innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>';
+        wardSelect.innerHTML = '<option value="">-- Chọn Xã/Phường --</option>';
+
+        if (selectedCity && cityMap[selectedCity]) {
+            const districts = Object.keys(cityMap[selectedCity]);
+            districts.forEach(distName => {
+                const opt = document.createElement('option');
+                opt.value = distName;
+                opt.textContent = distName;
+                districtSelect.appendChild(opt);
+            });
+        }
+        updateShippingFee();
+    });
+}
+
+// Lắng nghe sự kiện thay đổi Quận/Huyện để load Xã/Phường tương ứng
+if (districtSelect) {
+    districtSelect.addEventListener('change', function() {
+        const selectedCity = citySelect.value;
+        const selectedDistrict = this.value;
+        wardSelect.innerHTML = '<option value="">-- Chọn Xã/Phường --</option>';
+
+        if (selectedCity && selectedDistrict && cityMap[selectedCity][selectedDistrict]) {
+            const wards = cityMap[selectedCity][selectedDistrict];
+            wards.forEach(wardName => {
+                const opt = document.createElement('option');
+                opt.value = wardName;
+                opt.textContent = wardName;
+                wardSelect.appendChild(opt);
+            });
+        }
+        updateShippingFee();
+    });
 }
 
 updateShippingFee();
