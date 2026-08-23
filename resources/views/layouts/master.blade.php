@@ -43,7 +43,14 @@
                             @else
                                 <li><a href="{{ route('admin.dashboard') }}"><i class="fa fa-cogs"></i> Quản trị</a></li>
                             @endif
-                            <li><a href="{{ route('logout') }}"><i class="fa fa-sign-out"></i> Đăng xuất</a></li>
+                            <li>
+                                <form action="{{ route('logout') }}" method="POST" style="display: inline;">
+                                    @csrf
+                                    <button type="submit" style="background: none; border: 0; padding: 0; color: inherit;">
+                                        <i class="fa fa-sign-out"></i> Đăng xuất
+                                    </button>
+                                </form>
+                            </li>
                         @else
                             <li><a href="#" id="btn-open-auth-modal"><i class="fa fa-sign-in"></i> Đăng ký/Đăng nhập</a></li>
                         @endif
