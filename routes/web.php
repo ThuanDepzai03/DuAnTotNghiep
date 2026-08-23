@@ -62,6 +62,7 @@ Route::get('/about', [HomeController::class, 'about'])->name('about');
 Route::get('/news', [HomeController::class, 'news'])->name('news');
 
 Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
+Route::post('/contact', [HomeController::class, 'submitContact'])->name('contact.submit');
 
 Route::post('/chat/send', [ChatController::class, 'send'])
     ->name('chat.send');

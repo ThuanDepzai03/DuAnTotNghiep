@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Banner;
 use App\Models\Brand;
 use App\Models\Category;
+use App\Models\Contact;
 use App\Models\Product;
 use Illuminate\Http\Request;
 
@@ -65,4 +66,19 @@ public function contact()
 {
     return view('client.contact');
 }
+
+    public function submitContact(Request $request)
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:20'],
+            'subject' => ['nullable', 'string', 'max:255'],
+            'message' => ['required', 'string', 'max:2000'],
+        ]);
+
+        Contact::create($data + ['status' => 'new']);
+
+        return back()->with('success', 'Đã gửi yêu cầu. Cửa hàng sẽ phản hồi sớm nhất.');
+    }
 }
