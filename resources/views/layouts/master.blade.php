@@ -246,6 +246,7 @@
     <script src="{{ asset('js/bootstrap.min.js') }}"></script>
     <script src="{{ asset('js/slick.min.js') }}"></script>
     <script src="{{ asset('js/main.js') }}"></script>
+    <script src="{{ asset('js/app-interactions.js') }}?v={{ filemtime(public_path('js/app-interactions.js')) }}"></script>
  <script>
         var CHAT_ROUTE = "{{ route('chat.send') }}";
     </script>
