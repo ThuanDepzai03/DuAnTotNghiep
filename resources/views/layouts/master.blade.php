@@ -100,6 +100,9 @@
                         <li class="{{ request()->routeIs('contact') ? 'active' : '' }}">
                             <a href="{{ route('contact') }}">Liên hệ</a>
                         </li>
+                        <li class="{{ request()->routeIs('vouchers.index') ? 'active' : '' }}">
+                            <a href="{{ route('vouchers.index') }}">Kho voucher</a>
+                        </li>
                         @php $customer = session('customer'); @endphp
                         @if($customer && (int) $customer['role'] === 1)
                             <li><a href="{{ route('admin.dashboard') }}">Admin</a></li>

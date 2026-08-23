@@ -9,6 +9,7 @@ use App\Models\Voucher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Schema;
 
 class CheckoutController extends Controller
 {
@@ -246,12 +247,13 @@ class CheckoutController extends Controller
         }
 
         $customer = session('customer');
+        $customerRecord = DB::table('nguoidung')->where('id', $customer['id'] ?? 0)->first();
         $defaultCustomer = [
-            'customer_name' => $customer['user'] ?? '',
-            'phone' => $customer['tel'] ?? '',
-            'city' => $customer['city'] ?? '',
-            'ward' => $customer['ward'] ?? '',
-            'address_detail' => $customer['address_detail'] ?? $customer['address'] ?? '',
+            'customer_name' => $customerRecord->user ?? $customer['user'] ?? '',
+            'phone' => $customerRecord->tel ?? $customer['tel'] ?? '',
+            'city' => $customerRecord->city ?? $customer['city'] ?? '',
+            'ward' => $customerRecord->ward ?? $customer['ward'] ?? '',
+            'address_detail' => $customerRecord->address_detail ?? $customer['address_detail'] ?? $customerRecord->address ?? $customer['address'] ?? '',
         ];
 
         $cart = $this->getCartItems();
@@ -267,21 +269,24 @@ class CheckoutController extends Controller
             $totalPrice += $price * $quantity;
         }
 
-        $voucher = session('voucher');
+        $shippingVoucher = session('shipping_voucher');
+        $orderVoucher = session('order_voucher');
+        $voucher = $orderVoucher ?: $shippingVoucher;
         $discountAmount = 0;
-        $shippingFee = $this->calculateShippingFee($defaultCustomer['city'] ?? '', $defaultCustomer['ward'] ?? '', $voucher);
+        $shippingFee = $this->calculateShippingFee($defaultCustomer['city'] ?? '', $defaultCustomer['ward'] ?? '', $shippingVoucher);
 
-        if ($voucher && isset($voucher['id'])) {
-            $voucherModel = Voucher::find($voucher['id']);
+        foreach ([$shippingVoucher, $orderVoucher] as $voucherPayload) {
+            if ($voucherPayload && isset($voucherPayload['id'])) {
+                $voucherModel = Voucher::find($voucherPayload['id']);
 
-            if ($voucherModel && (int) $voucherModel->status === 1) {
+                if ($voucherModel && (int) $voucherModel->status === 1) {
                 $validVoucher = (
                     ($voucherModel->quantity === null || $voucherModel->used_quantity < $voucherModel->quantity)
                     && (!$voucherModel->start_date || now()->toDateString() >= $voucherModel->start_date)
                     && (!$voucherModel->end_date || now()->toDateString() <= $voucherModel->end_date)
                 );
 
-                if ($validVoucher) {
+                    if ($validVoucher) {
                     if ($voucherModel->discount_type === 'free_shipping') {
                         $shippingFee = 0;
                     } elseif ($voucherModel->discount_type === 'percent') {
@@ -297,13 +302,12 @@ class CheckoutController extends Controller
                         $discountAmount = $totalPrice;
                     }
                     $discountAmount = round($discountAmount);
+                    } else {
+                        session()->forget($voucherModel->discount_type === 'free_shipping' ? 'shipping_voucher' : 'order_voucher');
+                    }
                 } else {
-                    session()->forget('voucher');
-                    $voucher = null;
+                    session()->forget($voucherModel->discount_type === 'free_shipping' ? 'shipping_voucher' : 'order_voucher');
                 }
-            } else {
-                session()->forget('voucher');
-                $voucher = null;
             }
         }
 
@@ -320,7 +324,9 @@ class CheckoutController extends Controller
             'shippingFee',
             'discountAmount',
             'finalTotal',
-            'voucher'
+            'voucher',
+            'shippingVoucher',
+            'orderVoucher'
         ));
     }
 
@@ -355,6 +361,13 @@ class CheckoutController extends Controller
             return redirect()->route('checkout.show')->with('voucher_error', 'Voucher đã hết hạn.');
         }
 
+        $voucherKind = $request->input('voucher_kind', 'order');
+        if (($voucherKind === 'shipping') !== ($voucher->discount_type === 'free_shipping')) {
+            return redirect()->route('checkout.show')->with('voucher_error', $voucherKind === 'shipping'
+                ? 'Ô này chỉ nhận voucher phí vận chuyển.'
+                : 'Ô này chỉ nhận voucher đơn hàng.');
+        }
+
         $voucherPayload = [
             'id' => $voucher->id,
             'code' => $voucher->code,
@@ -362,6 +375,7 @@ class CheckoutController extends Controller
             'discount_type' => $voucher->discount_type,
             'discount_value' => $voucher->discount_value,
             'max_discount' => $voucher->max_discount,
+            'min_order' => $voucher->min_order,
         ];
 
         if ($voucher->discount_type === 'free_shipping') {
@@ -371,13 +385,22 @@ class CheckoutController extends Controller
             $voucherPayload['is_free_shipping'] = true;
         }
 
-        session()->put('voucher', $voucherPayload);
+        $sessionKey = $voucher->discount_type === 'free_shipping'
+            ? 'shipping_voucher'
+            : 'order_voucher';
 
-        return redirect()->route('checkout.show')->with('voucher_success', $voucher->discount_type === 'free_shipping' ? 'Áp dụng voucher miễn phí vận chuyển thành công!' : 'Áp dụng voucher thành công!');
+        session()->put($sessionKey, $voucherPayload);
+        session()->forget('voucher');
+
+        return redirect()->route('checkout.show')->with('voucher_success', $voucher->discount_type === 'free_shipping' ? 'Áp dụng voucher phí vận chuyển thành công!' : 'Áp dụng voucher đơn hàng thành công!');
     }
 
-    public function removeVoucher()
+    public function removeVoucher(Request $request)
     {
+        $key = $request->input('voucher_kind') === 'shipping'
+            ? 'shipping_voucher'
+            : 'order_voucher';
+        session()->forget($key);
         session()->forget('voucher');
 
         return redirect()->route('checkout.show')->with('voucher_success', 'Đã bỏ mã voucher.');
@@ -412,41 +435,26 @@ class CheckoutController extends Controller
             $totalPrice += (float) ($item['price'] ?? 0) * (int) ($item['quantity'] ?? 0);
         }
 
-        $voucherCode = trim((string) $request->input('voucher_code', ''));
         $discountAmount = 0;
-        $voucher = null;
+        $shippingVoucher = $this->voucherFromSession('shipping_voucher');
+        $orderVoucher = $this->voucherFromSession('order_voucher');
 
-        if ($voucherCode !== '') {
-            $voucher = Voucher::where('code', strtoupper($voucherCode))->where('status', 1)->first();
-
-            if (!$voucher) {
-                return back()->with('error', 'Mã giảm giá không hợp lệ hoặc đã hết hiệu lực.')->withInput();
+        if ($orderVoucher) {
+            if (($orderVoucher->min_order ?? 0) > $totalPrice) {
+                return back()->with('error', 'Đơn hàng chưa đạt giá trị tối thiểu để dùng voucher.')->withInput();
             }
 
-            $now = now();
-            if (($voucher->start_date && $now->lt($voucher->start_date)) || ($voucher->end_date && $now->gt($voucher->end_date))) {
-                return back()->with('error', 'Mã giảm giá hiện không còn hiệu lực.')->withInput();
-            }
-
-            if (($voucher->quantity ?? 0) <= 0) {
-                return back()->with('error', 'Mã giảm giá đã hết lượt sử dụng.')->withInput();
-            }
-
-            if (($voucher->min_order_value ?? 0) > $totalPrice) {
-                return back()->with('error', 'Đơn hàng chưa đạt giá trị tối thiểu để dùng mã giảm giá.')->withInput();
-            }
-
-            if (($voucher->discount_type ?? 'percent') === 'percent') {
-                $discountAmount = round($totalPrice * ((float) ($voucher->discount_value ?? 0) / 100), 2);
-                if (!empty($voucher->max_discount) && $discountAmount > (float) $voucher->max_discount) {
-                    $discountAmount = (float) $voucher->max_discount;
+            if ($orderVoucher->discount_type === 'percent') {
+                $discountAmount = round($totalPrice * ((float) $orderVoucher->discount_value / 100), 2);
+                if (!empty($orderVoucher->max_discount) && $discountAmount > (float) $orderVoucher->max_discount) {
+                    $discountAmount = (float) $orderVoucher->max_discount;
                 }
             } else {
-                $discountAmount = min((float) ($voucher->discount_value ?? 0), $totalPrice);
+                $discountAmount = min((float) $orderVoucher->discount_value, $totalPrice);
             }
         }
 
-        $shippingFee = $this->calculateShippingFee($request->city, $request->ward, $voucher);
+        $shippingFee = $this->calculateShippingFee($request->city, $request->ward, $shippingVoucher);
         $finalTotal = max(0, $totalPrice + $shippingFee - $discountAmount);
         $addressParts = array_filter([
             trim($request->address_detail),
@@ -472,7 +480,7 @@ class CheckoutController extends Controller
                 'address_detail' => $request->address_detail,
                 'city' => $request->city,
                 'ward' => $request->ward,
-                'voucher_code' => $voucherCode !== '' ? strtoupper($voucherCode) : null,
+                'voucher_code' => collect([$shippingVoucher?->code, $orderVoucher?->code])->filter()->implode(', '),
                 'discount_amount' => $discountAmount,
                 'shipping_fee' => $shippingFee,
                 'note' => null,
@@ -490,9 +498,8 @@ class CheckoutController extends Controller
                 ]);
             }
 
-            if ($voucherCode !== '') {
-                $voucher->increment('used_quantity');
-            }
+            $shippingVoucher?->increment('used_quantity');
+            $orderVoucher?->increment('used_quantity');
 
             DB::commit();
         } catch (\Exception $e) {
@@ -507,8 +514,61 @@ class CheckoutController extends Controller
 
         session()->forget('cart');
         session()->forget('voucher');
+        session()->forget('shipping_voucher');
+        session()->forget('order_voucher');
 
         return redirect()->route('checkout.success')->with('success', 'Đặt hàng thành công! Chúng tôi sẽ liên hệ với bạn trong thời gian sớm nhất.');
+    }
+
+    protected function voucherFromSession(string $key): ?Voucher
+    {
+        $payload = session($key);
+
+        if (!$payload || empty($payload['id'])) {
+            return null;
+        }
+
+        $voucher = Voucher::whereKey($payload['id'])
+            ->where('code', $payload['code'] ?? '')
+            ->where('status', 1)
+            ->first();
+
+        if (!$voucher || ($voucher->quantity !== null && $voucher->used_quantity >= $voucher->quantity)
+            || ($voucher->start_date && now()->toDateString() < $voucher->start_date)
+            || ($voucher->end_date && now()->toDateString() > $voucher->end_date)) {
+            session()->forget($key);
+
+                    $customerId = session('customer.id');
+                    if ($customerId && Schema::hasTable('nguoidung')) {
+                        $customerData = [
+                            'address' => $address,
+                            'tel' => $request->phone,
+                        ];
+
+                        if (Schema::hasColumn('nguoidung', 'city')) {
+                            $customerData['city'] = $request->city;
+                        }
+                        if (Schema::hasColumn('nguoidung', 'ward')) {
+                            $customerData['ward'] = $request->ward;
+                        }
+                        if (Schema::hasColumn('nguoidung', 'address_detail')) {
+                            $customerData['address_detail'] = $request->address_detail;
+                        }
+                        if (Schema::hasColumn('nguoidung', 'updated_at')) {
+                            $customerData['updated_at'] = now();
+                        }
+
+                        DB::table('nguoidung')->where('id', $customerId)->update($customerData);
+                        session()->put('customer.address', $address);
+                        session()->put('customer.tel', $request->phone);
+                        session()->put('customer.city', $request->city);
+                        session()->put('customer.ward', $request->ward);
+                        session()->put('customer.address_detail', $request->address_detail);
+                    }
+            return null;
+        }
+
+        return $voucher;
     }
 }
 

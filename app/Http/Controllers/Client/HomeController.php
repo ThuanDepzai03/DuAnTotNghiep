@@ -8,6 +8,7 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Contact;
 use App\Models\Product;
+use App\Models\Voucher;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
@@ -66,6 +67,24 @@ public function contact()
 {
     return view('client.contact');
 }
+
+    public function vouchers()
+    {
+        $vouchers = Voucher::where('status', 1)
+            ->where(function ($query) {
+                $query->whereNull('start_date')->orWhereDate('start_date', '<=', today());
+            })
+            ->where(function ($query) {
+                $query->whereNull('end_date')->orWhereDate('end_date', '>=', today());
+            })
+            ->where(function ($query) {
+                $query->whereNull('quantity')->orWhereColumn('used_quantity', '<', 'quantity');
+            })
+            ->latest()
+            ->get();
+
+        return view('client.vouchers', compact('vouchers'));
+    }
 
     public function submitContact(Request $request)
     {
