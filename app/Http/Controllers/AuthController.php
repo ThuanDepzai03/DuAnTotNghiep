@@ -347,7 +347,19 @@ class AuthController extends Controller
 
         session()->forget('verification_email');
 
-        return redirect()->route('login')->with('success', 'Email đã được xác thực. Bạn có thể đăng nhập.');
+        $request->session()->regenerate();
+        session(['customer' => [
+            'id' => $user->id,
+            'user' => $user->user,
+            'email' => $user->email,
+            'address' => $user->address ?? null,
+            'tel' => $user->tel ?? null,
+            'role' => (int) ($user->role ?? 0),
+        ]]);
+
+        $this->migrateGuestCartToCustomer();
+
+        return redirect()->route('home')->with('success', 'Email đã được xác thực và đăng nhập thành công.');
     }
 
     public function verifyEmailCode(Request $request)
@@ -376,7 +388,19 @@ class AuthController extends Controller
 
         session()->forget('verification_email');
 
-        return redirect()->route('login')->with('success', 'Email đã được xác thực. Bạn có thể đăng nhập.');
+        $request->session()->regenerate();
+        session(['customer' => [
+            'id' => $user->id,
+            'user' => $user->user,
+            'email' => $user->email,
+            'address' => $user->address ?? null,
+            'tel' => $user->tel ?? null,
+            'role' => (int) ($user->role ?? 0),
+        ]]);
+
+        $this->migrateGuestCartToCustomer();
+
+        return redirect()->route('home')->with('success', 'Email đã được xác thực và đăng nhập thành công.');
     }
 
     public function resendVerification(Request $request)
