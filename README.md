@@ -53,9 +53,9 @@ Website thương mại điện tử bán điện thoại, máy tính bảng và 
 
 ## 4. Phân tích công việc của các thành viên
 
-Tên thành viên trong phần này là placeholder. Nhóm thay bằng họ tên, mã sinh viên và lớp thực tế trước khi đưa vào báo cáo.
+Phần phân công dưới đây được tổng hợp từ lịch sử Git và cấu trúc mã nguồn. Các bí danh `thuanvillager243-dev` và `thuandz` cùng dùng email `thuanvillager243@gmail.com`, được gộp thành một thành viên là **Thuan**.
 
-### Thành viên 1 - Trưởng nhóm và phân tích hệ thống
+### Thành viên 1 - Thuan - Trưởng nhóm và thành viên tích hợp chính
 
 **Nhiệm vụ đã thực hiện:**
 
@@ -63,8 +63,13 @@ Tên thành viên trong phần này là placeholder. Nhóm thay bằng họ tên
 - Phân tích các nghiệp vụ chính: xem sản phẩm, chọn biến thể, giỏ hàng, đặt hàng, voucher, thanh toán và theo dõi đơn.
 - Xây dựng phạm vi dự án, yêu cầu chức năng, yêu cầu bảo mật và các trường hợp ngoại lệ.
 - Thiết kế luồng tổng thể từ trang chủ đến khi đơn hàng được tạo thành công.
-- Phân chia module cho các thành viên và theo dõi tiến độ tích hợp.
-- Quản lý branch, pull request, quy tắc commit và xử lý xung đột mã nguồn.
+- Trực tiếp phát triển và hoàn thiện nhiều module: trang chủ, header, checkout, voucher, địa chỉ giao hàng và xác thực tài khoản.
+- Xây dựng, chỉnh sửa và tích hợp logic checkout: thông tin người nhận, phí vận chuyển, voucher, COD, VNPay và tạo đơn hàng.
+- Tích hợp API địa chỉ hiện hành qua backend Laravel, xử lý tỉnh/thành phố, phường/xã, trạng thái loading và lỗi request.
+- Sửa các lỗi phát sinh trong code của các thành viên khác để các module hoạt động đồng bộ với route, database và session chung.
+- Rà soát toàn bộ luồng liên quan giữa frontend, controller, model, migration và dữ liệu thực tế; sửa lỗi tương thích thay vì chỉ sửa riêng giao diện.
+- Phân chia module cho các thành viên, theo dõi tiến độ và hỗ trợ giải quyết các phần bị lỗi hoặc chưa hoàn thiện.
+- Quản lý branch, pull request, quy tắc commit, xử lý xung đột và đồng bộ code từ nhánh chính.
 - Tổng hợp nội dung báo cáo, chuẩn bị slide, kịch bản demo và thuyết trình.
 
 **Sản phẩm bàn giao:**
@@ -73,8 +78,9 @@ Tên thành viên trong phần này là placeholder. Nhóm thay bằng họ tên
 - Sơ đồ luồng mua hàng và phân quyền.
 - Kế hoạch tiến độ, biên bản họp và nội dung báo cáo.
 - Bản tích hợp cuối cùng đã được kiểm tra trước khi trình bày.
+- Các bản sửa lỗi liên module, bao gồm checkout, voucher, địa chỉ, xác thực và giao diện.
 
-**Phần phối hợp:** rà soát chức năng của cả ba thành viên còn lại, thống nhất tên trường dữ liệu, route và quy trình xử lý lỗi.
+**Phần phối hợp:** rà soát chức năng của cả ba thành viên còn lại, thống nhất tên trường dữ liệu, route và quy trình xử lý lỗi; trực tiếp sửa và tích hợp những phần chưa chạy đúng trong code của các thành viên khác.
 
 ### Thành viên 2 - Backend và cơ sở dữ liệu
 
