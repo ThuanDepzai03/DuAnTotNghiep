@@ -104,7 +104,12 @@ class AuthController extends Controller
 
     $customer = $customerQuery->first();
 
-    if (!$customer || $password !== $customer->pass) {
+    $passwordMatches = $customer && (
+        Hash::check($password, $customer->pass)
+        || hash_equals((string) $customer->pass, $password)
+    );
+
+    if (!$passwordMatches) {
         $errorMessage = 'Tài khoản, email hoặc mật khẩu không đúng.';
 
         if ($request->expectsJson()) {
@@ -120,6 +125,12 @@ class AuthController extends Controller
                 'user' => $errorMessage,
             ])
             ->withInput();
+    }
+
+    if (!Hash::check($password, $customer->pass)) {
+        DB::table('nguoidung')
+            ->where('id', $customer->id)
+            ->update(['pass' => Hash::make($password)]);
     }
 
     // Nếu tài khoản bị khóa thì không được đăng nhập.
@@ -224,7 +235,7 @@ class AuthController extends Controller
 
         $data = [
             'user' => $request->user,
-            'pass' => $request->pass,
+            'pass' => Hash::make($request->pass),
             'email' => $request->email,
             'address' => $parsedAddress,
             'tel' => $request->tel,

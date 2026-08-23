@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 
 class UserController extends Controller
@@ -68,7 +69,7 @@ class UserController extends Controller
 
         DB::table('nguoidung')->insert([
             'user' => trim($data['user']),
-            'pass' => $data['pass'],
+            'pass' => Hash::make($data['pass']),
             'email' => trim($data['email']),
             'address' => $data['address'] ?? null,
             'tel' => $data['tel'] ?? null,
@@ -143,7 +144,7 @@ class UserController extends Controller
 
         // Không nhập mật khẩu mới thì giữ nguyên mật khẩu cũ.
         if (!empty($data['pass'])) {
-            $updateData['pass'] = $data['pass'];
+            $updateData['pass'] = Hash::make($data['pass']);
         }
 
         DB::table('nguoidung')
