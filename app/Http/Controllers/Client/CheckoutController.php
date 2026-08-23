@@ -119,6 +119,28 @@ class CheckoutController extends Controller
     return is_array($data) ? $data : [];
 }
 
+    protected function publicAddressRequest(string $url): array
+    {
+        try {
+            $response = Http::timeout(8)->get($url);
+
+            if (!$response->successful()) {
+                return [];
+            }
+
+            $data = $response->json();
+
+            return is_array($data) ? $data : [];
+        } catch (\Throwable $exception) {
+            \Log::warning('Public address API error', [
+                'url' => $url,
+                'message' => $exception->getMessage(),
+            ]);
+
+            return [];
+        }
+    }
+
     public function addressOptions(Request $request)
 {
     $type = $request->query('type');
@@ -130,13 +152,17 @@ class CheckoutController extends Controller
             '/master-data/province'
         );
 
+        if (empty($items)) {
+            $items = $this->publicAddressRequest('https://provinces.open-api.vn/api/?depth=1');
+        }
+
         return response()->json([
             'items' => collect($items)
                 ->map(function ($item) {
                     return [
-                        'value' => $item['ProvinceName'] ?? '',
-                        'label' => $item['ProvinceName'] ?? '',
-                        'id' => $item['ProvinceID'] ?? '',
+                        'value' => $item['ProvinceName'] ?? $item['name'] ?? '',
+                        'label' => $item['ProvinceName'] ?? $item['name'] ?? '',
+                        'id' => $item['ProvinceID'] ?? $item['code'] ?? '',
                     ];
                 })
                 ->filter(fn ($item) => !empty($item['id']))
@@ -154,13 +180,20 @@ class CheckoutController extends Controller
             'get'
         );
 
+        if (empty($items)) {
+            $items = $this->publicAddressRequest(
+                'https://provinces.open-api.vn/api/p/' . (int) $parentId . '?depth=2'
+            );
+            $items = $items['districts'] ?? [];
+        }
+
         return response()->json([
             'items' => collect($items)
                 ->map(function ($item) {
                     return [
-                        'value' => $item['DistrictName'] ?? '',
-                        'label' => $item['DistrictName'] ?? '',
-                        'id' => $item['DistrictID'] ?? '',
+                        'value' => $item['DistrictName'] ?? $item['name'] ?? '',
+                        'label' => $item['DistrictName'] ?? $item['name'] ?? '',
+                        'id' => $item['DistrictID'] ?? $item['code'] ?? '',
                     ];
                 })
                 ->filter(fn ($item) => !empty($item['id']))
@@ -178,13 +211,20 @@ class CheckoutController extends Controller
             'post'
         );
 
+        if (empty($items)) {
+            $items = $this->publicAddressRequest(
+                'https://provinces.open-api.vn/api/d/' . (int) $parentId . '?depth=2'
+            );
+            $items = $items['wards'] ?? [];
+        }
+
         return response()->json([
             'items' => collect($items)
                 ->map(function ($item) {
                     return [
-                        'value' => $item['WardName'] ?? '',
-                        'label' => $item['WardName'] ?? '',
-                        'id' => $item['WardCode'] ?? '',
+                        'value' => $item['WardName'] ?? $item['name'] ?? '',
+                        'label' => $item['WardName'] ?? $item['name'] ?? '',
+                        'id' => $item['WardCode'] ?? $item['code'] ?? '',
                     ];
                 })
                 ->filter(fn ($item) => !empty($item['id']))
@@ -361,6 +401,7 @@ class CheckoutController extends Controller
             'customer_name' => 'required|string|max:255',
             'phone' => 'required|string|max:20',
             'city' => 'required|string|max:255',
+            'district' => 'required|string|max:255',
             'ward' => 'required|string|max:255',
             'address_detail' => 'required|string|max:255',
             'payment_method' => 'required|in:cod,vnpay',
@@ -407,7 +448,13 @@ class CheckoutController extends Controller
 
         $shippingFee = $this->calculateShippingFee($request->city, $request->ward, $voucher);
         $finalTotal = max(0, $totalPrice + $shippingFee - $discountAmount);
-        $address = trim($request->address_detail) . ', ' . trim($request->ward) . ', ' . trim($request->city);
+        $addressParts = array_filter([
+            trim($request->address_detail),
+            trim($request->ward),
+            trim($request->district),
+            trim($request->city),
+        ]);
+        $address = implode(', ', $addressParts);
 
         DB::beginTransaction();
 

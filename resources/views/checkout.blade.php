@@ -310,7 +310,7 @@
 
                         <div class="form-group">
                             <label>Địa chỉ chi tiết</label>
-                            <input class="input" type="text" name="address_detail" placeholder="Số nhà, tên đường, khu vực...” value="{{ $customerAddressDetail }}" required>
+                            <input class="input" type="text" name="address_detail" placeholder="Số nhà, tên đường, khu vực..." value="{{ $customerAddressDetail }}" required>
                         </div>
 
                         <div class="delivery-block">
@@ -1129,7 +1129,7 @@
     const ghnAddressEndpoint = '{{ route('checkout.addressOptions') }}';
     const fallbackCityOptions = @json($cityOptions);
     const fallbackWardOptions = @json($wardOptions);
-    const ghnEnabled = {{ !empty(config('services.ghn.token')) ? 'true' : 'false' }};
+    const ghnEnabled = true;
 
     function formatMoney(value) {
         return new Intl.NumberFormat('vi-VN').format(value) + '₫';
@@ -1443,21 +1443,45 @@
             }
 
             const data = await response.json();
-            const items = (data.items || []).map(item => ({
-                value: item.value || item.label || '',
-                label: item.label || item.value || '',
-                id: item.id || ''
+            let rawItems = data.items || [];
+
+            if (rawItems.length === 0) {
+                const publicUrl = type === 'provinces'
+                    ? 'https://provinces.open-api.vn/api/?depth=1'
+                    : type === 'districts'
+                        ? 'https://provinces.open-api.vn/api/p/' + parentId + '?depth=2'
+                        : 'https://provinces.open-api.vn/api/d/' + parentId + '?depth=2';
+
+                const publicResponse = await fetch(publicUrl);
+                if (publicResponse.ok) {
+                    const publicData = await publicResponse.json();
+                    rawItems = type === 'provinces'
+                        ? publicData
+                        : (type === 'districts' ? (publicData.districts || []) : (publicData.wards || []));
+                }
+            }
+
+            const items = rawItems.map(item => ({
+                value: item.value || item.label || item.name || '',
+                label: item.label || item.value || item.name || '',
+                id: item.id || item.code || ''
             }));
 
             if (type === 'provinces') {
                 populateSelectByValues(citySelect, items, selectedValue || '{{ old('city', $customerCity) }}');
                 const selectedCity = citySelect.value;
-                const fallbackDistricts = [];
-                populateSelectByValues(districtSelect, fallbackDistricts, '');
-                const fallbackWards = cityMap[selectedCity] || [];
-                populateSelectByValues(wardSelect, fallbackWards.map(function (ward) {
-                    return { value: ward, label: ward };
-                }), '{{ old('ward', $customerWard) }}');
+                const selectedOption = citySelect.selectedOptions[0];
+                const provinceId = selectedOption?.dataset?.ghnId || null;
+
+                if (provinceId) {
+                    await loadGhnAddressData('districts', provinceId, '{{ old('district', '') }}');
+                } else {
+                    const fallbackWards = cityMap[selectedCity] || [];
+                    populateSelectByValues(districtSelect, [], '');
+                    populateSelectByValues(wardSelect, fallbackWards.map(function (ward) {
+                        return { value: ward, label: ward };
+                    }), '{{ old('ward', $customerWard) }}');
+                }
                 return;
             }
 
