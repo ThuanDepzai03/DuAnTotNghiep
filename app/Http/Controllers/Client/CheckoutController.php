@@ -308,6 +308,7 @@ class CheckoutController extends Controller
             'customer_name' => $customerRecord->user ?? $customer['user'] ?? '',
             'phone' => $customerRecord->tel ?? $customer['tel'] ?? '',
             'city' => $customerRecord->city ?? $customer['city'] ?? '',
+            'district' => $customerRecord->district ?? $customer['district'] ?? '',
             'ward' => $customerRecord->ward ?? $customer['ward'] ?? '',
             'address_detail' => $customerRecord->address_detail ?? $customer['address_detail'] ?? $customerRecord->address ?? $customer['address'] ?? '',
         ];
@@ -334,8 +335,16 @@ class CheckoutController extends Controller
         $cityOptions = $this->cityList();
         $wardOptions = $this->wardListByCity();
 
-        $shippingVoucher = $this->bestAvailableVoucher('free_shipping', $totalPrice);
-        $orderVoucher = $this->bestOrderVoucher($totalPrice);
+        $shippingVoucher = $this->voucherFromSession('shipping_voucher');
+        $orderVoucher = $this->voucherFromSession('order_voucher');
+
+        if (!$shippingVoucher) {
+            $shippingVoucher = $this->bestAvailableVoucher('free_shipping', $totalPrice);
+        }
+
+        if (!$orderVoucher) {
+            $orderVoucher = $this->bestOrderVoucher($totalPrice);
+        }
 
         if ($shippingVoucher) {
             session()->put('shipping_voucher', $this->voucherPayload($shippingVoucher));
@@ -356,7 +365,6 @@ class CheckoutController extends Controller
             $shippingVoucher
         );
         $finalTotal = max(0, $totalPrice + $shippingFee - $discountAmount);
-        $orderStatus = $request->payment_method === 'vnpay' ? 'pending_payment' : 'pending';
         $availableVouchers = Voucher::where('status', 1)
             ->where(function ($query) {
                 $query->whereNull('start_date')->orWhereDate('start_date', '<=', today());
@@ -561,6 +569,8 @@ class CheckoutController extends Controller
             'payment_method' => 'required|in:cod,vnpay',
         ]);
 
+        $orderStatus = $request->payment_method === 'vnpay' ? 'pending_payment' : 'pending';
+
 
         // ==============================
         // TÍNH TỔNG TIỀN GỐC
@@ -674,6 +684,9 @@ class CheckoutController extends Controller
                 if (Schema::hasColumn('nguoidung', 'city')) {
                     $customerData['city'] = $request->city;
                 }
+                if (Schema::hasColumn('nguoidung', 'district')) {
+                    $customerData['district'] = $request->district;
+                }
                 if (Schema::hasColumn('nguoidung', 'ward')) {
                     $customerData['ward'] = $request->ward;
                 }
@@ -688,6 +701,7 @@ class CheckoutController extends Controller
                 session()->put('customer.address', $address);
                 session()->put('customer.tel', $request->phone);
                 session()->put('customer.city', $request->city);
+                session()->put('customer.district', $request->district);
                 session()->put('customer.ward', $request->ward);
                 session()->put('customer.address_detail', $request->address_detail);
             }

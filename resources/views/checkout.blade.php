@@ -70,6 +70,7 @@
     );
 
     $customerCity = old('city', $defaultCustomer['city'] ?? '');
+    $customerDistrict = old('district', $defaultCustomer['district'] ?? '');
     $customerWard = old('ward', $defaultCustomer['ward'] ?? '');
 
 
@@ -278,6 +279,9 @@
                                 <label>Quận / Huyện</label>
                                 <select class="input" name="district" id="checkout-district" required>
                                     <option value="">-- Chọn Quận/Huyện --</option>
+                                    @if($customerDistrict)
+                                        <option value="{{ $customerDistrict }}" selected>{{ $customerDistrict }}</option>
+                                    @endif
                                 </select>
                             </div>
 
@@ -406,8 +410,8 @@
                                         $image = $item['image'] ?? null;
                                     @endphp
 
-                                    <div class="product-item checkout-product-item" data-variant-id="{{ $item['variant_id'] ?? $loop->index }}" data-price="{{ $price }}">
-                                        <div class="product-thumb">
+                                    <div class="product-item checkout-product-item checkout-product-card" data-variant-id="{{ $item['variant_id'] ?? $loop->index }}" data-price="{{ $price }}">
+                                        <div class="product-thumb checkout-product-card__image">
                                             @if($image)
                                                 <img src="{{ asset($image) }}" alt="{{ $item['name'] ?? 'Sản phẩm' }}">
                                             @else
@@ -415,13 +419,13 @@
                                             @endif
                                         </div>
 
-                                        <div class="product-info">
+                                        <div class="product-info checkout-product-card__info">
                                             <div class="product-row">
                                                 <strong>{{ $item['name'] ?? 'Sản phẩm' }}</strong>
                                                 <span class="checkout-item-subtotal">{{ number_format($price * $quantity, 0, ',', '.') }}₫</span>
                                             </div>
 
-                                            <div class="checkout-item-actions">
+                                            <div class="checkout-item-actions checkout-product-card__meta">
                                                 <button type="button" class="checkout-remove-btn" data-variant-id="{{ $item['variant_id'] ?? $loop->index }}">Xóa</button>
                                             </div>
 
@@ -439,19 +443,20 @@
                                 </div>
                                 @if($shippingVoucher || $orderVoucher)
                                     @if($shippingVoucher)
-                                        <div class="voucher-applied">
+                                        <div class="voucher-applied voucher-applied--shipping">
                                             <div><strong>{{ $shippingVoucher['code'] }}</strong><small>Phí vận chuyển: {{ $shippingVoucher['name'] }}</small></div>
+                                            <span class="voucher-choice">Lựa chọn hợp lý</span>
                                         </div>
                                     @endif
                                     @if($orderVoucher)
-                                        <div class="voucher-applied">
+                                        <div class="voucher-applied voucher-applied--order">
                                             <div><strong>{{ $orderVoucher['code'] }}</strong><small>Đơn hàng: {{ $orderVoucher['name'] }}</small></div>
+                                            <span class="voucher-choice">Lựa chọn hợp lý</span>
                                         </div>
                                     @endif
                                 @else
                                     <small>Chưa có voucher nào được áp dụng.</small>
                                 @endif
-                                </div>
                             </div>
 
                             <div class="voucher-box">
@@ -460,13 +465,17 @@
                                 </div>
                                 @forelse($availableVouchers as $availableVoucher)
                                     @php $isShippingVoucher = $availableVoucher->discount_type === 'free_shipping'; @endphp
-                                    <div class="voucher-item">
+                                    <div class="voucher-item {{ $isShippingVoucher ? 'voucher-item--shipping' : 'voucher-item--order' }} {{ ($shippingVoucher && $isShippingVoucher && $shippingVoucher['id'] == $availableVoucher->id) || ($orderVoucher && !$isShippingVoucher && $orderVoucher['id'] == $availableVoucher->id) ? 'is-applied' : '' }}">
                                         <div>
                                             <strong>{{ $availableVoucher->code }}</strong>
                                             <small>{{ $availableVoucher->name }}</small>
                                             <small>{{ $isShippingVoucher ? 'Miễn phí vận chuyển' : ($availableVoucher->discount_type === 'fixed' ? 'Giảm ' . number_format($availableVoucher->discount_value, 0, ',', '.') . '₫' : 'Giảm ' . $availableVoucher->discount_value . '%') }}</small>
                                         </div>
-                                        <a href="{{ route('vouchers.claim', $availableVoucher->id) }}" class="btn btn-outline-primary btn-sm">Lấy mã</a>
+                                        @if(($shippingVoucher && $isShippingVoucher && $shippingVoucher['id'] == $availableVoucher->id) || ($orderVoucher && !$isShippingVoucher && $orderVoucher['id'] == $availableVoucher->id))
+                                            <span class="voucher-choice">Đã áp dụng</span>
+                                        @else
+                                            <a href="{{ route('vouchers.claim', $availableVoucher->id) }}" class="btn btn-outline-primary btn-sm">Lấy mã</a>
+                                        @endif
                                     </div>
                                 @empty
                                     <small>Hiện chưa có voucher khả dụng.</small>
@@ -762,9 +771,66 @@
         justify-content: space-between;
         gap: 10px;
         padding: 10px 12px;
-        border: 1px dashed #d1d5db;
+        border: 1px solid #e5e7eb;
         border-radius: 10px;
-        background: #fff;
+        background: linear-gradient(90deg, rgba(255,255,255,.98), rgba(255,255,255,.72));
+        align-items: center;
+        margin-top: 8px;
+    }
+
+    .voucher-item--shipping {
+        border-left: 4px solid #00ff00;
+        background: linear-gradient(90deg, rgba(0,255,0,.14), rgba(255,255,255,.95) 76%);
+    }
+
+    .voucher-item--order {
+        border-left: 4px solid #FF6633;
+        background: linear-gradient(90deg, rgba(255,102,51,.16), rgba(255,255,255,.95) 76%);
+    }
+
+    .voucher-item.is-applied {
+        opacity: .48;
+        filter: saturate(.55);
+    }
+
+    .voucher-applied {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 11px 12px;
+        margin-top: 8px;
+        border-radius: 10px;
+        opacity: .62;
+        background: linear-gradient(90deg, rgba(255,255,255,.92), rgba(255,255,255,.3));
+    }
+
+    .voucher-applied--shipping {
+        border-left: 4px solid #00ff00;
+        background: linear-gradient(90deg, rgba(0,255,0,.12), rgba(255,255,255,.65) 78%);
+    }
+
+    .voucher-applied--order {
+        border-left: 4px solid #FF6633;
+        background: linear-gradient(90deg, rgba(255,102,51,.13), rgba(255,255,255,.65) 78%);
+    }
+
+    .voucher-applied strong,
+    .voucher-applied small,
+    .voucher-item strong,
+    .voucher-item small {
+        display: block;
+    }
+
+    .voucher-choice {
+        flex-shrink: 0;
+        padding: 4px 8px;
+        border: 1px solid rgba(17, 24, 39, .15);
+        border-radius: 999px;
+        color: #374151;
+        font-size: 10px;
+        font-weight: 700;
+        white-space: nowrap;
     }
 
     .voucher-item strong,
@@ -779,7 +845,13 @@
     .summary-total-box {
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 0;
+        margin-top: 18px;
+        padding: 16px;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #fff, #f8fafc);
+        box-shadow: 0 8px 22px rgba(15, 23, 42, .06);
     }
 
     .order-col {
@@ -787,17 +859,23 @@
         align-items: center;
         justify-content: space-between;
         gap: 12px;
-        padding: 4px 0;
+        padding: 9px 0;
+        color: #4b5563;
+        font-size: 13px;
+    }
+
+    .order-col strong {
+        color: #1f2937;
     }
 
     .total-row {
-        border-top: 1px solid #e5e7eb;
+        border-top: 1px solid #dbe3ee;
         margin-top: 6px;
-        padding-top: 12px;
+        padding-top: 15px;
     }
 
     .order-total {
-        font-size: 22px;
+        font-size: 24px;
         color: #111827;
         font-weight: 800;
     }
@@ -1241,7 +1319,7 @@
                 const provinceId = selectedOption?.dataset?.ghnId || null;
 
                 if (provinceId) {
-                    await loadGhnAddressData('districts', provinceId, '{{ old('district', '') }}');
+                    await loadGhnAddressData('districts', provinceId, '{{ $customerDistrict }}');
                 } else {
                     const fallbackWards = cityMap[selectedCity] || [];
                     populateSelectByValues(districtSelect, [], '');
@@ -1306,7 +1384,7 @@
         wardSelect.addEventListener('change', updateShippingFee);
 
         if (typeof window !== 'undefined' && citySelect && wardSelect) {
-            const currentCity = '{{ old('city', $customerCity) }}';
+            const currentCity = '{{ $customerCity }}';
             if (currentCity) {
                 const currentWards = cityMap[currentCity] || [];
                 if (currentWards.length > 0) {
