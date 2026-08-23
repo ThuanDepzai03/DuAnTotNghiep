@@ -28,6 +28,7 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/shop', [ClientProductController::class, 'index'])->name('shop');
 
 Route::get('/detail/{id}', [ClientProductController::class, 'show'])->name('product.detail');
+Route::post('/detail/{id}/reviews', [ClientProductController::class, 'storeReview'])->name('product.review.store');
 
 Route::get('/cart', [ClientCartController::class, 'index'])->name('cart.index');
 Route::post('/cart/add', [ClientCartController::class, 'add'])->name('cart.add');
