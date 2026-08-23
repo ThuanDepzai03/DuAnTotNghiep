@@ -17,16 +17,16 @@
             <div class="card p-4">
                 <h3 class="mb-3">Đăng ký tài khoản</h3>
                 <p class="text-muted">Tạo tài khoản khách hàng để theo dõi đơn hàng và cập nhật thông tin.</p>
-                <form method="POST" action="{{ route('register') }}">
+                <form method="POST" action="{{ route('register.post') }}">
                     @csrf
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label">Tên đăng nhập</label>
-                            <input type="text" name="user" class="form-control" required>
+                            <input type="text" name="user" class="form-control" value="{{ old('user') }}" required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Email</label>
-                            <input type="email" name="email" class="form-control">
+                            <input type="email" name="email" class="form-control" value="{{ old('email') }}" required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Mật khẩu</label>
@@ -34,7 +34,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Số điện thoại</label>
-                            <input type="text" name="tel" class="form-control">
+                            <input type="text" name="tel" class="form-control" value="{{ old('tel') }}">
                         </div>
 
                         <div class="col-md-6">
