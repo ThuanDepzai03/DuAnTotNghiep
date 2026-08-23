@@ -360,9 +360,11 @@
             </div>
         </div>
     </div>
-</div>
+    </section>
+@endif
 {{-- =========================================================
     FLASH SALE + VOUCHER SỰ KIỆN
+    ========================================================= --}}
 
 @include('client.flash-voucher')
 <style>
