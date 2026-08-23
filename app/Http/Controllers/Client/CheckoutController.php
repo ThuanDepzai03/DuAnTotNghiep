@@ -321,6 +321,19 @@ class CheckoutController extends Controller
             ? 'cart.' . $customer['id']
             : 'cart.guest';
 
+        $cart = session($cartKey, []);
+
+        if (empty($cart)) {
+            return redirect()->route('cart.index')->with('error', 'Giỏ hàng đang trống.');
+        }
+
+        $totalPrice = collect($cart)->sum(function ($item) {
+            return (float) ($item['price'] ?? 0) * (int) ($item['quantity'] ?? 0);
+        });
+
+        $cityOptions = $this->cityList();
+        $wardOptions = $this->wardListByCity();
+
         $shippingVoucher = session('shipping_voucher');
         $orderVoucher = session('order_voucher');
         $voucher = $orderVoucher ?: $shippingVoucher;
@@ -462,6 +475,39 @@ class CheckoutController extends Controller
         session()->forget('voucher');
 
         return redirect()->route('checkout.show')->with('voucher_success', 'Đã bỏ mã voucher.');
+    }
+
+    public function claimVoucher($id)
+    {
+        $voucher = Voucher::whereKey($id)
+            ->where('status', 1)
+            ->where(function ($query) {
+                $query->whereNull('start_date')->orWhereDate('start_date', '<=', today());
+            })
+            ->where(function ($query) {
+                $query->whereNull('end_date')->orWhereDate('end_date', '>=', today());
+            })
+            ->where(function ($query) {
+                $query->whereNull('quantity')->orWhereColumn('used_quantity', '<', 'quantity');
+            })
+            ->firstOrFail();
+
+        $payload = [
+            'id' => $voucher->id,
+            'code' => $voucher->code,
+            'name' => $voucher->name,
+            'discount_type' => $voucher->discount_type,
+            'discount_value' => $voucher->discount_value,
+            'max_discount' => $voucher->max_discount,
+            'min_order' => $voucher->min_order,
+        ];
+
+        session()->put(
+            $voucher->discount_type === 'free_shipping' ? 'shipping_voucher' : 'order_voucher',
+            $payload
+        );
+
+        return redirect()->route('checkout.show')->with('voucher_success', 'Đã lấy voucher ' . $voucher->code . '.');
     }
 
     public function store(Request $request)

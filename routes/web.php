@@ -44,6 +44,7 @@ Route::get('/checkout/address-options', [ClientCheckoutController::class, 'addre
 Route::post('/checkout/submit', [ClientCheckoutController::class, 'store'])->name('checkout.submit');
 
 Route::post('/checkout/apply-voucher', [ClientCheckoutController::class, 'applyVoucher'])->name('checkout.applyVoucher');
+Route::get('/vouchers/{id}/claim', [ClientCheckoutController::class, 'claimVoucher'])->name('vouchers.claim');
 
 Route::post('/checkout/remove-voucher', [ClientCheckoutController::class, 'removeVoucher'])->name('checkout.removeVoucher');
 Route::get('/flash-voucher', [HomeController::class, 'flashVoucher'])->name('flash.voucher');
