@@ -46,6 +46,7 @@ Route::post('/checkout/submit', [ClientCheckoutController::class, 'store'])->nam
 Route::post('/checkout/apply-voucher', [ClientCheckoutController::class, 'applyVoucher'])->name('checkout.applyVoucher');
 
 Route::post('/checkout/remove-voucher', [ClientCheckoutController::class, 'removeVoucher'])->name('checkout.removeVoucher');
+Route::get('/flash-voucher', [HomeController::class, 'flashVoucher'])->name('flash.voucher');
 
 Route::get('/checkout/momo', function () {
     return view('checkout_qr');

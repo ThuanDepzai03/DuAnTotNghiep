@@ -52,16 +52,20 @@ class HomeController extends Controller
             'products'
         ));
     }
+    public function flashVoucher()
+    {
+        return view('client.flash-voucher');
+    }
 
-   public function about()
-{
-    return view('client.about');
-}
+    public function about()
+    {
+        return view('client.about');
+    }
 
-public function news()
-{
-    return view('client.news');
-}
+    public function news()
+    {
+        return view('client.news');
+    }
 
 public function contact()
 {

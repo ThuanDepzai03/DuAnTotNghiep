@@ -46,37 +46,59 @@
                         </div>
 
 
-                        {{-- Tên Voucher --}}
-                        <div class="mb-3">
-                            <label class="form-label">Tên Voucher</label>
+                       {{-- Tên Voucher --}}
+<div class="mb-3">
+    <label class="form-label">Tên Voucher</label>
 
-                            <input
-                                type="text"
-                                name="name"
-                                class="form-control"
-                                value="{{ old('name') }}"
-                                placeholder="Ví dụ: Giảm 10% toàn bộ điện thoại"
-                                required
-                            >
-                        </div>
+    <input
+        type="text"
+        name="name"
+        class="form-control"
+        value="{{ old('name') }}"
+        placeholder="Ví dụ: Giảm 10% toàn bộ điện thoại"
+        required
+    >
+</div>
 
 
-                        {{-- Loại giảm giá --}}
-                        <div class="mb-3">
-                            <label class="form-label">Loại giảm giá</label>
+{{-- Loại Voucher --}}
+<div class="mb-3">
+    <label class="form-label">Loại Voucher</label>
 
-                            <select name="discount_type" class="form-select" id="voucher-discount-type" required>
-                                <option value="percent" {{ old('discount_type', 'percent') == 'percent' ? 'selected' : '' }}>
-                                    Giảm theo %
-                                </option>
-                                <option value="fixed" {{ old('discount_type') == 'fixed' ? 'selected' : '' }}>
-                                    Giảm theo số tiền
-                                </option>
-                                <option value="free_shipping" {{ old('discount_type') == 'free_shipping' ? 'selected' : '' }}>
-                                    Miễn phí vận chuyển
-                                </option>
-                            </select>
-                        </div>
+    <select name="voucher_type" class="form-select" required>
+        <option value="normal" {{ old('voucher_type', 'normal') == 'normal' ? 'selected' : '' }}>
+            Voucher thường
+        </option>
+
+        <option value="flash_sale" {{ old('voucher_type') == 'flash_sale' ? 'selected' : '' }}>
+            Flash Sale
+        </option>
+
+        <option value="mid_autumn" {{ old('voucher_type') == 'mid_autumn' ? 'selected' : '' }}>
+            Voucher Trung Thu
+        </option>
+    </select>
+</div>
+
+
+{{-- Loại giảm giá --}}
+<div class="mb-3">
+    <label class="form-label">Loại giảm giá</label>
+
+    <input
+        type="text"
+        class="form-control"
+        value="Giảm theo %"
+        readonly
+    >
+
+    {{-- Database lưu là percent --}}
+    <input
+        type="hidden"
+        name="discount_type"
+        value="percent"
+    >
+</div>
 
 
                         {{-- Phần trăm giảm --}}
