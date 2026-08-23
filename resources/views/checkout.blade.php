@@ -422,21 +422,6 @@
                                             </div>
 
                                             <div class="checkout-item-actions">
-                                                <div class="checkout-qty-control">
-                                                    <button type="button" class="checkout-qty-btn" data-action="minus" data-variant-id="{{ $item['variant_id'] ?? $loop->index }}">−</button>
-                                                    <input
-                                                        type="number"
-                                                        min="1"
-                                                        max="{{ $item['stock'] ?? 99 }}"
-                                                        value="{{ $quantity }}"
-                                                        class="checkout-qty-input"
-                                                        data-variant-id="{{ $item['variant_id'] ?? $loop->index }}"
-                                                        data-stock="{{ $item['stock'] ?? 99 }}"
-                                                        data-price="{{ $price }}"
-                                                    >
-                                                    <button type="button" class="checkout-qty-btn" data-action="plus" data-variant-id="{{ $item['variant_id'] ?? $loop->index }}">+</button>
-                                                </div>
-
                                                 <button type="button" class="checkout-remove-btn" data-variant-id="{{ $item['variant_id'] ?? $loop->index }}">Xóa</button>
                                             </div>
 
@@ -450,42 +435,42 @@
 
                             <div class="voucher-box">
                                 <div class="voucher-header">
-                                    <h4>🎟 Voucher phí vận chuyển</h4>
+                                    <h4>1. Voucher đã áp dụng</h4>
                                 </div>
-
-                                @if($shippingVoucher)
-                                    <div class="voucher-applied">
-                                        <div>
-                                            <strong>{{ $shippingVoucher['code'] }}</strong>
-                                            <small>{{ $shippingVoucher['name'] }}</small>
+                                @if($shippingVoucher || $orderVoucher)
+                                    @if($shippingVoucher)
+                                        <div class="voucher-applied">
+                                            <div><strong>{{ $shippingVoucher['code'] }}</strong><small>Phí vận chuyển: {{ $shippingVoucher['name'] }}</small></div>
                                         </div>
-                                        <button type="submit" form="remove-shipping-voucher-form" class="btn btn-danger btn-sm">Bỏ mã</button>
-                                    </div>
+                                    @endif
+                                    @if($orderVoucher)
+                                        <div class="voucher-applied">
+                                            <div><strong>{{ $orderVoucher['code'] }}</strong><small>Đơn hàng: {{ $orderVoucher['name'] }}</small></div>
+                                        </div>
+                                    @endif
+                                @else
+                                    <small>Chưa có voucher nào được áp dụng.</small>
                                 @endif
-
-                                <div class="voucher-input-row">
-                                    <input type="text" id="shipping-voucher-code" class="input" placeholder="Mã freeship" value="{{ old('shipping_voucher_code', $shippingVoucher['code'] ?? '') }}">
-                                    <button type="button" class="primary-btn" onclick="applyVoucher('shipping')">Áp dụng</button>
                                 </div>
                             </div>
 
                             <div class="voucher-box">
                                 <div class="voucher-header">
-                                    <h4>🎟 Voucher đơn hàng</h4>
+                                    <h4>2. Kho voucher</h4>
                                 </div>
-                                @if($orderVoucher)
-                                    <div class="voucher-applied">
+                                @forelse($availableVouchers as $availableVoucher)
+                                    @php $isShippingVoucher = $availableVoucher->discount_type === 'free_shipping'; @endphp
+                                    <div class="voucher-item">
                                         <div>
-                                            <strong>{{ $orderVoucher['code'] }}</strong>
-                                            <small>{{ $orderVoucher['name'] }}</small>
+                                            <strong>{{ $availableVoucher->code }}</strong>
+                                            <small>{{ $availableVoucher->name }}</small>
+                                            <small>{{ $isShippingVoucher ? 'Miễn phí vận chuyển' : ($availableVoucher->discount_type === 'fixed' ? 'Giảm ' . number_format($availableVoucher->discount_value, 0, ',', '.') . '₫' : 'Giảm ' . $availableVoucher->discount_value . '%') }}</small>
                                         </div>
-                                        <button type="submit" form="remove-order-voucher-form" class="btn btn-danger btn-sm">Bỏ mã</button>
+                                        <a href="{{ route('vouchers.claim', $availableVoucher->id) }}" class="btn btn-outline-primary btn-sm">Lấy mã</a>
                                     </div>
-                                @endif
-                                <div class="voucher-input-row">
-                                    <input type="text" id="order-voucher-code" class="input" placeholder="Mã giảm giá đơn hàng" value="{{ old('order_voucher_code', $orderVoucher['code'] ?? '') }}">
-                                    <button type="button" class="primary-btn" onclick="applyVoucher('order')">Áp dụng</button>
-                                </div>
+                                @empty
+                                    <small>Hiện chưa có voucher khả dụng.</small>
+                                @endforelse
                             </div>
 
                             <div class="summary-total-box">
