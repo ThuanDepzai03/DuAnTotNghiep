@@ -1,4 +1,40 @@
-# AE Phoenic Store
+<div align="center">
+
+# 🔥 AE Phoenic Store
+
+### Nền tảng thương mại điện tử cho điện thoại, máy tính bảng và phụ kiện
+
+<p>
+        <img src="https://img.shields.io/badge/Laravel-13-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel 13">
+        <img src="https://img.shields.io/badge/PHP-8.3%2B-777BB4?style=for-the-badge&logo=php&logoColor=white" alt="PHP 8.3 or newer">
+        <img src="https://img.shields.io/badge/MySQL-Database-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL">
+        <img src="https://img.shields.io/badge/Vite-8-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite 8">
+</p>
+<p>
+        <img src="https://img.shields.io/badge/Payment-COD%20%7C%20VNPay-00A86B?style=flat-square" alt="Payment methods">
+        <img src="https://img.shields.io/badge/Status-Ready%20for%20demo-19A974?style=flat-square" alt="Project status">
+        <img src="https://img.shields.io/badge/UI-Responsive-F59E0B?style=flat-square" alt="Responsive UI">
+</p>
+
+</div>
+
+> [!IMPORTANT]
+> Đây là dự án đồ án có đầy đủ luồng mua hàng, quản trị đơn hàng, voucher, thanh toán, chat và đánh giá sản phẩm.
+
+> [!TIP]
+> Muốn chạy nhanh trên máy mới? Đi thẳng đến [Cài đặt và chạy dự án](#3-cài-đặt-và-chạy-dự-án-trên-máy-khác).
+
+<details>
+<summary><strong>🌈 Bảng điều hướng nhanh</strong></summary>
+
+- [Mục tiêu dự án](#1-mục-tiêu-dự-án)
+- [Công nghệ sử dụng](#2-công-nghệ-sử-dụng)
+- [Cài đặt và chạy dự án](#3-cài-đặt-và-chạy-dự-án-trên-máy-khác)
+- [Cập nhật dự án giữ nguyên database](#cập-nhật-phiên-bản-mới-nhưng-giữ-nguyên-database)
+- [Chức năng chính](#4-chức-năng-chính)
+- [Kiến trúc và quy trình](#7-kiến-trúc-thư-mục)
+
+</details>
 
 Website thương mại điện tử bán điện thoại, máy tính bảng và phụ kiện. Dự án có khu vực khách hàng và trang quản trị riêng.
 
@@ -23,7 +59,107 @@ Website thương mại điện tử bán điện thoại, máy tính bảng và 
 | Kiểm thử | PHPUnit |
 | Quản lý mã nguồn | Git |
 
-## 3. Chức năng chính
+<div align="center">
+
+| 🛒 Mua sắm | 🎟️ Voucher | 💳 COD / VNPay | 💬 Chat hỗ trợ | ⭐ Đánh giá |
+|:---:|:---:|:---:|:---:|:---:|
+| ✅ | ✅ | ✅ | ✅ | ✅ |
+
+</div>
+
+## 3. Cài đặt và chạy dự án trên máy khác
+
+Download evn https://docs.google.com/document/d/1WTROMSZGyiQrerM0kYiHL5741OwnXjZr6yuRSwcW3t0/edit?usp=sharing
+
+### Yêu cầu
+
+- PHP 8.3 trở lên, bật các extension `pdo_mysql`, `mbstring`, `openssl` và `fileinfo`.
+- Composer 2 trở lên.
+- Node.js 20 trở lên và npm.
+- MySQL 8 trở lên hoặc MariaDB.
+
+### Các bước cài đặt
+
+```bash
+git clone <URL_REPOSITORY>
+cd DuAnTotNghiep
+composer install
+copy .env.example .env
+php artisan key:generate
+```
+
+Trên macOS/Linux, thay lệnh `copy` bằng:
+
+```bash
+cp .env.example .env
+```
+
+Tạo database MySQL tên `duandienthoai`, sau đó mở `.env` và kiểm tra:
+
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=duandienthoai
+DB_USERNAME=root
+DB_PASSWORD=
+```
+
+Chạy migration, dữ liệu mẫu và build giao diện:
+
+```bash
+php artisan migrate
+php artisan db:seed
+npm install
+npm run build
+```
+
+Lệnh `db:seed` tạo sản phẩm, tài khoản mẫu, voucher và đánh giá/bình luận mẫu. Nếu muốn làm lại toàn bộ database trong môi trường phát triển, dùng `php artisan migrate:fresh --seed`.
+
+### Khởi động
+
+```bash
+php artisan serve
+```
+
+Mở `http://127.0.0.1:8000`. Khi đang phát triển frontend, mở thêm terminal và chạy `npm run dev`.
+
+Nếu muốn chạy các tiến trình phát triển cùng lúc, dùng:
+
+```bash
+composer run dev
+```
+
+### Cập nhật phiên bản mới nhưng giữ nguyên database
+
+Khi đã có dữ liệu khách hàng, đơn hàng và sản phẩm, không chạy `php artisan migrate:fresh --seed` vì lệnh này xóa và tạo lại toàn bộ database. Quy trình cập nhật an toàn:
+
+```bash
+git pull
+composer install
+php artisan optimize:clear
+php artisan migrate
+npm install
+npm run build
+```
+
+Chỉ chạy `copy .env.example .env` nếu máy chưa có `.env`; nếu đã có `.env`, giữ nguyên file đó và cập nhật các biến cấu hình cần thiết. Trên macOS/Linux dùng `cp .env.example .env`.
+
+Không chạy lại toàn bộ `php artisan db:seed` trên database đang dùng vì một số seeder dữ liệu nền dùng `create()` hoặc `insert()`. Nếu chỉ cần cập nhật đánh giá/bình luận mẫu, chạy riêng seeder an toàn:
+
+```bash
+php artisan db:seed --class=ReviewSeeder
+```
+
+Trước khi chạy migration trên dữ liệu thật, nên sao lưu database. Các migration mới chỉ bổ sung hoặc thay đổi cấu trúc khi chạy bằng `php artisan migrate`, không cần xóa dữ liệu hiện có.
+
+### Cấu hình email và VNPay
+
+Mặc định email dùng `MAIL_MAILER=log`, nên email xác thực và đặt lại mật khẩu được ghi trong `storage/logs/laravel.log`. Muốn gửi email thật, thay các biến `MAIL_*` trong `.env` bằng thông tin SMTP.
+
+VNPay đang dùng sandbox. Kiểm tra `VNPAY_TMN_CODE`, `VNPAY_HASH_SECRET`, `VNPAY_URL` và `VNPAY_RETURN_URL` trong `.env` trước khi thử thanh toán.
+
+## 4. Chức năng chính
 
 ### Khách hàng
 
@@ -51,7 +187,7 @@ Website thương mại điện tử bán điện thoại, máy tính bảng và 
 - Tạo, sửa, xóa và bật/tắt voucher.
 - Quản lý liên hệ, đánh giá và tin nhắn hỗ trợ.
 
-## 4. Bảng công việc và tiến độ dự án
+## 5. Bảng công việc và tiến độ dự án
 
 Các mốc thời gian dưới đây được tổng hợp theo lịch sử phát triển hiện có. Nhóm có thể điều chỉnh ngày và tên nhân sự theo nhật ký thực tế.
 
@@ -110,7 +246,7 @@ Các mốc thời gian dưới đây được tổng hợp theo lịch sử phá
 | 51 | Kiểm thử chức năng và sửa lỗi tích hợp | 02/07/2026 | 24/08/2026 | Thuan, cả nhóm | 100% |
 | 52 | Nghiệm thu, chuẩn bị demo và hoàn thiện tài liệu | 20/08/2026 | 24/08/2026 | Thuan, cả nhóm | 100% |
 
-## 5. Phân tích công việc của các thành viên
+## 6. Phân tích công việc của các thành viên
 
 Phần phân công dưới đây được tổng hợp từ lịch sử Git và cấu trúc mã nguồn. Các bí danh `thuanvillager243-dev` và `thuandz` cùng dùng email `thuanvillager243@gmail.com`, được gộp thành một thành viên là **Thuan**.
 
@@ -351,7 +487,7 @@ flowchart LR
 - Mỗi chức năng phải có cách kiểm tra và người chịu trách nhiệm xác nhận.
 - Khi bàn giao module phải kèm hướng dẫn chạy, dữ liệu mẫu và các giới hạn đã biết.
 
-## 6. Kiến trúc thư mục
+## 7. Kiến trúc thư mục
 
 ```text
 app/
@@ -368,7 +504,7 @@ config/                   Cấu hình Laravel
 storage/                  Log, cache và file runtime
 ```
 
-## 7. Quy trình mua hàng
+## 8. Quy trình mua hàng
 
 ```text
 Trang chủ / Cửa hàng
@@ -396,7 +532,7 @@ Tỉnh / Thành phố → Phường / Xã → Địa chỉ chi tiết
 
 Frontend chỉ gọi route Laravel `/checkout/address-options`; backend Laravel gọi API địa chỉ bên ngoài để tránh phụ thuộc CORS.
 
-## 8. Một số route quan trọng
+## 9. Một số route quan trọng
 
 | Route | Chức năng |
 |---|---|
@@ -410,7 +546,7 @@ Frontend chỉ gọi route Laravel `/checkout/address-options`; backend Laravel 
 | `GET /account/orders/{id}` | Chi tiết đơn hàng |
 | `GET /admin` | Dashboard quản trị |
 
-## 9. Cài đặt môi trường
+## 10. Cài đặt môi trường
 
 Yêu cầu PHP 8.3 trở lên, Composer, Node.js, npm và MySQL.
 
@@ -450,7 +586,7 @@ php artisan serve --host=127.0.0.1 --port=8000
 
 Mở `http://127.0.0.1:8000` trên trình duyệt.
 
-## 10. Cấu hình thanh toán và email
+## 11. Cấu hình thanh toán và email
 Download evn https://docs.google.com/document/d/1WTROMSZGyiQrerM0kYiHL5741OwnXjZr6yuRSwcW3t0/edit?usp=sharing
 
 - VNPay đang dùng môi trường sandbox; không dùng thông tin này cho production.
@@ -458,7 +594,7 @@ Download evn https://docs.google.com/document/d/1WTROMSZGyiQrerM0kYiHL5741OwnXjZ
 - Không commit file `.env`, mật khẩu Gmail, khóa VNPay hoặc token API.
 - Production phải cấu hình CA bundle cho PHP/cURL và không tắt xác thực SSL.
 
-## 11. Kiểm thử và kiểm tra chất lượng
+## 12. Kiểm thử và kiểm tra chất lượng
 
 ```bash
 php artisan test
@@ -481,7 +617,7 @@ Checklist kiểm thử chính:
 - Cập nhật trạng thái đơn hàng ở admin.
 - Kiểm tra dữ liệu đơn hàng sau khi đặt.
 
-## 12. Quy ước làm việc nhóm
+## 13. Quy ước làm việc nhóm
 
 1. Tạo branch theo chức năng, ví dụ `feature/checkout-address` hoặc `fix/cart-total`.
 2. Commit ngắn gọn, mô tả đúng thay đổi.
@@ -490,7 +626,7 @@ Checklist kiểm thử chính:
 5. Khi sửa database, luôn tạo migration mới thay vì sửa migration đã chạy.
 6. Khi gặp lỗi, ghi lại cách tái hiện, nguyên nhân và cách kiểm tra sau khi sửa.
 
-## 13. Hướng phát triển
+## 14. Hướng phát triển
 
 - Tách phần checkout lớn thành component hoặc view partial.
 - Bổ sung test cho giỏ hàng, voucher, checkout và quyền admin.
@@ -501,7 +637,7 @@ Checklist kiểm thử chính:
 - Thêm dashboard biểu đồ doanh thu theo thời gian.
 - Bổ sung Docker hoặc tài liệu triển khai máy chủ.
 
-## 14. Tác giả
+## 15. Tác giả
 
 Đồ án tốt nghiệp - nhóm phát triển AE Phoenic Store.
 
