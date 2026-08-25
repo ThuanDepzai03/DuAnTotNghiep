@@ -46,6 +46,43 @@
                         @endforeach
                     </div>
                 </div>
+
+                <div class="panel panel-default" style="margin-top: 20px;">
+                    <div class="panel-heading"><strong>Đánh giá sản phẩm</strong></div>
+                    <div class="panel-body">
+                        <p class="text-muted">Chia sẻ cảm nhận của bạn về sản phẩm trong đơn hàng.</p>
+                        @foreach($order->items as $item)
+                            @php
+                                $product = $item->variant?->product;
+                                $review = $reviews[$product?->id] ?? null;
+                            @endphp
+                            @if($product)
+                                <div class="order-review" style="padding:15px 0; border-top:1px solid #eee;">
+                                    <strong>{{ $product->name }}</strong>
+                                    @if($review)
+                                        <div style="color:#f0ad00; margin:6px 0;">{{ str_repeat('★', $review->rating) }}{{ str_repeat('☆', 5 - $review->rating) }}</div>
+                                        <p style="margin-bottom:10px;">{{ $review->comment }}</p>
+                                        <small class="text-muted">Bạn đã đánh giá sản phẩm này. Có thể cập nhật bên dưới.</small>
+                                    @endif
+                                    <form method="POST" action="{{ route('orders.tracking.review', $order->id) }}" style="margin-top:10px;">
+                                        @csrf
+                                        <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                        <div style="margin-bottom:8px;">
+                                            @for($rating = 1; $rating <= 5; $rating++)
+                                                <label style="margin-right:10px; cursor:pointer;">
+                                                    <input type="radio" name="rating" value="{{ $rating }}" {{ (int) old('rating', $review?->rating ?? 5) === $rating ? 'checked' : '' }} required>
+                                                    {{ $rating }} sao
+                                                </label>
+                                            @endfor
+                                        </div>
+                                        <textarea name="comment" rows="3" maxlength="2000" required style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;" placeholder="Nhập bình luận của bạn...">{{ old('comment', $review?->comment) }}</textarea>
+                                        <button type="submit" class="btn btn-primary" style="margin-top:8px;">{{ $review ? 'Cập nhật đánh giá' : 'Gửi đánh giá' }}</button>
+                                    </form>
+                                </div>
+                            @endif
+                        @endforeach
+                    </div>
+                </div>
             </div>
         </div>
     </div>

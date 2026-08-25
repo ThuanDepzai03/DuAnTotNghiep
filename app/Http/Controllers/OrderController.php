@@ -61,24 +61,30 @@ class OrderController extends Controller
 
     public function updateStatus(Request $request, $id)
     {
+        $statusInput = $request->input('status');
+        if (is_array($statusInput)) {
+            $statusInput = count($statusInput) === 1 ? reset($statusInput) : null;
+        }
+
+        $request->merge(['status' => $statusInput]);
         $request->validate([
-            'status' => 'required|in:pending,confirmed,shipping,completed,cancelled'
+            'status' => 'required|in:pending,confirmed,shipping,completed,cancelled',
         ]);
 
         $order = Order::with('items.variant')->findOrFail($id);
 
         // Define allowed status transitions (only forward, no reverting)
         $allowedTransitions = [
-            'pending' => ['confirmed', 'cancelled'],
+            'pending' => ['confirmed', 'shipping', 'completed', 'cancelled'],
             'pending_payment' => ['pending', 'cancelled'], // VNPay waiting for payment
-            'confirmed' => ['shipping', 'cancelled'],
+            'confirmed' => ['shipping', 'completed', 'cancelled'],
             'shipping' => ['completed', 'cancelled'],
             'completed' => [], // Final state, can't change
             'cancelled' => [], // Final state, can't change
         ];
 
         $currentStatus = $order->status;
-        $newStatus = $request->status;
+        $newStatus = $statusInput;
 
         // Check if transition is allowed
         if (!isset($allowedTransitions[$currentStatus]) || !in_array($newStatus, $allowedTransitions[$currentStatus])) {

@@ -41,8 +41,12 @@
                         <div class="conversation-info">
 
                             <div class="conversation-name">
-                                Khách hàng #{{ $conversation->id }}
+                                {{ $conversation->customer_user ?: ($conversation->customer_email ?: 'Khách hàng #' . $conversation->id) }}
                             </div>
+
+                            @if($conversation->customer_email)
+                                <small class="text-muted">{{ $conversation->customer_email }}</small>
+                            @endif
 
                             <div class="conversation-last">
 
