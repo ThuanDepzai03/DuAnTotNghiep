@@ -89,6 +89,35 @@ class HomeController extends Controller
         return view('about');
     }
 
+    public function flashVoucher()
+    {
+        $flashVouchers = Voucher::where('voucher_type', 'flash_sale')
+            ->where('status', 1)
+            ->where(function ($query) {
+                $query->whereNull('quantity')->orWhereColumn('used_quantity', '<', 'quantity');
+            })
+            ->where(function ($query) {
+                $query->whereNull('start_date')->orWhereDate('start_date', '<=', now());
+            })
+            ->where(function ($query) {
+                $query->whereNull('end_date')->orWhereDate('end_date', '>=', now());
+            })->latest()->get();
+
+        $eventVouchers = Voucher::where('voucher_type', 'mid_autumn')
+            ->where('status', 1)
+            ->where(function ($query) {
+                $query->whereNull('quantity')->orWhereColumn('used_quantity', '<', 'quantity');
+            })
+            ->where(function ($query) {
+                $query->whereNull('start_date')->orWhereDate('start_date', '<=', now());
+            })
+            ->where(function ($query) {
+                $query->whereNull('end_date')->orWhereDate('end_date', '>=', now());
+            })->latest()->get();
+
+        return view('client.flash-voucher', compact('flashVouchers', 'eventVouchers'));
+    }
+
     public function contact()
     {
         return view('contact');

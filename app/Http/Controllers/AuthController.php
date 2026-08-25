@@ -213,6 +213,66 @@ class AuthController extends Controller
         return redirect()->route('login');
     }
 
+    public function showForgotPassword()
+    {
+        return view('auth.forgot-password');
+    }
+
+    public function sendResetLink(Request $request)
+    {
+        $data = $request->validate(['email' => ['required', 'email']]);
+        $user = DB::table('nguoidung')->where('email', $data['email'])->first();
+
+        if (!$user) {
+            return back()->withErrors(['email' => 'Không tìm thấy tài khoản với email này.'])->withInput();
+        }
+
+        $token = Str::random(64);
+        DB::table('password_reset_tokens')->updateOrInsert(
+            ['email' => $data['email']],
+            ['token' => $token, 'created_at' => now()]
+        );
+
+        $resetUrl = route('password.reset', ['token' => $token, 'email' => $data['email']]);
+        Mail::raw("Bạn có thể đặt lại mật khẩu tại: {$resetUrl}\nLiên kết có hiệu lực trong 60 phút.", function ($message) use ($data) {
+            $message->to($data['email'])->subject('Đặt lại mật khẩu');
+        });
+
+        return back()->with('status', 'Liên kết đặt lại mật khẩu đã được gửi đến email của bạn.');
+    }
+
+    public function showResetPassword(Request $request, string $token)
+    {
+        return view('auth.reset-password', [
+            'token' => $token,
+            'email' => $request->query('email'),
+        ]);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $data = $request->validate([
+            'token' => ['required'],
+            'email' => ['required', 'email'],
+            'password' => ['required', 'string', 'min:6', 'confirmed'],
+        ]);
+        $reset = DB::table('password_reset_tokens')->where('email', $data['email'])->first();
+
+        if (!$reset || !hash_equals($reset->token, $data['token'])
+            || now()->diffInMinutes($reset->created_at) > 60) {
+            return back()->withErrors(['email' => 'Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.']);
+        }
+
+        $userData = ['pass' => Hash::make($data['password'])];
+        if (Schema::hasColumn('nguoidung', 'updated_at')) {
+            $userData['updated_at'] = now();
+        }
+        DB::table('nguoidung')->where('email', $data['email'])->update($userData);
+        DB::table('password_reset_tokens')->where('email', $data['email'])->delete();
+
+        return redirect()->route('login')->with('success', 'Đổi mật khẩu thành công.');
+    }
+
     public function showRegister()
     {
         $cityOptions = $this->cityList();

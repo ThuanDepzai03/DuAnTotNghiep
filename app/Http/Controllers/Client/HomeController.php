@@ -42,6 +42,22 @@ class HomeController extends Controller
             ->take(12)
             ->get();
 
+        $activeVoucherQuery = fn ($type) => Voucher::where('voucher_type', $type)
+            ->where('status', 1)
+            ->where(function ($query) {
+                $query->whereNull('quantity')->orWhereColumn('used_quantity', '<', 'quantity');
+            })
+            ->where(function ($query) {
+                $query->whereNull('start_date')->orWhereDate('start_date', '<=', today());
+            })
+            ->where(function ($query) {
+                $query->whereNull('end_date')->orWhereDate('end_date', '>=', today());
+            })
+            ->latest();
+
+        $flashVouchers = $activeVoucherQuery('flash_sale')->get();
+        $eventVouchers = $activeVoucherQuery('mid_autumn')->get();
+
         return view('client.home', compact(
             'banners',
             'heroBanners',
@@ -49,12 +65,29 @@ class HomeController extends Controller
             'staticRectBanners',
             'categories',
             'brands',
-            'products'
+            'products',
+            'flashVouchers',
+            'eventVouchers'
         ));
     }
     public function flashVoucher()
     {
-        return view('client.flash-voucher');
+        $activeVoucherQuery = fn ($type) => Voucher::where('voucher_type', $type)
+            ->where('status', 1)
+            ->where(function ($query) {
+                $query->whereNull('quantity')->orWhereColumn('used_quantity', '<', 'quantity');
+            })
+            ->where(function ($query) {
+                $query->whereNull('start_date')->orWhereDate('start_date', '<=', today());
+            })
+            ->where(function ($query) {
+                $query->whereNull('end_date')->orWhereDate('end_date', '>=', today());
+            })->latest();
+
+        return view('client.flash-voucher', [
+            'flashVouchers' => $activeVoucherQuery('flash_sale')->get(),
+            'eventVouchers' => $activeVoucherQuery('mid_autumn')->get(),
+        ]);
     }
 
     public function about()
