@@ -722,10 +722,7 @@ function copyVoucher(code)
 
     $flashEndTime = null;
 
-    if (
-        isset($flashVouchers)
-        && $flashVouchers->count() > 0
-    ) {
+    if (isset($flashVouchers) && $flashVouchers->count() > 0) {
 
         $flashEndTime =
             \Carbon\Carbon::parse(
