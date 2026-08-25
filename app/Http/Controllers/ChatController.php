@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Conversation;
 use App\Models\Message;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ChatController extends Controller
 {
@@ -18,6 +19,8 @@ class ChatController extends Controller
         ]);
 
         $sessionId = $request->session()->getId();
+        $customer = $request->session()->get('customer', []);
+        $userId = $customer['id'] ?? null;
 
         $conversation = Conversation::firstOrCreate(
             [
@@ -25,8 +28,13 @@ class ChatController extends Controller
             ],
             [
                 'last_message_at' => now(),
+                'user_id' => $userId,
             ]
         );
+
+        if ($userId && !$conversation->user_id) {
+            $conversation->update(['user_id' => $userId]);
+        }
 
         Message::create([
             'conversation_id' => $conversation->id,
@@ -81,6 +89,8 @@ class ChatController extends Controller
                 $query->latest();
             }
         ])
+        ->leftJoin('nguoidung', 'conversations.user_id', '=', 'nguoidung.id')
+        ->select('conversations.*', 'nguoidung.user as customer_user', 'nguoidung.email as customer_email')
         ->orderByDesc('last_message_at')
         ->get();
 

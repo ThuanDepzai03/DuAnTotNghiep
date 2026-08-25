@@ -110,6 +110,8 @@ Route::get('/orders/tracking', [App\Http\Controllers\Client\OrderTrackingControl
 
 Route::get('/orders/tracking/{id}', [App\Http\Controllers\Client\OrderTrackingController::class, 'show'])
     ->name('orders.tracking.show');
+Route::post('/orders/tracking/{id}/reviews', [App\Http\Controllers\Client\OrderTrackingController::class, 'submitReview'])
+    ->name('orders.tracking.review');
 
 Route::put('/account/orders/{id}/cancel', [AuthController::class, 'cancelOrder'])
     ->name('account.order.cancel');
