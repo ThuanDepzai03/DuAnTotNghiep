@@ -451,6 +451,7 @@ php artisan serve --host=127.0.0.1 --port=8000
 Mở `http://127.0.0.1:8000` trên trình duyệt.
 
 ## 10. Cấu hình thanh toán và email
+Download evn https://docs.google.com/document/d/1WTROMSZGyiQrerM0kYiHL5741OwnXjZr6yuRSwcW3t0/edit?usp=sharing
 
 - VNPay đang dùng môi trường sandbox; không dùng thông tin này cho production.
 - Có thể dùng `MAIL_MAILER=log` khi phát triển để kiểm tra email trong log.
