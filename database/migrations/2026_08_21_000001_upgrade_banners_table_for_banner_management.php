@@ -27,9 +27,12 @@ return new class extends Migration
             }
         });
 
-        DB::table('banners')
-            ->where('position', 'home')
-            ->update(['position' => '0']);
+        $positionType = Schema::getColumnType('banners', 'position');
+        if (in_array($positionType, ['string', 'text'], true)) {
+            DB::table('banners')
+                ->where('position', 'home')
+                ->update(['position' => '0']);
+        }
 
         Schema::table('banners', function (Blueprint $table) {
             $table->integer('position')->default(0)->change();
