@@ -37,12 +37,17 @@ class VoucherController extends Controller
             'name' => 'required',
             'voucher_type' => 'required|in:normal,flash_sale,mid_autumn',
             'discount_type' => 'required|in:percent,fixed,free_shipping',
-            'discount_value' => 'required|numeric|min:1|max:100',
+            'discount_value' => [
+                'required',
+                'numeric',
+                $discountType === 'free_shipping' ? 'min:0' : 'min:1',
+                $discountType === 'percent' ? 'max:100' : '',
+            ],
             'max_discount' => 'nullable|numeric|min:0',
             'min_order' => 'nullable|numeric|min:0',
             'quantity' => 'required|integer|min:1',
             'start_date' => 'required|date',
-            'end_date' => 'required|date|after:start_date',
+            'end_date' => 'required|date|after_or_equal:start_date',
             'status' => 'required',
         ]);
 
@@ -110,7 +115,7 @@ class VoucherController extends Controller
             'min_order' => 'nullable|numeric|min:0',
             'quantity' => 'required|integer|min:1',
             'start_date' => 'required|date',
-            'end_date' => 'required|date|after:start_date',
+            'end_date' => 'required|date|after_or_equal:start_date',
             'status' => 'required',
         ]);
 

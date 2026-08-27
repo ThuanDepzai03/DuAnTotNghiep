@@ -179,6 +179,14 @@
                     Ưu đãi đặc biệt chỉ áp dụng trong thời gian sự kiện.
                 </p>
 
+                <div class="event-countdown">
+                    <span>KẾT THÚC TRONG</span>
+                    <strong id="event-days">00</strong><small>Ngày</small>
+                    <strong id="event-hours">00</strong><small>Giờ</small>
+                    <strong id="event-minutes">00</strong><small>Phút</small>
+                    <strong id="event-seconds">00</strong><small>Giây</small>
+                </div>
+
 
                 @if(isset($eventVouchers) && $eventVouchers->count() > 0)
 
@@ -707,6 +715,43 @@ function copyVoucher(code)
 
         });
 }
+
+@php
+    $eventEndTime = null;
+
+    if (isset($eventVouchers) && $eventVouchers->count() > 0) {
+        $eventEndTime = \Carbon\Carbon::parse($eventVouchers->first()->end_date)
+            ->endOfDay()->timestamp * 1000;
+    }
+@endphp
+
+let eventEndTime = @json($eventEndTime);
+
+function updateEventCountdown()
+{
+    const distance = eventEndTime - new Date().getTime();
+
+    if (distance <= 0) {
+        ['days', 'hours', 'minutes', 'seconds'].forEach(function (unit) {
+            document.getElementById('event-' + unit).innerText = '00';
+        });
+        return;
+    }
+
+    const totalSeconds = Math.floor(distance / 1000);
+    const days = Math.floor(totalSeconds / 86400);
+    const hours = Math.floor((totalSeconds % 86400) / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    document.getElementById('event-days').innerText = String(days).padStart(2, '0');
+    document.getElementById('event-hours').innerText = String(hours).padStart(2, '0');
+    document.getElementById('event-minutes').innerText = String(minutes).padStart(2, '0');
+    document.getElementById('event-seconds').innerText = String(seconds).padStart(2, '0');
+}
+
+updateEventCountdown();
+setInterval(updateEventCountdown, 1000);
 
 
 /*

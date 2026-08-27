@@ -35,19 +35,17 @@
                         <div class="mb-3">
                             <label class="form-label">Mã Voucher</label>
 
-                            <input
-                                type="text"
-                                name="code"
-                                class="form-control"
-                                value="{{ old('code') }}"
-                                placeholder="Ví dụ: GIAM10"
-                                required
-                            >
-                        </div>
-
-
-                       {{-- Tên Voucher --}}
-<div class="mb-3">
+                            <select name="discount_type" class="form-select" id="voucher-discount-type" required>
+                                <option value="percent" {{ old('discount_type', 'percent') === 'percent' ? 'selected' : '' }}>
+                                    Giảm theo %
+                                </option>
+                                <option value="fixed" {{ old('discount_type') === 'fixed' ? 'selected' : '' }}>
+                                    Giảm theo số tiền
+                                </option>
+                                <option value="free_shipping" {{ old('discount_type') === 'free_shipping' ? 'selected' : '' }}>
+                                    Miễn phí vận chuyển
+                                </option>
+                            </select>
     <label class="form-label">Tên Voucher</label>
 
     <input
@@ -59,8 +57,8 @@
         required
     >
 </div>
-
-
+                                                        min="1"
+                                                        max="100"
 {{-- Loại Voucher --}}
 <div class="mb-3">
     <label class="form-label">Loại Voucher</label>
@@ -85,19 +83,17 @@
 <div class="mb-3">
     <label class="form-label">Loại giảm giá</label>
 
-    <input
-        type="text"
-        class="form-control"
-        value="Giảm theo %"
-        readonly
-    >
-
-    {{-- Database lưu là percent --}}
-    <input
-        type="hidden"
-        name="discount_type"
-        value="percent"
-    >
+    <select name="discount_type" class="form-select" id="voucher-discount-type" required>
+        <option value="percent" {{ old('discount_type', 'percent') === 'percent' ? 'selected' : '' }}>
+            Giảm theo %
+        </option>
+        <option value="fixed" {{ old('discount_type') === 'fixed' ? 'selected' : '' }}>
+            Giảm theo số tiền
+        </option>
+        <option value="free_shipping" {{ old('discount_type') === 'free_shipping' ? 'selected' : '' }}>
+            Miễn phí vận chuyển
+        </option>
+    </select>
 </div>
 
 
