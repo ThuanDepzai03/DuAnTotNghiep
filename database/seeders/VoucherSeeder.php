@@ -13,6 +13,7 @@ class VoucherSeeder extends Seeder
             [
                 'code' => 'GIAM10',
                 'name' => 'Giảm 10%',
+                'voucher_type' => 'flash_sale',
                 'discount_type' => 'percent',
                 'discount_value' => 10,
                 'max_discount' => 100000,
@@ -28,6 +29,7 @@ class VoucherSeeder extends Seeder
             [
                 'code' => 'FREESHIP',
                 'name' => 'Free Ship',
+                'voucher_type' => 'flash_sale',
                 'discount_type' => 'free_shipping',
                 'discount_value' => 0,
                 'max_discount' => 0,

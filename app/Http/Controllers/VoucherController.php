@@ -98,6 +98,7 @@ class VoucherController extends Controller
         $request->validate([
             'code' => 'required|unique:vouchers,code,' . $id,
             'name' => 'required',
+            'voucher_type' => 'required|in:normal,flash_sale,mid_autumn',
             'discount_type' => 'required|in:percent,fixed,free_shipping',
             'discount_value' => [
                 'required',
@@ -116,6 +117,7 @@ class VoucherController extends Controller
         $voucher->update([
             'code' => $request->code,
             'name' => $request->name,
+            'voucher_type' => $request->voucher_type,
             'discount_type' => $discountType,
             'discount_value' => $discountType === 'free_shipping' ? 0 : $request->discount_value,
             'max_discount' => $discountType === 'free_shipping' ? 0 : $request->max_discount,
