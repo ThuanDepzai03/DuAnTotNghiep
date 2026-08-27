@@ -252,7 +252,20 @@ class AuthController extends Controller
             $message->to($data['email'])->subject('Đặt lại mật khẩu');
         });
 
-        return back()->with('status', 'Mã OTP đã được gửi đến email của bạn.');
+        return redirect()->route('password.otp')
+            ->with('status', 'Mã OTP đã được gửi đến email của bạn.');
+    }
+
+    public function showOtp()
+    {
+        $email = session('password_reset_pending_email');
+
+        if (!$email) {
+            return redirect()->route('password.request')
+                ->withErrors(['email' => 'Vui lòng yêu cầu mã OTP trước.']);
+        }
+
+        return view('auth.otp', ['email' => $email]);
     }
 
     public function verifyResetOtp(Request $request)

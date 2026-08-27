@@ -7,12 +7,13 @@
     <div class="container">
 
         {{-- =====================================================
-            HEADER
+            FLASH SALE HEADER
         ====================================================== --}}
 
         <div class="flash-voucher-header">
 
             <div>
+
                 <span class="flash-label">
                     <i class="fa fa-bolt"></i>
                     FLASH SALE
@@ -25,6 +26,7 @@
                 <p>
                     Voucher số lượng có hạn - nhanh tay sử dụng!
                 </p>
+
             </div>
 
 
@@ -55,7 +57,7 @@
 
 
         {{-- =====================================================
-            VOUCHER
+            FLASH SALE VOUCHER LIST
         ====================================================== --}}
 
         @if(isset($flashVouchers) && $flashVouchers->count() > 0)
@@ -89,10 +91,12 @@
                                 {{ $voucher->code }}
                             </div>
 
+
                             @if($voucher->max_discount)
 
                                 <p>
                                     Giảm tối đa
+
                                     <strong>
                                         {{ number_format(
                                             $voucher->max_discount,
@@ -105,19 +109,22 @@
 
                             @endif
 
+
                             <p class="voucher-time">
 
                                 <i class="fa fa-clock-o"></i>
 
-                                {{ \Carbon\Carbon::parse(
-                                    $voucher->start_date
-                                )->format('d/m/Y') }}
+                                {{ $voucher->start_date
+                                    ? \Carbon\Carbon::parse($voucher->start_date)->format('d/m/Y')
+                                    : 'Ngay lập tức'
+                                }}
 
                                 -
 
-                                {{ \Carbon\Carbon::parse(
-                                    $voucher->end_date
-                                )->format('d/m/Y') }}
+                                {{ $voucher->end_date
+                                    ? \Carbon\Carbon::parse($voucher->end_date)->format('d/m/Y')
+                                    : 'Không giới hạn'
+                                }}
 
                             </p>
 
@@ -149,86 +156,259 @@
         @else
 
             <div class="flash-empty">
+
                 <i class="fa fa-ticket"></i>
 
                 <p>
                     Hiện chưa có voucher Flash Sale.
                 </p>
+
             </div>
 
         @endif
 
 
         {{-- =====================================================
-            SỰ KIỆN TRUNG THU
+            VOUCHER TRUNG THU
         ====================================================== --}}
+
+        @php
+
+            $eventVoucher = null;
+            $eventStart = null;
+            $eventEnd = null;
+
+            if (
+                isset($eventVouchers)
+                && $eventVouchers->count() > 0
+            ) {
+
+                $eventVoucher = $eventVouchers->first();
+
+                $eventStart = $eventVoucher->start_date
+                    ? \Carbon\Carbon::parse(
+                        $eventVoucher->start_date
+                    )
+                    : null;
+
+                $eventEnd = $eventVoucher->end_date
+                    ? \Carbon\Carbon::parse(
+                        $eventVoucher->end_date
+                    )
+                    : null;
+            }
+
+            $now = now();
+
+            $eventNotStarted =
+                $eventStart &&
+                $now->lt($eventStart->copy()->startOfDay());
+
+            $eventStarted =
+                (!$eventStart || !$eventNotStarted)
+                &&
+                (!$eventEnd || $now->lte($eventEnd->copy()->endOfDay()));
+
+            $eventEnded =
+                $eventEnd &&
+                $now->gt($eventEnd->copy()->endOfDay());
+
+        @endphp
+
 
         <div class="mid-autumn-banner">
 
             <div class="mid-autumn-content">
 
+
+                {{-- =================================================
+                    TIÊU ĐỀ
+                ================================================== --}}
+
                 <span class="mid-autumn-small">
                     🌕 SỰ KIỆN ĐẶC BIỆT
                 </span>
+
 
                 <h2>
                     VOUCHER TRUNG THU
                 </h2>
 
+
                 <p>
                     Ưu đãi đặc biệt chỉ áp dụng trong thời gian sự kiện.
                 </p>
 
+
+                {{-- =================================================
+                    COUNTDOWN
+                ================================================== --}}
+
                 <div class="event-countdown">
-                    <span>KẾT THÚC TRONG</span>
-                    <strong id="event-days">00</strong><small>Ngày</small>
-                    <strong id="event-hours">00</strong><small>Giờ</small>
-                    <strong id="event-minutes">00</strong><small>Phút</small>
-                    <strong id="event-seconds">00</strong><small>Giây</small>
+
+                    <span id="event-countdown-label">
+
+                        @if($eventEnded)
+
+                            SỰ KIỆN ĐÃ KẾT THÚC
+
+                        @elseif($eventNotStarted)
+
+                            BẮT ĐẦU TRONG
+
+                        @else
+
+                            KẾT THÚC TRONG
+
+                        @endif
+
+                    </span>
+
+
+                    <strong id="event-days">00</strong>
+                    <small>Ngày</small>
+
+                    <strong id="event-hours">00</strong>
+                    <small>Giờ</small>
+
+                    <strong id="event-minutes">00</strong>
+                    <small>Phút</small>
+
+                    <strong id="event-seconds">00</strong>
+                    <small>Giây</small>
+
                 </div>
 
 
-                @if(isset($eventVouchers) && $eventVouchers->count() > 0)
+                {{-- =================================================
+                    THỜI GIAN SỰ KIỆN
+                ================================================== --}}
 
-                    <div class="mid-autumn-vouchers">
+                @if($eventVoucher)
 
-                        @foreach($eventVouchers as $voucher)
+                    <p class="mid-autumn-event-dates">
 
-                            <div class="mid-autumn-voucher">
+                        <i class="fa fa-calendar"></i>
 
-                                <div>
+                        Thời gian:
 
-                                    <strong>
-                                        {{ $voucher->code }}
-                                    </strong>
+                        {{ $eventStart
+                            ? $eventStart->format('d/m/Y')
+                            : 'Ngay lập tức'
+                        }}
 
-                                    <span>
-                                        Giảm
-                                        {{ $voucher->discount_value }}%
-                                    </span>
+                        -
+
+                        {{ $eventEnd
+                            ? $eventEnd->format('d/m/Y')
+                            : 'Không giới hạn'
+                        }}
+
+                    </p>
+
+                @endif
+
+
+                {{-- =================================================
+                    TRẠNG THÁI
+                ================================================== --}}
+
+                <div
+                    id="event-status-message"
+                    class="mid-autumn-no-voucher"
+                    style="{{ $eventStarted ? 'display:none;' : 'display:inline-block;' }}"
+                >
+
+                    @if($eventEnded)
+
+                        Sự kiện đã kết thúc.
+
+                    @elseif($eventNotStarted)
+
+                        Voucher sự kiện sắp được mở!
+
+                    @else
+
+                        Voucher sự kiện đang mở!
+
+                    @endif
+
+                </div>
+
+
+                {{-- =================================================
+                    VOUCHER
+
+                    Chỉ hiện khi sự kiện đang diễn ra.
+                ================================================== --}}
+
+                @if($eventStarted && !$eventEnded)
+
+                    @if($eventVouchers->count() > 0)
+
+                        <div class="mid-autumn-vouchers">
+
+                            @foreach($eventVouchers as $voucher)
+
+                                <div class="mid-autumn-voucher">
+
+                                    <div>
+
+                                        <strong>
+                                            {{ $voucher->code }}
+                                        </strong>
+
+
+                                        <span>
+                                            Giảm
+                                            {{ $voucher->discount_value }}%
+                                        </span>
+
+
+                                        <small class="mid-autumn-voucher-dates">
+
+                                            Bắt đầu:
+
+                                            {{ $voucher->start_date
+                                                ? \Carbon\Carbon::parse(
+                                                    $voucher->start_date
+                                                )->format('d/m/Y')
+                                                : 'Ngay lập tức'
+                                            }}
+
+                                            <br>
+
+                                            Kết thúc:
+
+                                            {{ $voucher->end_date
+                                                ? \Carbon\Carbon::parse(
+                                                    $voucher->end_date
+                                                )->format('d/m/Y')
+                                                : 'Không giới hạn'
+                                            }}
+
+                                        </small>
+
+                                    </div>
+
+
+                                    <button
+                                        type="button"
+                                        onclick="copyVoucher('{{ $voucher->code }}')"
+                                    >
+                                        Lấy mã
+                                    </button>
 
                                 </div>
 
-                                <button
-                                    type="button"
-                                    onclick="copyVoucher('{{ $voucher->code }}')"
-                                >
-                                    Lấy mã
-                                </button>
+                            @endforeach
 
-                            </div>
+                        </div>
 
-                        @endforeach
-
-                    </div>
-
-                @else
-
-                    <div class="mid-autumn-no-voucher">
-                        Voucher sự kiện sẽ sớm được mở!
-                    </div>
+                    @endif
 
                 @endif
+
 
             </div>
 
@@ -241,13 +421,19 @@
 
 <style>
 
+/* =========================================================
+   FLASH VOUCHER
+========================================================= */
+
 .flash-voucher-section {
     padding: 45px 0;
     background: #f5f5f5;
 }
 
 
-/* HEADER */
+/* =========================================================
+   FLASH HEADER
+========================================================= */
 
 .flash-voucher-header {
     display: flex;
@@ -304,7 +490,9 @@
 }
 
 
-/* COUNTDOWN */
+/* =========================================================
+   FLASH COUNTDOWN
+========================================================= */
 
 .flash-countdown {
     text-align: center;
@@ -347,7 +535,9 @@
 }
 
 
-/* VOUCHER LIST */
+/* =========================================================
+   FLASH VOUCHER LIST
+========================================================= */
 
 .flash-voucher-list {
     display: grid;
@@ -509,7 +699,9 @@
 }
 
 
-/* TRUNG THU */
+/* =========================================================
+   TRUNG THU
+========================================================= */
 
 .mid-autumn-banner {
     position: relative;
@@ -564,12 +756,101 @@
 }
 
 
+/* =========================================================
+   EVENT COUNTDOWN
+========================================================= */
+
+.event-countdown {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+
+    gap: 6px;
+
+    margin: 10px 0 5px;
+}
+
+
+.event-countdown > span {
+    width: 100%;
+
+    margin-bottom: 5px;
+
+    font-size: 13px;
+    font-weight: 700;
+}
+
+
+.event-countdown strong {
+    min-width: 35px;
+
+    padding: 5px 7px;
+
+    background: rgba(255,255,255,.12);
+
+    border: 1px solid rgba(255,255,255,.2);
+
+    border-radius: 5px;
+
+    color: #ffd54f;
+
+    font-size: 15px;
+
+    text-align: center;
+}
+
+
+.event-countdown small {
+    font-size: 10px;
+}
+
+
+/* =========================================================
+   EVENT DATE
+========================================================= */
+
+.mid-autumn-event-dates {
+    margin: 10px 0 16px !important;
+
+    color: rgba(255,255,255,.9) !important;
+
+    font-size: 13px;
+
+    font-weight: 600;
+}
+
+
+/* =========================================================
+   EVENT STATUS
+========================================================= */
+
+.mid-autumn-no-voucher {
+    display: inline-block;
+
+    padding: 10px 15px;
+
+    background: rgba(255,255,255,.1);
+
+    border-radius: 6px;
+
+    color: #fff;
+
+    font-size: 13px;
+}
+
+
+/* =========================================================
+   EVENT VOUCHERS
+========================================================= */
+
 .mid-autumn-vouchers {
     display: flex;
 
     flex-wrap: wrap;
 
     gap: 12px;
+
+    margin-top: 15px;
 }
 
 
@@ -604,12 +885,26 @@
 }
 
 
+.mid-autumn-voucher-dates {
+    display: block;
+
+    margin-top: 6px;
+
+    color: rgba(255,255,255,.85);
+
+    font-size: 11px;
+
+    line-height: 1.6;
+}
+
+
 .mid-autumn-voucher button {
     border: 0;
 
     padding: 7px 12px;
 
     background: #ffd54f;
+
     color: #3b1d52;
 
     border-radius: 5px;
@@ -620,18 +915,16 @@
 }
 
 
-.mid-autumn-no-voucher {
-    display: inline-block;
+.mid-autumn-voucher button:hover {
+    background: #fff;
 
-    padding: 10px 15px;
-
-    background: rgba(255,255,255,.1);
-
-    border-radius: 6px;
+    transform: translateY(-1px);
 }
 
 
-/* EMPTY */
+/* =========================================================
+   EMPTY
+========================================================= */
 
 .flash-empty {
     padding: 40px;
@@ -658,7 +951,9 @@
 }
 
 
-/* RESPONSIVE */
+/* =========================================================
+   RESPONSIVE
+========================================================= */
 
 @media (max-width: 991px) {
 
@@ -676,15 +971,29 @@
         display: block;
     }
 
+
     .flash-countdown {
         margin-top: 20px;
+
         text-align: left;
     }
+
 
     .flash-voucher-list {
         grid-template-columns:
             1fr;
     }
+
+
+    .mid-autumn-banner {
+        padding: 25px 20px;
+    }
+
+
+    .mid-autumn-banner h2 {
+        font-size: 26px;
+    }
+
 
     .mid-autumn-voucher {
         min-width: 100%;
@@ -697,93 +1006,435 @@
 
 <script>
 
+/* =========================================================
+   COPY VOUCHER
+========================================================= */
+
 function copyVoucher(code)
 {
-    navigator.clipboard.writeText(code)
-        .then(function () {
+    if (
+        navigator.clipboard &&
+        window.isSecureContext
+    ) {
 
-            alert(
-                'Đã sao chép mã voucher: ' + code
-            );
+        navigator.clipboard
+            .writeText(code)
+            .then(function () {
 
-        })
-        .catch(function () {
+                alert(
+                    'Đã sao chép mã voucher: ' + code
+                );
 
-            alert(
-                'Mã voucher: ' + code
-            );
+            })
+            .catch(function () {
 
-        });
+                alert(
+                    'Mã voucher: ' + code
+                );
+
+            });
+
+    } else {
+
+        alert(
+            'Mã voucher: ' + code
+        );
+
+    }
 }
 
+
+/* =========================================================
+   EVENT TIME
+========================================================= */
+
 @php
+
+    $eventStartTime = null;
     $eventEndTime = null;
 
-    if (isset($eventVouchers) && $eventVouchers->count() > 0) {
-        $eventEndTime = \Carbon\Carbon::parse($eventVouchers->first()->end_date)
-            ->endOfDay()->timestamp * 1000;
+    if (
+        isset($eventVouchers)
+        && $eventVouchers->count() > 0
+    ) {
+
+        $firstEventVoucher =
+            $eventVouchers->first();
+
+
+        if ($firstEventVoucher->start_date) {
+
+            $eventStartTime =
+                \Carbon\Carbon::parse(
+                    $firstEventVoucher->start_date
+                )
+                ->startOfDay()
+                ->timestamp * 1000;
+        }
+
+
+        if ($firstEventVoucher->end_date) {
+
+            $eventEndTime =
+                \Carbon\Carbon::parse(
+                    $firstEventVoucher->end_date
+                )
+                ->endOfDay()
+                ->timestamp * 1000;
+        }
     }
+
 @endphp
 
-let eventEndTime = @json($eventEndTime);
+
+let eventStartTime =
+    @json($eventStartTime);
+
+let eventEndTime =
+    @json($eventEndTime);
+
+
+/* =========================================================
+   COUNTDOWN TRUNG THU
+========================================================= */
 
 function updateEventCountdown()
 {
-    const distance = eventEndTime - new Date().getTime();
+    const now =
+        new Date().getTime();
 
-    if (distance <= 0) {
-        ['days', 'hours', 'minutes', 'seconds'].forEach(function (unit) {
-            document.getElementById('event-' + unit).innerText = '00';
-        });
+
+    const countdownLabel =
+        document.getElementById(
+            'event-countdown-label'
+        );
+
+
+    const statusMessage =
+        document.getElementById(
+            'event-status-message'
+        );
+
+
+    const daysEl =
+        document.getElementById(
+            'event-days'
+        );
+
+
+    const hoursEl =
+        document.getElementById(
+            'event-hours'
+        );
+
+
+    const minutesEl =
+        document.getElementById(
+            'event-minutes'
+        );
+
+
+    const secondsEl =
+        document.getElementById(
+            'event-seconds'
+        );
+
+
+    if (!countdownLabel) {
         return;
     }
 
-    const totalSeconds = Math.floor(distance / 1000);
-    const days = Math.floor(totalSeconds / 86400);
-    const hours = Math.floor((totalSeconds % 86400) / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
 
-    document.getElementById('event-days').innerText = String(days).padStart(2, '0');
-    document.getElementById('event-hours').innerText = String(hours).padStart(2, '0');
-    document.getElementById('event-minutes').innerText = String(minutes).padStart(2, '0');
-    document.getElementById('event-seconds').innerText = String(seconds).padStart(2, '0');
+    /*
+    |--------------------------------------------------------------------------
+    | Không có ngày bắt đầu và ngày kết thúc
+    |--------------------------------------------------------------------------
+    */
+
+    if (!eventStartTime && !eventEndTime) {
+
+        countdownLabel.innerText =
+            'ĐANG DIỄN RA';
+
+        if (statusMessage) {
+            statusMessage.style.display =
+                'none';
+        }
+
+        return;
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | CHƯA BẮT ĐẦU
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        eventStartTime &&
+        now < eventStartTime
+    ) {
+
+        const distance =
+            eventStartTime - now;
+
+
+        countdownLabel.innerText =
+            'BẮT ĐẦU TRONG';
+
+
+        if (statusMessage) {
+
+            statusMessage.innerText =
+                'Voucher sự kiện sắp được mở!';
+
+            statusMessage.style.display =
+                'inline-block';
+        }
+
+
+        updateCountdownNumbers(
+            distance,
+            daysEl,
+            hoursEl,
+            minutesEl,
+            secondsEl
+        );
+
+        return;
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | ĐÃ KẾT THÚC
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        eventEndTime &&
+        now > eventEndTime
+    ) {
+
+        countdownLabel.innerText =
+            'SỰ KIỆN ĐÃ KẾT THÚC';
+
+
+        if (statusMessage) {
+
+            statusMessage.innerText =
+                'Sự kiện đã kết thúc.';
+
+            statusMessage.style.display =
+                'inline-block';
+        }
+
+
+        setCountdownZero(
+            daysEl,
+            hoursEl,
+            minutesEl,
+            secondsEl
+        );
+
+        return;
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | ĐANG DIỄN RA
+    |--------------------------------------------------------------------------
+    */
+
+    countdownLabel.innerText =
+        'KẾT THÚC TRONG';
+
+
+    if (statusMessage) {
+        statusMessage.style.display =
+            'none';
+    }
+
+
+    if (eventEndTime) {
+
+        const distance =
+            eventEndTime - now;
+
+
+        updateCountdownNumbers(
+            distance,
+            daysEl,
+            hoursEl,
+            minutesEl,
+            secondsEl
+        );
+
+    }
 }
 
+
+/* =========================================================
+   COUNTDOWN NUMBER
+========================================================= */
+
+function updateCountdownNumbers(
+    distance,
+    daysEl,
+    hoursEl,
+    minutesEl,
+    secondsEl
+)
+{
+    if (distance <= 0) {
+
+        setCountdownZero(
+            daysEl,
+            hoursEl,
+            minutesEl,
+            secondsEl
+        );
+
+        return;
+    }
+
+
+    const totalSeconds =
+        Math.floor(
+            distance / 1000
+        );
+
+
+    const days =
+        Math.floor(
+            totalSeconds / 86400
+        );
+
+
+    const hours =
+        Math.floor(
+            (totalSeconds % 86400) / 3600
+        );
+
+
+    const minutes =
+        Math.floor(
+            (totalSeconds % 3600) / 60
+        );
+
+
+    const seconds =
+        totalSeconds % 60;
+
+
+    if (daysEl) {
+
+        daysEl.innerText =
+            String(days)
+                .padStart(2, '0');
+    }
+
+
+    if (hoursEl) {
+
+        hoursEl.innerText =
+            String(hours)
+                .padStart(2, '0');
+    }
+
+
+    if (minutesEl) {
+
+        minutesEl.innerText =
+            String(minutes)
+                .padStart(2, '0');
+    }
+
+
+    if (secondsEl) {
+
+        secondsEl.innerText =
+            String(seconds)
+                .padStart(2, '0');
+    }
+}
+
+
+/* =========================================================
+   ZERO
+========================================================= */
+
+function setCountdownZero(
+    daysEl,
+    hoursEl,
+    minutesEl,
+    secondsEl
+)
+{
+    if (daysEl) {
+        daysEl.innerText = '00';
+    }
+
+    if (hoursEl) {
+        hoursEl.innerText = '00';
+    }
+
+    if (minutesEl) {
+        minutesEl.innerText = '00';
+    }
+
+    if (secondsEl) {
+        secondsEl.innerText = '00';
+    }
+}
+
+
 updateEventCountdown();
-setInterval(updateEventCountdown, 1000);
+
+setInterval(
+    updateEventCountdown,
+    1000
+);
 
 
-/*
-|--------------------------------------------------------------------------
-| COUNTDOWN
-|--------------------------------------------------------------------------
-|
-| Lấy thời gian kết thúc của voucher đầu tiên
-|
-*/
+/* =========================================================
+   FLASH SALE COUNTDOWN
+========================================================= */
 
 @php
 
     $flashEndTime = null;
 
-    if (isset($flashVouchers) && $flashVouchers->count() > 0) {
+    if (
+        isset($flashVouchers)
+        && $flashVouchers->count() > 0
+    ) {
 
-        $flashEndTime =
-            \Carbon\Carbon::parse(
-                $flashVouchers->first()->end_date
-            )->endOfDay()->timestamp * 1000;
+        $firstFlashVoucher =
+            $flashVouchers->first();
+
+        if ($firstFlashVoucher->end_date) {
+
+            $flashEndTime =
+                \Carbon\Carbon::parse(
+                    $firstFlashVoucher->end_date
+                )
+                ->endOfDay()
+                ->timestamp * 1000;
+        }
     }
 
 @endphp
 
 
-let flashEndTime = @json($flashEndTime);
+let flashEndTime =
+    @json($flashEndTime);
 
 
 function updateFlashCountdown()
 {
-
     if (!flashEndTime) {
         return;
     }
@@ -791,6 +1442,7 @@ function updateFlashCountdown()
 
     const now =
         new Date().getTime();
+
 
     const distance =
         flashEndTime - now;
@@ -802,65 +1454,67 @@ function updateFlashCountdown()
             'flash-hours'
         ).innerText = '00';
 
+
         document.getElementById(
             'flash-minutes'
         ).innerText = '00';
+
 
         document.getElementById(
             'flash-seconds'
         ).innerText = '00';
 
+
         return;
     }
 
 
+    const totalSeconds =
+        Math.floor(
+            distance / 1000
+        );
+
+
     const hours =
         Math.floor(
-            distance /
-            (1000 * 60 * 60)
+            totalSeconds / 3600
         );
 
 
     const minutes =
         Math.floor(
-            (
-                distance %
-                (1000 * 60 * 60)
-            ) /
-            (1000 * 60)
+            (totalSeconds % 3600) / 60
         );
 
 
     const seconds =
-        Math.floor(
-            (
-                distance %
-                (1000 * 60)
-            ) /
-            1000
-        );
+        totalSeconds % 60;
 
 
     document.getElementById(
         'flash-hours'
     ).innerText =
-        String(hours).padStart(2, '0');
+        String(hours)
+            .padStart(2, '0');
 
 
     document.getElementById(
         'flash-minutes'
     ).innerText =
-        String(minutes).padStart(2, '0');
+        String(minutes)
+            .padStart(2, '0');
 
 
     document.getElementById(
         'flash-seconds'
     ).innerText =
-        String(seconds).padStart(2, '0');
+        String(seconds)
+            .padStart(2, '0');
 }
 
 
 updateFlashCountdown();
+
 
 setInterval(
     updateFlashCountdown,

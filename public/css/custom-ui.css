@@ -164,8 +164,8 @@ body {
 }
 
 .brand-logo__img {
-    width: auto;
-    height: 42px;
+    width: 100px;
+    height: 100px;
 
     object-fit: contain;
 
