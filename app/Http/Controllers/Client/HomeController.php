@@ -10,6 +10,7 @@ use App\Models\Contact;
 use App\Models\Product;
 use App\Models\Voucher;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class HomeController extends Controller
 {
@@ -83,12 +84,23 @@ class HomeController extends Controller
                 'brand',
                 'variants',
             ])
-            ->withCount('clicks')
             ->where('status', 1)
-            ->orderByDesc('clicks_count')
-            ->orderByDesc('created_at')
-            ->take(8)
-            ->get();
+            ->get()
+            ->sortByDesc(function ($product) {
+                return $product->clicks()
+                    ->whereNotNull('customer_id')
+                    ->select(DB::raw('COUNT(DISTINCT customer_id) as customer_click_count'))
+                    ->value('customer_click_count') ?? 0;
+            })
+            ->values()
+            ->take(8);
+
+        foreach ($featuredProducts as $product) {
+            $product->click_count = $product->clicks()
+                ->whereNotNull('customer_id')
+                ->select(DB::raw('COUNT(DISTINCT customer_id) as customer_click_count'))
+                ->value('customer_click_count') ?? 0;
+        }
 
 
         /*
