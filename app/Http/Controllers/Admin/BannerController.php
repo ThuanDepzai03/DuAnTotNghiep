@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreBannerRequest;
 use App\Http\Requests\UpdateBannerRequest;
 use App\Models\Banner;
+use App\Services\SeederSyncService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -45,6 +46,8 @@ class BannerController extends Controller
             'status' => (int) $data['status'],
         ]);
 
+        SeederSyncService::syncBanners();
+
         return redirect()
             ->route('admin.banners.index')
             ->with('success', 'Thêm banner trang chủ thành công.');
@@ -82,6 +85,8 @@ class BannerController extends Controller
             'status' => (int) $data['status'],
         ]);
 
+        SeederSyncService::syncBanners();
+
         return redirect()
             ->route('admin.banners.index')
             ->with('success', 'Cập nhật banner thành công.');
@@ -92,6 +97,8 @@ class BannerController extends Controller
         $this->deleteImage($banner->image);
         $banner->delete();
 
+        SeederSyncService::syncBanners();
+
         return redirect()
             ->route('admin.banners.index')
             ->with('success', 'Đã xóa banner.');
@@ -100,6 +107,8 @@ class BannerController extends Controller
     public function toggleStatus(Banner $banner): RedirectResponse
     {
         $banner->update(['status' => ! $banner->status]);
+
+        SeederSyncService::syncBanners();
 
         return redirect()
             ->route('admin.banners.index')

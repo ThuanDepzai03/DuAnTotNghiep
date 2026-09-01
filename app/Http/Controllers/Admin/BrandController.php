@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Brand;
+use App\Services\SeederSyncService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -50,6 +51,8 @@ class BrandController extends Controller
             'logo' => $logoPath,
             'status' => (int) $data['status'],
         ]);
+
+        SeederSyncService::syncBrands();
 
         return redirect()
             ->route('admin.brands.index')
@@ -98,6 +101,8 @@ class BrandController extends Controller
             'status' => (int) $data['status'],
         ]);
 
+        SeederSyncService::syncBrands();
+
         return redirect()
             ->route('admin.brands.index')
             ->with('success', 'Cập nhật thương hiệu thành công.');
@@ -106,6 +111,8 @@ class BrandController extends Controller
     public function destroy(Brand $brand)
     {
         $brand->update(['status' => 0]);
+
+        SeederSyncService::syncBrands();
 
         return redirect()
             ->route('admin.brands.index')
@@ -117,6 +124,8 @@ class BrandController extends Controller
         $brand = Brand::findOrFail($id);
 
         $brand->update(['status' => 1]);
+
+        SeederSyncService::syncBrands();
 
         return redirect()
             ->route('admin.brands.index')
