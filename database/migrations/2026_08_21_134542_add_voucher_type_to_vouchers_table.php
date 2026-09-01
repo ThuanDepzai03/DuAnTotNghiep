@@ -9,12 +9,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('vouchers', function (Blueprint $table) {
-            $table->enum('voucher_type', [
-                'normal',
-                'flash_sale',
-                'mid_autumn'
-            ])->default('normal')->after('name');
-        });
+    $table->enum('voucher_type', [
+        'normal',
+        'flash_sale',
+        'mid_autumn'
+    ])->default('normal');
+});
     }
 
     public function down(): void
