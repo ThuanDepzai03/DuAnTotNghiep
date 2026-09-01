@@ -254,7 +254,7 @@
 
                             <div
                                 class="rating-progress-fill"
-                                style="width: {{ $percentage }}%"
+                                style="width: {{ $percentage }}%;"
                             ></div>
 
                         </div>
