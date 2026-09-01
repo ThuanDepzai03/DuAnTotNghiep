@@ -41,4 +41,9 @@ class Product extends Model
     {
         return $this->hasMany(Review::class);
     }
+
+    public function clicks()
+    {
+        return $this->hasMany(ProductClick::class);
+    }
 }

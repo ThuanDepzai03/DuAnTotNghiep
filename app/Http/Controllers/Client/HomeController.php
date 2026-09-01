@@ -78,6 +78,18 @@ class HomeController extends Controller
             ->take(12)
             ->get();
 
+        $featuredProducts = Product::with([
+                'category',
+                'brand',
+                'variants',
+            ])
+            ->withCount('clicks')
+            ->where('status', 1)
+            ->orderByDesc('clicks_count')
+            ->orderByDesc('created_at')
+            ->take(8)
+            ->get();
+
 
         /*
         |--------------------------------------------------------------------------
@@ -189,6 +201,7 @@ class HomeController extends Controller
                 'categories',
                 'brands',
                 'products',
+                'featuredProducts',
                 'flashVouchers',
                 'eventVouchers'
             )
