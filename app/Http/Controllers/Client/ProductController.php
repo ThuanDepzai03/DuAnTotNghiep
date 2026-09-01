@@ -35,13 +35,12 @@ class ProductController extends Controller
         $userAgent = request()->userAgent();
 
         if ($customerId) {
-            $lastClick = ProductClick::where('product_id', $product->id)
+            $recentCustomerClick = ProductClick::where('product_id', $product->id)
                 ->where('customer_id', $customerId)
-                ->where('session_id', $sessionId)
-                ->latest('clicked_at')
-                ->first();
+                ->where('clicked_at', '>=', now()->subMinutes(5))
+                ->exists();
 
-            if ($lastClick && $lastClick->clicked_at && $lastClick->clicked_at->diffInMinutes(now()) < 5) {
+            if ($recentCustomerClick) {
                 return;
             }
         }
