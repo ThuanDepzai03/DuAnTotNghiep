@@ -100,6 +100,16 @@ class AdminDashboardTest extends TestCase
         $response->assertSee('Quản lý sản phẩm');
     }
 
+    public function test_admin_brands_page_is_accessible(): void
+    {
+        session(['customer' => ['id' => 1, 'user' => 'admin', 'role' => 1]]);
+
+        $response = $this->get('/admin/brands');
+
+        $response->assertStatus(200);
+        $response->assertSee('Quản lý thương hiệu');
+    }
+
     public function test_admin_orders_page_is_accessible(): void
     {
         session(['customer' => ['id' => 1, 'user' => 'admin', 'role' => 1]]);
