@@ -35,6 +35,12 @@ class BrandSeeder extends Seeder
                 'status' => 1,
             ],
             [
+                'name' => 'Motorola',
+                'slug' => 'motorola',
+                'logo' => 'uploads/brands/1788296991-KsZLDgvnfFNX.png',
+                'status' => 1,
+            ],
+            [
                 'name' => 'Nokia',
                 'slug' => 'nokia',
                 'logo' => 'uploads/brands/1788296761-ELhC7KhUXbFG.png',
