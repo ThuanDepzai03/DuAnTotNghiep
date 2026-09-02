@@ -16,4 +16,24 @@ class ProductImage extends Model
     {
         return $this->belongsTo(Product::class);
     }
+
+    /**
+     * Accessor - Convert image_url to full asset path
+     */
+    public function getImageUrlAttribute($value)
+    {
+        if (!$value) {
+            return asset('img/product01.png');
+        }
+
+        // Nếu đã là full URL
+        if (preg_match('#^https?://#', $value)) {
+            return $value;
+        }
+
+        // Nếu là path tương đối, convert thành asset URL
+        $cleanPath = ltrim($value, '/');
+        return asset($cleanPath);
+    }
 }
+
