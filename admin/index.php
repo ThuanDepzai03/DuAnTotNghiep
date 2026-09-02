@@ -97,6 +97,9 @@ if (isset($_GET['action']) && $_GET['action'] != "") {
         case "restoresanpham":
             $sanPham->restore();
             break;
+        case "deleteProductImage":
+            $sanPham->deleteProductImageAction();
+            break;
         // Chức năng hóa đơn Show, thêm sửa xóa
         case "listhoadon":
             $hoaDon->index();
