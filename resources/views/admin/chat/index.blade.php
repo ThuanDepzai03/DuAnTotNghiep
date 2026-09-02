@@ -324,6 +324,93 @@
 <script>
 
 let currentConversationId = null;
+let adminMessagesLoading = false;
+let adminConversationsLoading = false;
+
+function ensureJsonResponse(response) {
+    if (!response.ok) {
+        throw new Error('HTTP Status: ' + response.status);
+    }
+
+    return response.json();
+}
+
+function renderAdminConversations(conversations) {
+    const list = document.getElementById('conversation-list');
+
+    if (!list) {
+        return;
+    }
+
+    list.innerHTML = '';
+
+    conversations.forEach(conversation => {
+        const item = document.createElement('div');
+        item.className = 'conversation-item' +
+            (String(conversation.id) === String(currentConversationId) ? ' active' : '');
+        item.dataset.id = conversation.id;
+        item.addEventListener('click', function () {
+            openConversation(conversation.id);
+        });
+
+        const icon = document.createElement('div');
+        icon.className = 'conversation-icon';
+        icon.innerHTML = '<i class="bi bi-person-fill"></i>';
+
+        const info = document.createElement('div');
+        info.className = 'conversation-info';
+
+        const name = document.createElement('div');
+        name.className = 'conversation-name';
+        name.textContent = conversation.customer_name;
+
+        const lastMessage = document.createElement('div');
+        lastMessage.className = 'conversation-last';
+        lastMessage.textContent = conversation.last_message;
+
+        info.appendChild(name);
+        if (conversation.customer_email) {
+            const email = document.createElement('small');
+            email.className = 'text-muted';
+            email.textContent = conversation.customer_email;
+            info.appendChild(email);
+        }
+        info.appendChild(lastMessage);
+        item.appendChild(icon);
+        item.appendChild(info);
+        list.appendChild(item);
+    });
+}
+
+function loadAdminConversations() {
+    if (adminConversationsLoading) {
+        return;
+    }
+
+    adminConversationsLoading = true;
+
+    fetch('/admin/chat/conversations', {
+        headers: { 'Accept': 'application/json' }
+    })
+        .then(ensureJsonResponse)
+        .then(data => {
+            renderAdminConversations(data.conversations || []);
+
+            const unread = (data.conversations || []).reduce(
+                (total, conversation) => total + conversation.unread,
+                0
+            );
+            const badge = document.getElementById('notification-count');
+            if (badge) {
+                badge.textContent = unread;
+                badge.style.display = unread ? 'inline-block' : 'none';
+            }
+        })
+        .catch(error => console.log('Lỗi tải danh sách chat:', error))
+        .finally(() => {
+            adminConversationsLoading = false;
+        });
+}
 
 
 /*
@@ -370,20 +457,26 @@ function openConversation(id) {
 
 function loadAdminMessages() {
 
-    if (!currentConversationId) {
+    if (!currentConversationId || adminMessagesLoading) {
         return;
     }
+
+    adminMessagesLoading = true;
 
     fetch(
         '/admin/chat/' +
         currentConversationId +
-        '/messages'
+        '/messages',
+        { headers: { 'Accept': 'application/json' } }
     )
-    .then(response => response.json())
+    .then(ensureJsonResponse)
     .then(data => {
 
         const box =
             document.getElementById('admin-chat-messages');
+
+        const wasNearBottom =
+            box.scrollHeight - box.scrollTop - box.clientHeight < 40;
 
         box.innerHTML = '';
 
@@ -411,11 +504,16 @@ function loadAdminMessages() {
 
         });
 
-        box.scrollTop = box.scrollHeight;
+        if (wasNearBottom) {
+            box.scrollTop = box.scrollHeight;
+        }
 
     })
     .catch(error => {
         console.log('Lỗi tải tin nhắn:', error);
+    })
+    .finally(() => {
+        adminMessagesLoading = false;
     });
 }
 
@@ -451,6 +549,7 @@ function sendAdminMessage() {
 
             headers: {
                 'Content-Type': 'application/json',
+                'Accept': 'application/json',
                 'X-CSRF-TOKEN':
                     document.querySelector(
                         'meta[name="csrf-token"]'
@@ -462,7 +561,7 @@ function sendAdminMessage() {
             })
         }
     )
-    .then(response => response.json())
+    .then(ensureJsonResponse)
     .then(data => {
 
         if (data.success) {
@@ -508,11 +607,15 @@ document.getElementById('admin-message')
 
 setInterval(function() {
 
+    loadAdminConversations();
+
     if (currentConversationId) {
         loadAdminMessages();
     }
 
 }, 3000);
+
+loadAdminConversations();
 
 </script>
 
