@@ -346,6 +346,7 @@
     </div>
 </footer>
 @include('layouts.chat')
+    @include('client.partials.rotating_ad')
 
     @include('client.partials.auth_modal')
 
