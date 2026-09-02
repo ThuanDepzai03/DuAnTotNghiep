@@ -41,11 +41,11 @@ class ProductController extends Controller
             ->orderBy('id')
             ->get();
 
-        return view('admin.products.create', compact(
+        return view('admin.products.form', compact(
             'categories',
             'brands',
             'attributes'
-));
+        ));
     }
 
     public function store(Request $request)
@@ -124,6 +124,8 @@ class ProductController extends Controller
             $variant->attributeValues()->sync($attributeValueIds);
         });
 
+        \App\Services\SeederSyncService::syncProducts();
+
         return redirect()
             ->route('admin.products.index')
             ->with('success', 'Thêm sản phẩm thành công.');
@@ -158,7 +160,7 @@ class ProductController extends Controller
                 ->all()
             : [];
 
-        return view('admin.products.edit', compact(
+        return view('admin.products.form', compact(
             'product',
             'categories',
             'brands',
@@ -255,6 +257,8 @@ class ProductController extends Controller
             $variant->attributeValues()->sync($attributeValueIds);
         });
 
+        \App\Services\SeederSyncService::syncProducts();
+
         return redirect()
             ->route('admin.products.index')
             ->with('success', 'Cập nhật sản phẩm thành công.');
@@ -266,6 +270,8 @@ class ProductController extends Controller
         $product->update([
             'status' => 0,
         ]);
+
+        \App\Services\SeederSyncService::syncProducts();
 
         return redirect()
             ->route('admin.products.index')
@@ -280,9 +286,35 @@ class ProductController extends Controller
             'status' => 1,
         ]);
 
+        \App\Services\SeederSyncService::syncProducts();
+
         return redirect()
             ->route('admin.products.index')
             ->with('success', 'Khôi phục sản phẩm thành công.');
+    }
+
+    public function uploadDescriptionImage(Request $request)
+    {
+        $request->validate([
+            'upload' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+        ]);
+
+        $folder = public_path('image/products/description');
+
+        if (!is_dir($folder)) {
+            mkdir($folder, 0755, true);
+        }
+
+        $file = $request->file('upload');
+        $fileName = time() . '-' . Str::random(12) . '.' . $file->getClientOriginalExtension();
+        $file->move($folder, $fileName);
+
+        $url = asset('image/products/description/' . $fileName);
+
+        return response()->json([
+            'uploaded' => true,
+            'url' => $url,
+        ]);
     }
 
     private function makeUniqueSlug(string $name, ?int $ignoreId = null): string

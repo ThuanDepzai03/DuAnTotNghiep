@@ -48,7 +48,6 @@ Website thương mại điện tử bán điện thoại, máy tính bảng và 
 - Cung cấp dashboard quản trị cho nhân viên cửa hàng.
 
 ## 2. Công nghệ sử dụng
-
 | Thành phần | Công nghệ |
 |---|---|
 | Backend | PHP 8.3+, Laravel 13 |
@@ -145,7 +144,9 @@ php artisan migrate:fresh --seed
 
 - Chế độ auto-sync Seed từ database chỉ nên dùng ở môi trường local/dev.
 - Không nên để admin tự sửa trực tiếp source code hoặc file Seeder trên production.
-- Dữ liệu “runtime” như logo upload qua admin, brand, banner, category, voucher đang chỉnh sửa trong DB cần được cập nhật vào Seeder nếu muốn tái tạo lại được trên máy khác.
+- Brand, Category, Banner, Product, ProductVariant, Voucher và tài khoản `nguoidung` được đồng bộ vào Seeder khi Admin CRUD ở local/dev.
+- Dữ liệu runtime như đơn hàng, đánh giá, tin nhắn và lịch sử giao dịch không tự động đưa vào Seeder.
+- Các file ảnh upload qua Admin vẫn cần được commit hoặc lưu trữ riêng nếu muốn máy khác hiển thị ảnh sau khi clone.
 - Khi làm với database thật, không nên chạy `migrate:fresh --seed` nếu không có backup.
 
 ### Quy trình sync local

@@ -161,6 +161,9 @@ Route::middleware(['web', 'admin'])
         Route::get('/orders/{id}', [OrderController::class, 'show'])->name('orders.show');
         Route::put('/orders/{id}/status', [OrderController::class, 'updateStatus'])->name('orders.updateStatus');
 
+        Route::post('/products/upload-description-image', [AdminProductController::class, 'uploadDescriptionImage'])
+            ->name('products.upload-description-image');
+
         Route::resource('users', UserController::class);
         Route::resource('brands', BrandController::class);
         Route::resource('banners', BannerController::class);
