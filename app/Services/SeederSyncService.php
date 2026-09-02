@@ -7,6 +7,7 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Voucher;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class SeederSyncService
@@ -351,6 +352,56 @@ PHP;
 PHP;
 
         file_put_contents(base_path('database/seeders/VoucherSeeder.php'), $content);
+    }
+
+    public static function syncUsers(): void
+    {
+        if (app()->environment('production')) {
+            return;
+        }
+
+        $users = DB::table('nguoidung')->orderBy('id')->get();
+
+        $content = <<<'PHP'
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+
+class UserSeeder extends Seeder
+{
+    public function run(): void
+    {
+        $users = [
+PHP;
+
+        foreach ($users as $user) {
+            $content .= '            ' . self::phpValue([
+                'user' => $user->user,
+                'pass' => $user->pass,
+                'email' => $user->email,
+                'address' => $user->address,
+                'tel' => $user->tel,
+                'role' => (int) $user->role,
+            ]) . ",\n";
+        }
+
+        $content .= <<<'PHP'
+        ];
+
+        foreach ($users as $user) {
+            DB::table('nguoidung')->updateOrInsert(
+                ['email' => $user['email']],
+                $user
+            );
+        }
+    }
+}
+PHP;
+
+        file_put_contents(base_path('database/seeders/UserSeeder.php'), $content);
     }
 
     private static function phpValue(mixed $value): string

@@ -144,8 +144,8 @@ php artisan migrate:fresh --seed
 
 - Chế độ auto-sync Seed từ database chỉ nên dùng ở môi trường local/dev.
 - Không nên để admin tự sửa trực tiếp source code hoặc file Seeder trên production.
-- Brand, Category, Banner, Product, ProductVariant và Voucher được đồng bộ vào Seeder khi Admin CRUD ở local/dev.
-- Dữ liệu “runtime” như tài khoản khách hàng, đơn hàng, đánh giá, tin nhắn và lịch sử sử dụng voucher không tự động đưa vào Seeder.
+- Brand, Category, Banner, Product, ProductVariant, Voucher và tài khoản `nguoidung` được đồng bộ vào Seeder khi Admin CRUD ở local/dev.
+- Dữ liệu runtime như đơn hàng, đánh giá, tin nhắn và lịch sử giao dịch không tự động đưa vào Seeder.
 - Các file ảnh upload qua Admin vẫn cần được commit hoặc lưu trữ riêng nếu muốn máy khác hiển thị ảnh sau khi clone.
 - Khi làm với database thật, không nên chạy `migrate:fresh --seed` nếu không có backup.
 
