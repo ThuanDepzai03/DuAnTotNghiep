@@ -48,7 +48,7 @@ Website thương mại điện tử bán điện thoại, máy tính bảng và 
 - Cung cấp dashboard quản trị cho nhân viên cửa hàng.
 
 ## 2. Công nghệ sử dụng
-
+Admin CRUD -> Seeder local update
 | Thành phần | Công nghệ |
 |---|---|
 | Backend | PHP 8.3+, Laravel 13 |

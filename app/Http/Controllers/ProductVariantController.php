@@ -71,6 +71,8 @@ class ProductVariantController extends Controller
             $variant->attributeValues()->sync($attributeValueIds);
         });
 
+        \App\Services\SeederSyncService::syncProducts();
+
         return redirect()
             ->route('admin.products.variants.index', $product->id)
             ->with('success', 'Đã thêm biến thể mới.');
@@ -112,6 +114,8 @@ class ProductVariantController extends Controller
             $variant->attributeValues()->sync($attributeValueIds);
         });
 
+        \App\Services\SeederSyncService::syncProducts();
+
         return redirect()
             ->route('admin.products.variants.index', $product->id)
             ->with('success', 'Cập nhật biến thể thành công.');
@@ -125,6 +129,8 @@ class ProductVariantController extends Controller
             $variant->attributeValues()->detach();
             $variant->delete();
         });
+
+        \App\Services\SeederSyncService::syncProducts();
 
         return redirect()
             ->route('admin.products.variants.index', $product->id)

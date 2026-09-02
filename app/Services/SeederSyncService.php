@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\Banner;
 use App\Models\Brand;
 use App\Models\Category;
+use App\Models\Product;
+use App\Models\Voucher;
 use Illuminate\Support\Str;
 
 class SeederSyncService
@@ -194,5 +196,165 @@ PHP;
 PHP;
 
         file_put_contents(base_path('database/seeders/BannerSeeder.php'), $content);
+    }
+
+    public static function syncProducts(): void
+    {
+        if (app()->environment('production')) {
+            return;
+        }
+
+        $products = Product::query()
+            ->with('variants.attributeValues')
+            ->orderBy('id')
+            ->get();
+
+        $content = <<<'PHP'
+<?php
+
+namespace Database\Seeders;
+
+use App\Models\Product;
+use App\Models\ProductVariant;
+use Illuminate\Database\Seeder;
+
+class ProductSeeder extends Seeder
+{
+    public function run(): void
+    {
+        $products = [
+PHP;
+
+        foreach ($products as $product) {
+            $content .= "            [\n";
+            $content .= "                'data' => " . self::phpValue([
+                'category_id' => $product->category_id,
+                'brand_id' => $product->brand_id,
+                'name' => $product->name,
+                'slug' => $product->slug,
+                'sku' => $product->sku,
+                'description' => $product->description,
+                'thumbnail' => $product->thumbnail,
+                'status' => (int) $product->status,
+            ]) . ",\n";
+            $content .= "                'variants' => [\n";
+
+            foreach ($product->variants as $variant) {
+                $content .= "                    [\n";
+                $content .= "                        'data' => " . self::phpValue([
+                    'sku' => $variant->sku,
+                    'price' => $variant->price,
+                    'sale_price' => $variant->sale_price,
+                    'stock' => $variant->stock,
+                    'image' => $variant->image,
+                    'status' => (int) $variant->status,
+                ]) . ",\n";
+                $content .= "                        'attribute_value_ids' => " . self::phpValue(
+                    $variant->attributeValues->pluck('id')->map(fn ($id) => (int) $id)->values()->all()
+                ) . ",\n";
+                $content .= "                    ],\n";
+            }
+
+            $content .= "                ],\n";
+            $content .= "            ],\n";
+        }
+
+        $content .= <<<'PHP'
+        ];
+
+        foreach ($products as $productData) {
+            $product = Product::updateOrCreate(
+                ['slug' => $productData['data']['slug']],
+                $productData['data']
+            );
+
+            $variantSkus = array_map(
+                fn (array $variantData): string => $variantData['data']['sku'],
+                $productData['variants']
+            );
+
+            if ($variantSkus) {
+                ProductVariant::where('product_id', $product->id)
+                    ->whereNotIn('sku', $variantSkus)
+                    ->delete();
+            } else {
+                ProductVariant::where('product_id', $product->id)->delete();
+            }
+
+            foreach ($productData['variants'] as $variantData) {
+                $variant = ProductVariant::updateOrCreate(
+                    ['sku' => $variantData['data']['sku']],
+                    array_merge($variantData['data'], ['product_id' => $product->id])
+                );
+
+                $variant->attributeValues()->sync($variantData['attribute_value_ids']);
+            }
+        }
+    }
+}
+PHP;
+
+        file_put_contents(base_path('database/seeders/ProductSeeder.php'), $content);
+    }
+
+    public static function syncVouchers(): void
+    {
+        if (app()->environment('production')) {
+            return;
+        }
+
+        $vouchers = Voucher::query()->orderBy('code')->get();
+
+        $content = <<<'PHP'
+<?php
+
+namespace Database\Seeders;
+
+use App\Models\Voucher;
+use Illuminate\Database\Seeder;
+
+class VoucherSeeder extends Seeder
+{
+    public function run(): void
+    {
+        $vouchers = [
+PHP;
+
+        foreach ($vouchers as $voucher) {
+            $content .= '            ' . self::phpValue([
+                'code' => $voucher->code,
+                'name' => $voucher->name,
+                'voucher_type' => $voucher->voucher_type,
+                'discount_type' => $voucher->discount_type,
+                'discount_value' => $voucher->discount_value,
+                'max_discount' => $voucher->max_discount,
+                'min_order' => $voucher->min_order,
+                'quantity' => $voucher->quantity,
+                'used_quantity' => $voucher->used_quantity,
+                'start_date' => $voucher->start_date?->format('Y-m-d') ?? (string) $voucher->start_date,
+                'end_date' => $voucher->end_date?->format('Y-m-d') ?? (string) $voucher->end_date,
+                'status' => (int) $voucher->status,
+            ]) . ",\n";
+        }
+
+        $content .= <<<'PHP'
+        ];
+
+        foreach ($vouchers as $voucher) {
+            Voucher::updateOrCreate(
+                ['code' => $voucher['code']],
+                $voucher
+            );
+        }
+    }
+}
+PHP;
+
+        file_put_contents(base_path('database/seeders/VoucherSeeder.php'), $content);
+    }
+
+    private static function phpValue(mixed $value): string
+    {
+        return var_export($value, true);
     }
 }
