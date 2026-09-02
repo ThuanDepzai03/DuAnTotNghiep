@@ -66,6 +66,8 @@ class VoucherController extends Controller
             'status' => $request->status,
         ]);
 
+        \App\Services\SeederSyncService::syncVouchers();
+
         return redirect()
             ->route('admin.vouchers.index')
             ->with('success', 'Thêm Voucher thành công!');
@@ -133,6 +135,8 @@ class VoucherController extends Controller
             'status' => $request->status,
         ]);
 
+        \App\Services\SeederSyncService::syncVouchers();
+
         return redirect()
             ->route('admin.vouchers.index')
             ->with('success', 'Cập nhật Voucher thành công!');
@@ -144,6 +148,8 @@ class VoucherController extends Controller
     public function destroy($id)
     {
         Voucher::findOrFail($id)->delete();
+
+        \App\Services\SeederSyncService::syncVouchers();
 
         return back()
             ->with('success', 'Đã xóa');

@@ -331,8 +331,8 @@ PHP;
                 'min_order' => $voucher->min_order,
                 'quantity' => $voucher->quantity,
                 'used_quantity' => $voucher->used_quantity,
-                'start_date' => $voucher->start_date?->format('Y-m-d') ?? (string) $voucher->start_date,
-                'end_date' => $voucher->end_date?->format('Y-m-d') ?? (string) $voucher->end_date,
+                'start_date' => (string) $voucher->start_date,
+                'end_date' => (string) $voucher->end_date,
                 'status' => (int) $voucher->status,
             ]) . ",\n";
         }
