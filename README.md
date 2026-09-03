@@ -286,34 +286,34 @@ Các mốc thời gian dưới đây được tổng hợp theo lịch sử phá
 | 22 | Thêm sản phẩm vào giỏ hàng | 02/07/2026 | 04/07/2026 | Bùi Minh Thuận | 100% |
 | 23 | Cập nhật số lượng và tổng tiền giỏ hàng | 13/08/2026 | 15/08/2026 | Bùi Minh Thuận | 100% |
 | 24 | Xóa sản phẩm khỏi giỏ hàng | 13/08/2026 | 15/08/2026 | Bùi Minh Thuận | 100% |
-| 25 | Danh sách sản phẩm yêu thích | 23/08/2026 | 24/08/2026 | Thuan | 100% |
-| 26 | Trang tạo đơn hàng và checkout | 02/07/2026 | 24/08/2026 | hieu, Thuan | 100% |
-| 27 | Nhập địa chỉ tỉnh/thành phố và phường/xã | 24/08/2026 | 24/08/2026 | Thuan | 100% |
-| 28 | Tính phí vận chuyển theo địa chỉ | 15/08/2026 | 24/08/2026 | hieu, Thuan | 100% |
-| 29 | Voucher giảm theo phần trăm hoặc số tiền | 13/08/2026 | 24/08/2026 | tun, Thuan | 100% |
-| 30 | Voucher miễn phí vận chuyển và flash voucher | 13/08/2026 | 24/08/2026 | tun, Thuan | 100% |
-| 31 | Thanh toán khi nhận hàng COD | 15/08/2026 | 16/08/2026 | hieu, Thuan | 100% |
-| 32 | Thanh toán VNPay sandbox | 03/07/2026 | 16/08/2026 | hieu, Thuan | 100% |
-| 33 | Xử lý kết quả thanh toán và trạng thái đơn | 03/07/2026 | 16/08/2026 | hieu, Thuan | 100% |
-| 34 | Trang liên hệ và gửi liên hệ | 23/08/2026 | 24/08/2026 | Thuan | 100% |
-| 35 | Trang giới thiệu và tin tức | 02/07/2026 | 04/07/2026 | Sown11, Thuan | 100% |
-| 36 | Theo dõi, xem chi tiết và hủy đơn | 03/07/2026 | 04/07/2026 | hieu, Thuan | 100% |
-| 37 | Chat hỗ trợ khách hàng | 12/08/2026 | 24/08/2026 | duckiet863, Thuan | 100% |
-| 38 | Dashboard quản trị | 03/07/2026 | 04/07/2026 | Sown11, hieu | 100% |
-| 39 | Quản lý sản phẩm và mã biến thể | 03/07/2026 | 13/08/2026 | Sown11, Thuan | 100% |
-| 40 | Quản lý danh mục sản phẩm | 03/07/2026 | 04/07/2026 | Sown11 | 100% |
-| 41 | Quản lý thương hiệu | 03/07/2026 | 04/07/2026 | Sown11, Thuan | 100% |
-| 42 | Quản lý hình ảnh sản phẩm | 03/07/2026 | 04/07/2026 | Sown11, Thuan | 100% |
-| 43 | Quản lý banner và sự kiện hiển thị | 03/07/2026 | 21/08/2026 | Sown11, Thuan | 100% |
-| 44 | Quản lý đơn hàng và cập nhật trạng thái | 03/07/2026 | 04/07/2026 | hieu, Sown11 | 100% |
-| 45 | Thống kê doanh thu | 03/07/2026 | 04/07/2026 | hieu, Sown11 | 100% |
-| 46 | Quản lý tài khoản người dùng | 03/07/2026 | 04/07/2026 | Sown11, hieu | 100% |
-| 47 | Quản lý voucher và sự kiện giảm giá | 13/08/2026 | 21/08/2026 | tun, Thuan | 100% |
-| 48 | Quản lý liên hệ và phản hồi | 23/08/2026 | 24/08/2026 | Thuan | 100% |
-| 49 | Quản lý đánh giá và trả lời bình luận | 23/08/2026 | 24/08/2026 | Thuan | 100% |
-| 50 | Quản lý hội thoại và tin nhắn admin | 12/08/2026 | 24/08/2026 | duckiet863, Thuan | 100% |
-| 51 | Kiểm thử chức năng và sửa lỗi tích hợp | 02/07/2026 | 24/08/2026 | Thuan, cả nhóm | 100% |
-| 52 | Nghiệm thu, chuẩn bị demo và hoàn thiện tài liệu | 20/08/2026 | 24/08/2026 | Thuan, cả nhóm | 100% |
+| 25 | Danh sách sản phẩm yêu thích | 23/08/2026 | 24/08/2026 | Bùi Minh Thuận | 100% |
+| 26 | Trang tạo đơn hàng và checkout | 02/07/2026 | 24/08/2026 | Đỗ Trung Hiếu, Bùi Minh Thuận | 100% |
+| 27 | Nhập địa chỉ tỉnh/thành phố và phường/xã | 24/08/2026 | 24/08/2026 | Bùi Minh Thuận | 100% |
+| 28 | Tính phí vận chuyển theo địa chỉ | 15/08/2026 | 24/08/2026 | Đỗ Trung Hiếu, Bùi Minh Thuận | 100% |
+| 29 | Voucher giảm theo phần trăm hoặc số tiền | 13/08/2026 | 24/08/2026 | Nguyễn Văn Trung, Bùi Minh Thuận | 100% |
+| 30 | Voucher miễn phí vận chuyển và flash voucher | 13/08/2026 | 24/08/2026 | Nguyễn Văn Trung, Bùi Minh Thuận | 100% |
+| 31 | Thanh toán khi nhận hàng COD | 15/08/2026 | 16/08/2026 | Đỗ Trung Hiếu, Bùi Minh Thuận | 100% |
+| 32 | Thanh toán VNPay sandbox | 03/07/2026 | 16/08/2026 | Đỗ Trung Hiếu, Bùi Minh Thuận | 100% |
+| 33 | Xử lý kết quả thanh toán và trạng thái đơn | 03/07/2026 | 16/08/2026 | Đỗ Trung Hiếu, Bùi Minh Thuận | 100% |
+| 34 | Trang liên hệ và gửi liên hệ | 23/08/2026 | 24/08/2026 | Bùi Minh Thuận | 100% |
+| 35 | Trang giới thiệu và tin tức | 02/07/2026 | 04/07/2026 | Bùi Quang Sơn, Bùi Minh Thuận | 100% |
+| 36 | Theo dõi, xem chi tiết và hủy đơn | 03/07/2026 | 04/07/2026 | Đỗ Trung Hiếu, Bùi Minh Thuận | 100% |
+| 37 | Chat hỗ trợ khách hàng | 12/08/2026 | 24/08/2026 | Lưu Đức Kiệt, Bùi Minh Thuận | 100% |
+| 38 | Dashboard quản trị | 03/07/2026 | 04/07/2026 | Bùi Quang Sơn, Đỗ Trung Hiếu | 100% |
+| 39 | Quản lý sản phẩm và mã biến thể | 03/07/2026 | 13/08/2026 | Bùi Quang Sơn, Bùi Minh Thuận | 100% |
+| 40 | Quản lý danh mục sản phẩm | 03/07/2026 | 04/07/2026 | Bùi Quang Sơn | 100% |
+| 41 | Quản lý thương hiệu | 03/07/2026 | 04/07/2026 | Bùi Quang Sơn, Bùi Minh Thuận | 100% |
+| 42 | Quản lý hình ảnh sản phẩm | 03/07/2026 | 04/07/2026 | Bùi Quang Sơn, Bùi Minh Thuận | 100% |
+| 43 | Quản lý banner và sự kiện hiển thị | 03/07/2026 | 21/08/2026 | Bùi Quang Sơn, Bùi Minh Thuận | 100% |
+| 44 | Quản lý đơn hàng và cập nhật trạng thái | 03/07/2026 | 04/07/2026 | Đỗ Trung Hiếu, Bùi Quang Sơn | 100% |
+| 45 | Thống kê doanh thu | 03/07/2026 | 04/07/2026 | Đỗ Trung Hiếu, Bùi Quang Sơn | 100% |
+| 46 | Quản lý tài khoản người dùng | 03/07/2026 | 04/07/2026 | Bùi Quang Sơn, Đỗ Trung Hiếu | 100% |
+| 47 | Quản lý voucher và sự kiện giảm giá | 13/08/2026 | 21/08/2026 | Nguyễn Văn Trung, Bùi Minh Thuận | 100% |
+| 48 | Quản lý liên hệ và phản hồi | 23/08/2026 | 24/08/2026 | Bùi Minh Thuận | 100% |
+| 49 | Quản lý đánh giá và trả lời bình luận | 23/08/2026 | 24/08/2026 | Bùi Minh Thuận | 100% |
+| 50 | Quản lý hội thoại và tin nhắn admin | 12/08/2026 | 24/08/2026 | Lưu Đức Kiệt, Bùi Minh Thuận | 100% |
+| 51 | Kiểm thử chức năng và sửa lỗi tích hợp | 02/07/2026 | 24/08/2026 | Bùi Minh Thuận, cả nhóm | 100% |
+| 52 | Nghiệm thu, chuẩn bị demo và hoàn thiện tài liệu | 20/08/2026 | 24/08/2026 | Bùi Minh Thuận, cả nhóm | 100% |
 
 ## 6. Phân tích công việc của các thành viên
 
