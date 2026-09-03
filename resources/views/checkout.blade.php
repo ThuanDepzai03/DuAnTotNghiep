@@ -457,23 +457,25 @@
                                 <div class="voucher-header">
                                     <h4>2. Kho voucher</h4>
                                 </div>
-                                @forelse($availableVouchers as $availableVoucher)
-                                    @php $isShippingVoucher = $availableVoucher->discount_type === 'free_shipping'; @endphp
-                                    <div class="voucher-item {{ $isShippingVoucher ? 'voucher-item--shipping' : 'voucher-item--order' }} {{ ($shippingVoucher && $isShippingVoucher && $shippingVoucher['id'] == $availableVoucher->id) || ($orderVoucher && !$isShippingVoucher && $orderVoucher['id'] == $availableVoucher->id) ? 'is-applied' : '' }}">
-                                        <div>
-                                            <strong>{{ $availableVoucher->code }}</strong>
-                                            <small>{{ $availableVoucher->name }}</small>
-                                            <small>{{ $isShippingVoucher ? 'Miễn phí vận chuyển' : ($availableVoucher->discount_type === 'fixed' ? 'Giảm ' . number_format($availableVoucher->discount_value, 0, ',', '.') . '₫' : 'Giảm ' . $availableVoucher->discount_value . '%') }}</small>
+                                <div class="voucher-list">
+                                    @forelse($availableVouchers as $availableVoucher)
+                                        @php $isShippingVoucher = $availableVoucher->discount_type === 'free_shipping'; @endphp
+                                        <div class="voucher-item {{ $isShippingVoucher ? 'voucher-item--shipping' : 'voucher-item--order' }} {{ ($shippingVoucher && $isShippingVoucher && $shippingVoucher['id'] == $availableVoucher->id) || ($orderVoucher && !$isShippingVoucher && $orderVoucher['id'] == $availableVoucher->id) ? 'is-applied' : '' }}">
+                                            <div>
+                                                <strong>{{ $availableVoucher->code }}</strong>
+                                                <small>{{ $availableVoucher->name }}</small>
+                                                <small>{{ $isShippingVoucher ? 'Miễn phí vận chuyển' : ($availableVoucher->discount_type === 'fixed' ? 'Giảm ' . number_format($availableVoucher->discount_value, 0, ',', '.') . '₫' : 'Giảm ' . $availableVoucher->discount_value . '%') }}</small>
+                                            </div>
+                                            @if(($shippingVoucher && $isShippingVoucher && $shippingVoucher['id'] == $availableVoucher->id) || ($orderVoucher && !$isShippingVoucher && $orderVoucher['id'] == $availableVoucher->id))
+                                                <span class="voucher-choice">Đã áp dụng</span>
+                                            @else
+                                                <a href="{{ route('vouchers.claim', $availableVoucher->id) }}" class="btn btn-outline-primary btn-sm">Lấy mã</a>
+                                            @endif
                                         </div>
-                                        @if(($shippingVoucher && $isShippingVoucher && $shippingVoucher['id'] == $availableVoucher->id) || ($orderVoucher && !$isShippingVoucher && $orderVoucher['id'] == $availableVoucher->id))
-                                            <span class="voucher-choice">Đã áp dụng</span>
-                                        @else
-                                            <a href="{{ route('vouchers.claim', $availableVoucher->id) }}" class="btn btn-outline-primary btn-sm">Lấy mã</a>
-                                        @endif
-                                    </div>
-                                @empty
-                                    <small>Hiện chưa có voucher khả dụng.</small>
-                                @endforelse
+                                    @empty
+                                        <small>Hiện chưa có voucher khả dụng.</small>
+                                    @endforelse
+                                </div>
                             </div>
 
                             <div class="summary-total-box">
