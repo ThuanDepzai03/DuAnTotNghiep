@@ -50,6 +50,9 @@ Route::get('/vouchers/{id}/claim', [ClientCheckoutController::class, 'claimVouch
 Route::post('/checkout/remove-voucher', [ClientCheckoutController::class, 'removeVoucher'])->name('checkout.removeVoucher');
 Route::get('/flash-voucher', [HomeController::class, 'flashVoucher'])->name('flash.voucher');
 
+// API Search Products
+Route::get('/api/search-suggestion', [HomeController::class, 'searchSuggestion'])->name('api.search.suggestion');
+
 Route::get('/checkout/momo', function () {
     return view('checkout_qr');
 })->name('checkout.momo');
@@ -193,6 +196,6 @@ Route::get('/chat/{id}/messages', [ChatController::class, 'adminMessages'])
 
 Route::post('/chat/{id}/reply', [ChatController::class, 'adminReply'])
     ->name('chat.reply');
-    
+
 
     });
