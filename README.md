@@ -317,7 +317,7 @@ Các mốc thời gian dưới đây được tổng hợp theo lịch sử phá
 
 ## 6. Phân tích công việc của các thành viên
 
-Phần phân công dưới đây được tổng hợp từ lịch sử Git và cấu trúc mã nguồn. Các bí danh `thuanvillager243-dev` và `thuandz` cùng dùng email `thuanvillager243@gmail.com`, được gộp thành một thành viên là **Thuan**.
+Phần phân công dưới đây được đối chiếu từ lịch sử Git và cấu trúc mã nguồn. Các identity `Thuận`, `Thuandepzai03`, `thuanvillager243-dev` và `thuandz` được quy về **Bùi Minh Thuận** theo tên/email/nhánh trong repository. Các vai trò được mô tả theo nhóm file và nội dung commit; số commit chi tiết nằm ở mục [Tác giả và dấu vết Git](#15-tác-giả-và-dấu-vết-git).
 
 ## Cụm Use Case - Customer
 
@@ -428,7 +428,7 @@ flowchart LR
 | Tương tác | Đánh giá, feedback, chat | Customer gửi nhận xét và trao đổi với cửa hàng |
 | Nội dung | Xem tin tức và giới thiệu | Customer tiếp cận thông tin của cửa hàng |
 
-### Thành viên 1 - Thuan - Trưởng nhóm và thành viên tích hợp chính
+### Thành viên 1 - Bùi Minh Thuận - Trưởng nhóm và tích hợp chính
 
 **Nhiệm vụ đã thực hiện:**
 
@@ -455,7 +455,7 @@ flowchart LR
 
 **Phần phối hợp:** rà soát chức năng của cả ba thành viên còn lại, thống nhất tên trường dữ liệu, route và quy trình xử lý lỗi; trực tiếp sửa và tích hợp những phần chưa chạy đúng trong code của các thành viên khác.
 
-### Thành viên 2 - Backend và cơ sở dữ liệu
+### Thành viên 2 - Đỗ Trung Hiếu - Backend và cơ sở dữ liệu
 
 **Nhiệm vụ đã thực hiện:**
 
@@ -482,7 +482,7 @@ flowchart LR
 
 **Sản phẩm bàn giao:** database chạy được bằng migration, API/route nghiệp vụ, dữ liệu mẫu và các chức năng backend có thể tích hợp với giao diện.
 
-### Thành viên 3 - Frontend và trải nghiệm người dùng
+### Thành viên 3 - Bùi Quang Sơn - Frontend và trải nghiệm người dùng
 
 **Nhiệm vụ đã thực hiện:**
 
@@ -508,7 +508,7 @@ flowchart LR
 
 **Sản phẩm bàn giao:** giao diện hoàn chỉnh, form checkout sử dụng được, thông báo lỗi dễ hiểu và trải nghiệm mua hàng nhất quán.
 
-### Thành viên 4 - Quản trị, kiểm thử và tài liệu
+### Thành viên 4 - Lưu Đức Kiệt - Quản trị, kiểm thử và tài liệu
 
 **Nhiệm vụ đã thực hiện:**
 
@@ -539,13 +539,13 @@ flowchart LR
 
 | Hạng mục | Thành viên chính | Thành viên phối hợp |
 |---|---|---|
-| Phân tích yêu cầu và quy trình | Thành viên 1 | Cả nhóm |
-| Database và nghiệp vụ backend | Thành viên 2 | Thành viên 1, 4 |
-| Giao diện khách hàng | Thành viên 3 | Thành viên 1, 2 |
-| Checkout và địa chỉ giao hàng | Thành viên 2, 3 | Thành viên 4 |
-| Khu vực quản trị | Thành viên 4 | Thành viên 2, 1 |
-| Kiểm thử và nghiệm thu | Thành viên 4 | Cả nhóm |
-| Báo cáo và thuyết trình | Thành viên 1 | Cả nhóm |
+| Phân tích yêu cầu và quy trình | Bùi Minh Thuận | Cả nhóm |
+| Database và nghiệp vụ backend | Đỗ Trung Hiếu | Bùi Minh Thuận, Lưu Đức Kiệt |
+| Giao diện khách hàng | Bùi Quang Sơn | Bùi Minh Thuận, Đỗ Trung Hiếu |
+| Checkout và địa chỉ giao hàng | Đỗ Trung Hiếu, Bùi Quang Sơn | Lưu Đức Kiệt |
+| Khu vực quản trị | Lưu Đức Kiệt | Đỗ Trung Hiếu, Bùi Minh Thuận |
+| Kiểm thử và nghiệm thu | Lưu Đức Kiệt | Cả nhóm |
+| Báo cáo và thuyết trình | Bùi Minh Thuận | Cả nhóm |
 
 ### Trách nhiệm chung
 
@@ -852,8 +852,39 @@ Checklist kiểm thử chính:
 - Thêm dashboard biểu đồ doanh thu theo thời gian.
 - Bổ sung Docker hoặc tài liệu triển khai máy chủ.
 
-## 15. Tác giả
+## 15. Tác giả và dấu vết Git
 
-Đồ án tốt nghiệp - nhóm phát triển AE Phoenic Store.
+Đồ án tốt nghiệp - nhóm phát triển AE Phoenic Store. Bảng dưới đây dùng tên thành viên trong hồ sơ dự án và đối chiếu với author/email thực tế trong lịch sử Git.
 
-Cập nhật tên, mã sinh viên, lớp và nhiệm vụ thực tế của các thành viên trước khi nộp báo cáo.
+> **Cách đọc số liệu:** số commit là số lượng Git ghi nhận theo từng identity, có thể bao gồm commit merge. Đây là số liệu kiểm chứng hoạt động trong repository, không phải tỷ lệ phần trăm đóng góp.
+
+| Thành viên thực tế | Identity trong Git | Commit ghi nhận | Khu vực thay đổi nổi bật |
+|---|---|---:|---|
+| **Bùi Minh Thuận** `PP03513` - Trưởng nhóm | `Thuận`, `Thuandepzai03`, `thuanvillager243-dev`, `thuandz` | **153** | Tích hợp hệ thống, checkout, xác thực, địa chỉ, README, giao diện và migration |
+| **Đỗ Trung Hiếu** `PP03417` | `hieu` | **30** | Nghiệp vụ đơn hàng, checkout, thanh toán và controller backend |
+| **Lưu Đức Kiệt** `PP03363` | `duckiet863` | **43** | Banner, đánh giá, admin view, migration và kiểm thử |
+| **Bùi Quang Sơn** `PP03356` | `Sown11` | **23** | Sản phẩm, thương hiệu, seeder, migration và giao diện |
+| **Nguyễn Văn Trung** `PP03493` | `tun` | **25** | Seeder, dữ liệu sản phẩm, controller và giao diện |
+
+### Quy đổi identity
+
+- `Thuận` và `Thuandepzai03` dùng email GitHub/author khác nhau nhưng cùng thuộc nhóm identity của Bùi Minh Thuận trong lịch sử repository.
+- `thuanvillager243-dev` và `thuandz` cùng dùng email `thuanvillager243@gmail.com`, được gộp vào Bùi Minh Thuận.
+- `hieu`, `duckiet863`, `Sown11` và `tun` được đối chiếu lần lượt với Đỗ Trung Hiếu, Lưu Đức Kiệt, Bùi Quang Sơn và Nguyễn Văn Trung theo email, tên nhánh và nội dung file/commit.
+- Identity `tuanvt18 <daotuan092006@gmail.com>` có 4 commit trong Git nhưng README hiện không có hồ sơ thành viên tương ứng để đối chiếu chắc chắn; không gán identity này vào tên khác.
+
+### Phân công theo dữ liệu commit
+
+- **Bùi Minh Thuận:** có phạm vi thay đổi rộng ở `app/Http`, `resources/views`, `routes`, `database/migrations` và README; phù hợp vai trò trưởng nhóm, tích hợp và hoàn thiện luồng chung.
+- **Đỗ Trung Hiếu:** các commit tập trung vào controller, model, migration và luồng đơn hàng/thanh toán; phù hợp vai trò backend và cơ sở dữ liệu.
+- **Lưu Đức Kiệt:** các commit nổi bật ở banner, đánh giá, admin view và các thay đổi hỗ trợ quản trị; phù hợp vai trò quản trị và kiểm thử.
+- **Bùi Quang Sơn:** các commit tập trung vào sản phẩm, thương hiệu, seeder, migration và view; phù hợp vai trò phát triển sản phẩm/giao diện.
+- **Nguyễn Văn Trung:** các commit tập trung vào seeder, dữ liệu sản phẩm, controller và giao diện; phối hợp phát triển dữ liệu và chức năng khách hàng.
+
+**Danh sách thành viên:**
+
+- Bùi Minh Thuận - `PP03513` - LEADER
+- Đỗ Trung Hiếu - `PP03417`
+- Lưu Đức Kiệt - `PP03363`
+- Bùi Quang Sơn - `PP03356`
+- Nguyễn Văn Trung - `PP03493`
