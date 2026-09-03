@@ -23,120 +23,84 @@ class VoucherController extends Controller
     {
         $discountType = $request->input('discount_type', 'percent');
 
-        $request->validate([
+        $rules = [
             'code' => 'required|string|max:255|unique:vouchers,code',
             'name' => 'required|string|max:255',
+
             'voucher_type' => 'required|in:normal,flash_sale,mid_autumn',
+
             'discount_type' => 'required|in:percent,fixed,free_shipping',
-            'discount_value' => [
-                'required',
-                'numeric',
-                $discountType === 'free_shipping' ? 'min:0' : 'min:1',
-                $discountType === 'percent' ? 'max:100' : '',
-            ],
+
             'max_discount' => 'nullable|numeric|min:0',
+
             'min_order' => 'nullable|numeric|min:0',
+
             'quantity' => 'required|integer|min:1',
+
             'start_date' => 'required|date',
+
             'end_date' => 'required|date|after_or_equal:start_date',
-            'status' => 'required',
-        ]);
+
+            'status' => 'required|boolean',
+        ];
+
+        // Kiểm tra giá trị giảm
+        if ($discountType === 'percent') {
+
+            $rules['discount_value'] =
+                'required|numeric|min:1|max:100';
+        } elseif ($discountType === 'fixed') {
+
+            $rules['discount_value'] =
+                'required|numeric|min:1';
+        } else {
+
+            $rules['discount_value'] =
+                'nullable|numeric|min:0';
+        }
+
+        $request->validate($rules);
+
 
         Voucher::create([
             'code' => strtoupper(trim($request->code)),
-            'name' => $request->name,
+
+            'name' => trim($request->name),
+
             'voucher_type' => $request->voucher_type,
+
             'discount_type' => $discountType,
-            'discount_value' => $discountType === 'free_shipping' ? 0 : $request->discount_value,
-            'max_discount' => $request->max_discount,
-            'min_order' => $request->input('min_order', 0) ?: 0,
+
+            'discount_value' =>
+            $discountType === 'free_shipping'
+                ? 0
+                : $request->discount_value,
+
+            'max_discount' =>
+            $discountType === 'percent'
+                ? $request->max_discount
+                : null,
+
+            'min_order' =>
+            $request->input('min_order', 0) ?: 0,
+
             'quantity' => $request->quantity,
+
             'used_quantity' => 0,
+
             'start_date' => $request->start_date,
+
             'end_date' => $request->end_date,
+
             'status' => $request->status,
         ]);
 
+
         \App\Services\SeederSyncService::syncVouchers();
+
 
         return redirect()
             ->route('admin.vouchers.index')
             ->with('success', 'Thêm Voucher thành công!');
-    }
-
-    public function show(string $id)
-    {
-        //
-    }
-
-    public function edit($id)
-    {
-        $voucher = Voucher::findOrFail($id);
-
-        return view('admin.vouchers.edit', compact('voucher'));
-    }
-
-    public function update(Request $request, $id)
-    {
-        $voucher = Voucher::findOrFail($id);
-
-        $discountType = $request->input('discount_type', 'percent');
-
-        $request->validate([
-            'code' => 'required|unique:vouchers,code,' . $id,
-            'name' => 'required',
-            'voucher_type' => 'required|in:normal,flash_sale,mid_autumn',
-            'discount_type' => 'required|in:percent,fixed,free_shipping',
-
-            'discount_value' => $discountType === 'free_shipping'
-                ? 'nullable|numeric|min:0'
-                : ($discountType === 'percent'
-                    ? 'required|numeric|min:1|max:100'
-                    : 'required|numeric|min:1'),
-
-            'max_discount' => 'nullable|numeric|min:0',
-            'min_order' => 'nullable|numeric|min:0',
-            'quantity' => 'required|integer|min:1',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
-            'status' => 'required',
-        ]);
-
-        $voucher->update([
-            'code' => strtoupper(trim($request->code)),
-            'name' => $request->name,
-            'voucher_type' => $request->voucher_type,
-            'discount_type' => $discountType,
-
-            'discount_value' => $discountType === 'free_shipping'
-                ? 0
-                : $request->discount_value,
-
-            'max_discount' => $discountType === 'free_shipping'
-                ? null
-                : $request->max_discount,
-
-            'min_order' => $request->input('min_order', 0) ?: 0,
-            'quantity' => $request->quantity,
-            'start_date' => $request->start_date,
-            'end_date' => $request->end_date,
-            'status' => $request->status,
-        ]);
-
-        \App\Services\SeederSyncService::syncVouchers();
-
-        return redirect()
-            ->route('admin.vouchers.index')
-            ->with('success', 'Cập nhật Voucher thành công!');
-    }
-
-    public function destroy($id)
-    {
-        Voucher::findOrFail($id)->delete();
-
-        \App\Services\SeederSyncService::syncVouchers();
-
-        return back()
-            ->with('success', 'Đã xóa');
     }
 }
