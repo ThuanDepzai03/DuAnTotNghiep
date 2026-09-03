@@ -1186,9 +1186,9 @@ class ProductSeeder extends Seeder
             [
                 'data' => array (
   'category_id' => 1,
-  'brand_id' => 2,
+  'brand_id' => 9,
   'name' => 'Samsung Galaxy S24 LL/A Mỹ',
-  'slug' => 'samsung-galaxy-s24-lla-my-28',
+  'slug' => 'samsung-galaxy-s24-lla-my',
   'sku' => 'SP0028',
   'description' => 'Samsung Galaxy S24 LL/A Mỹ đảm bảo chất lượng, nguyên zin, bảo hành 12 tháng tại Thanh Thảo Mobile.',
   'thumbnail' => 'image/samsung_s24_yellow.jpg',
@@ -1215,9 +1215,9 @@ class ProductSeeder extends Seeder
             [
                 'data' => array (
   'category_id' => 1,
-  'brand_id' => 2,
+  'brand_id' => 9,
   'name' => 'Samsung Galaxy S24 Plus LL/A Mỹ',
-  'slug' => 'samsung-galaxy-s24-plus-lla-my-29',
+  'slug' => 'samsung-galaxy-s24-plus-lla-my',
   'sku' => 'SP0029',
   'description' => 'Samsung Galaxy S24 Plus LL/A Mỹ đảm bảo chất lượng, nguyên zin, bảo hành 12 tháng tại Thanh Thảo Mobile.',
   'thumbnail' => 'image/samsung_s24_plus_black.jpg',
@@ -1244,9 +1244,9 @@ class ProductSeeder extends Seeder
             [
                 'data' => array (
   'category_id' => 1,
-  'brand_id' => 2,
+  'brand_id' => 9,
   'name' => 'Samsung Galaxy S24 Ultra LL/A Mỹ',
-  'slug' => 'samsung-galaxy-s24-ultra-lla-my-30',
+  'slug' => 'samsung-galaxy-s24-ultra-lla-my',
   'sku' => 'SP0030',
   'description' => 'Samsung Galaxy S24 Ultra LL/A Mỹ đảm bảo chất lượng, nguyên zin, bảo hành 12 tháng tại Thanh Thảo Mobile.',
   'thumbnail' => 'image/samsung_s24_ultra_gray.jpg',
@@ -1273,9 +1273,9 @@ class ProductSeeder extends Seeder
             [
                 'data' => array (
   'category_id' => 1,
-  'brand_id' => 2,
+  'brand_id' => 9,
   'name' => 'Samsung Galaxy Z Flip5 LL/A Mỹ',
-  'slug' => 'samsung-galaxy-z-flip5-lla-my-31',
+  'slug' => 'samsung-galaxy-z-flip5-lla-my',
   'sku' => 'SP0031',
   'description' => 'Samsung Galaxy Z Flip5 LL/A Mỹ đảm bảo chất lượng, nguyên zin, bảo hành 12 tháng tại Thanh Thảo Mobile.',
   'thumbnail' => 'image/samsung_zflip5_mint.jpg',
@@ -1903,9 +1903,9 @@ class ProductSeeder extends Seeder
             [
                 'data' => array (
   'category_id' => 1,
-  'brand_id' => 2,
+  'brand_id' => 9,
   'name' => 'Samsung Galaxy S24 Plus ZA/A',
-  'slug' => 'samsung-galaxy-s24-plus-zaa-46',
+  'slug' => 'samsung-galaxy-s24-plus-zaa',
   'sku' => 'SP0046',
   'description' => 'Samsung Galaxy S24 Plus ZA/A đảm bảo chất lượng, nguyên zin, bảo hành 12 tháng tại Thanh Thảo Mobile.',
   'thumbnail' => 'image/samsung_s24_plus_black.jpg',
