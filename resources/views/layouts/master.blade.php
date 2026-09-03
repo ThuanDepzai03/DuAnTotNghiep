@@ -369,93 +369,247 @@
 
     <!-- Search Suggestions CSS -->
     <style>
-        .search-input {
-            color: #000 !important;
-        }
+    .search-input {
+        color: #000 !important;
+    }
 
-        .search-input::placeholder {
-            color: #999 !important;
-        }
+    .search-input::placeholder {
+        color: #999 !important;
+    }
 
-        .search-input-wrapper {
-            position: relative;
-            width: 100%;
-            overflow: visible;
-        }
+    /* Khối tìm kiếm phải nằm trên menu */
+    .top-header-search {
+        position: relative !important;
+        z-index: 99999 !important;
+    }
 
-        .search-suggestions {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: white;
-            border: 1px solid #ddd;
-            border-top: none;
-            max-height: 400px;
-            overflow-y: auto;
-            z-index: 9999;
-            display: none;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
+    .header-search-form {
+        position: relative !important;
+        z-index: 99999 !important;
+    }
 
-        .search-suggestions.active {
-            display: block;
-        }
+    .search-input-wrapper {
+        position: relative !important;
+        width: 100%;
+        overflow: visible !important;
+        z-index: 99999 !important;
+    }
 
-        .suggestion-item {
-            padding: 12px 15px;
-            border-bottom: 1px solid #f0f0f0;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            transition: background-color 0.2s;
-            text-decoration: none;
-            color: inherit;
-        }
+    /* Dropdown kết quả */
+    .search-suggestions {
+        position: absolute !important;
+        top: 100% !important;
+        left: 0 !important;
+        right: 0 !important;
 
-        .suggestion-item:hover {
-            background-color: #f9f9f9;
-        }
+        background: #fff !important;
+        border: 1px solid #ddd;
+        border-top: none;
 
-        .suggestion-item:last-child {
-            border-bottom: none;
-        }
+        max-height: 400px;
+        overflow-y: auto;
 
-        .suggestion-image {
-            width: 50px;
-            height: 50px;
-            object-fit: cover;
-            border-radius: 4px;
-        }
+        display: none;
 
-        .suggestion-content {
-            flex: 1;
-            min-width: 0;
-        }
+        /* QUAN TRỌNG */
+        z-index: 999999 !important;
 
-        .suggestion-name {
-            font-weight: 500;
-            color: #333;
-            display: -webkit-box;
-            -webkit-line-clamp: 1;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            font-size: 14px;
-        }
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+    }
 
-        .suggestion-price {
-            color: #f53003;
-            font-weight: 600;
-            font-size: 13px;
-        }
+    .search-suggestions.active {
+        display: block !important;
+    }
 
-        .suggestion-empty {
-            padding: 20px 15px;
-            text-align: center;
-            color: #999;
-        }
-    </style>
+    .suggestion-item {
+        padding: 12px 15px;
+        border-bottom: 1px solid #f0f0f0;
+        cursor: pointer;
+
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        transition: background-color 0.2s;
+
+        text-decoration: none;
+        color: inherit;
+
+        background: #fff;
+    }
+
+    .suggestion-item:hover {
+        background-color: #f9f9f9;
+    }
+
+    .suggestion-item:last-child {
+        border-bottom: none;
+    }
+
+    .suggestion-image {
+        width: 50px;
+        height: 50px;
+        object-fit: cover;
+        border-radius: 4px;
+        flex-shrink: 0;
+    }
+
+    .suggestion-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .suggestion-name {
+        font-weight: 500;
+        color: #333;
+
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+
+        font-size: 14px;
+    }
+
+    .suggestion-price {
+        color: #f53003;
+        font-weight: 600;
+        font-size: 13px;
+    }
+
+    .suggestion-empty {
+        padding: 20px 15px;
+        text-align: center;
+        color: #999;
+        background: #fff;
+    }
+
+    /* Header không được cắt dropdown */
+    header,
+    .header,
+    .main-header,
+    .top-header {
+        overflow: visible !important;
+    }
+
+    /* Menu vẫn ở dưới dropdown */
+    .main-nav,
+    .navigation,
+    nav,
+    .navbar {
+        position: relative;
+        z-index: 100 !important;
+    }
+    /* =====================================================
+   FIX DROPDOWN TÌM KIẾM
+===================================================== */
+
+/* Header tổng */
+.site-header {
+    position: relative !important;
+    z-index: 99999 !important;
+}
+
+/* Hàng trên */
+#top-header {
+    position: relative !important;
+    z-index: 99999 !important;
+    overflow: visible !important;
+}
+
+/* Container hàng trên */
+.top-header-inner {
+    position: relative !important;
+    z-index: 99999 !important;
+}
+
+/* Khu vực tìm kiếm */
+.top-header-search {
+    position: relative !important;
+    z-index: 999999 !important;
+}
+
+/* Form tìm kiếm */
+.header-search-form {
+    position: relative !important;
+    z-index: 999999 !important;
+}
+
+/* Wrapper input */
+.search-input-wrapper {
+    position: relative !important;
+    width: 100%;
+    overflow: visible !important;
+    z-index: 999999 !important;
+}
+
+/* Dropdown */
+.search-suggestions {
+    position: absolute !important;
+
+    top: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+
+    background: #fff !important;
+
+    border: 1px solid #ddd !important;
+    border-top: none !important;
+
+    max-height: 400px;
+    overflow-y: auto;
+
+    display: none;
+
+    z-index: 9999999 !important;
+
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+
+    color: #222;
+}
+
+/* Khi JS mở dropdown */
+.search-suggestions.active {
+    display: block !important;
+}
+
+/* Menu phía dưới */
+#navigation {
+    position: relative !important;
+    z-index: 100 !important;
+    overflow: visible !important;
+}
+
+/* Các phần tử cha không được cắt dropdown */
+.site-header,
+#top-header,
+#top-header .container,
+.top-header-inner,
+.top-header-search,
+.header-search-form,
+.search-input-wrapper,
+#navigation,
+#navigation .container,
+#responsive-nav {
+    overflow: visible !important;
+}
+/* FIX KHOẢNG TRẮNG PHÍA TRÊN HEADER */
+body {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+.site-header {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    top: 0 !important;
+}
+
+#top-header {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+</style>
 
     <!-- Search Suggestions JavaScript -->
     <script>
