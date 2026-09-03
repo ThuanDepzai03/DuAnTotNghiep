@@ -4380,7 +4380,7 @@ class ProductSeeder extends Seeder
   'slug' => 'asus',
   'sku' => 'ASUS-CAXJ',
   'description' => NULL,
-  'thumbnail' => 'image/products/1788469468-7xsi1KZG.png',
+  'thumbnail' => 'image/products/1788469719-OIETmb9X.png',
   'status' => 1,
 ),
                 'variants' => [

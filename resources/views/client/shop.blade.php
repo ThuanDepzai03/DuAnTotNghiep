@@ -343,23 +343,20 @@
                                 ? $cheapestVariant->price
                                 : null;
 
-                            $imgPath = $product->thumbnail ?? 'img/product01.png';
-                            $imgPath = ltrim(str_replace('\\', '/', $imgPath), '/');
+                            $imgPath = ltrim(str_replace('\\', '/', (string) $product->thumbnail), '/');
 
-                            if (preg_match('#^https?://#', $imgPath)) {
+                            if ($imgPath === '') {
+                                $imgSrc = asset('img/product01.png');
+                            } elseif (preg_match('#^https?://#i', $imgPath)) {
                                 $imgSrc = $imgPath;
-                            } elseif (str_starts_with($imgPath, 'public/')) {
-                                $imgSrc = asset(substr($imgPath, 7));
-                            } elseif (
-                                str_starts_with($imgPath, 'img/') ||
-                                str_starts_with($imgPath, 'image/') ||
-                                str_starts_with($imgPath, 'admin/') ||
-                                str_starts_with($imgPath, 'products/') ||
-                                str_starts_with($imgPath, 'storage/')
-                            ) {
-                                $imgSrc = asset($imgPath);
                             } else {
-                                $imgSrc = asset('image/' . $imgPath);
+                                $imgPath = preg_replace('#^public/#i', '', $imgPath);
+
+                                if (preg_match('#^(image/|img/|admin/|storage/)#i', $imgPath)) {
+                                    $imgSrc = asset($imgPath);
+                                } else {
+                                    $imgSrc = asset('image/' . $imgPath);
+                                }
                             }
                         @endphp
 
