@@ -4097,7 +4097,7 @@ class ProductSeeder extends Seeder
   'sku' => 'SP0131-V1',
   'price' => '13990000.00',
   'sale_price' => '13490000.00',
-  'stock' => 13,
+  'stock' => 24,
   'image' => 'image/iphone13_black.jpg',
   'status' => 1,
 ),
@@ -4109,7 +4109,7 @@ class ProductSeeder extends Seeder
   'sku' => 'SP0131-V2',
   'price' => '13990000.00',
   'sale_price' => '13490000.00',
-  'stock' => 31,
+  'stock' => 28,
   'image' => 'image/iphone13_blue.jpg',
   'status' => 1,
 ),
@@ -4121,7 +4121,7 @@ class ProductSeeder extends Seeder
   'sku' => 'SP0131-V3',
   'price' => '15990000.00',
   'sale_price' => '15490000.00',
-  'stock' => 31,
+  'stock' => 37,
   'image' => 'image/iphone13_starlight.jpg',
   'status' => 1,
 ),
@@ -4147,7 +4147,7 @@ class ProductSeeder extends Seeder
   'sku' => 'SP0132-V1',
   'price' => '7490000.00',
   'sale_price' => '6990000.00',
-  'stock' => 37,
+  'stock' => 19,
   'image' => 'image/samsung_a35_lilac.jpg',
   'status' => 1,
 ),
@@ -4158,29 +4158,216 @@ class ProductSeeder extends Seeder
             ],
             [
                 'data' => array (
-  'category_id' => 1,
+  'category_id' => 6,
   'brand_id' => 1,
-  'name' => 'ip demo',
-  'slug' => 'ip-demo',
-  'sku' => 'IPDEMO-M0Y0',
-  'description' => 'sdfSefsedfsdfeszdefs<img src="http://127.0.0.1:8000/image/products/description/1788458891-37NJ4XrieZCc.png" alt="oneplus-sign-logo.png" class="description-image" draggable="true" style="max-width: 100%; height: auto; display: block; margin: 15px 0px; width: 214.994px;"><p><br></p>',
-  'thumbnail' => 'image/products/1788458980-YAoYw4Bq.png',
+  'name' => 'Ốp lưng MagSafe',
+  'slug' => 'op-lung-magsafe',
+  'sku' => 'OPLUNGMAGSAFE-TSKB',
+  'description' => 'Ốp lưng trong suốt dành cho iPhone, thiết kế mỏng nhẹ, hỗ trợ sạc MagSafe, bảo vệ máy khỏi trầy xước và va đập nhẹ. Các nút bấm được thiết kế chính xác, không ảnh hưởng đến thao tác sử dụng.<div><img src="https://cdn2.cellphones.com.vn/insecure/rs:fill:0:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/o/p/op-lung-iphone-16-pro-max-likgus-ai-glaze-with-magsafe_9_.png" alt="Ốp lưng iPhone 16 Pro Max Likgus AI Glaze With Magsafe - 2"></div>',
+  'thumbnail' => 'image/products/1788459980-1wwjTuz6.webp',
   'status' => 1,
 ),
                 'variants' => [
                     [
                         'data' => array (
-  'sku' => 'IPDEMO-M0Y0-CNKD',
-  'price' => '250000.00',
-  'sale_price' => '244000.00',
-  'stock' => 56,
-  'image' => 'image/variants/1788458980-K7HJPoYs.png',
+  'sku' => 'OPLUNGMAGSAFE-TSKB-DIBB',
+  'price' => '199000.00',
+  'sale_price' => '190000.00',
+  'stock' => 100,
+  'image' => 'image/variants/1788459980-itQbQU7P.webp',
   'status' => 1,
 ),
                         'attribute_value_ids' => array (
-  0 => 10,
-  1 => 17,
-  2 => 23,
+  0 => 1,
+),
+                    ],
+                ],
+            ],
+            [
+                'data' => array (
+  'category_id' => 6,
+  'brand_id' => 1,
+  'name' => 'Cáp USB-C to USB-C 60W',
+  'slug' => 'cap-usb-c-to-usb-c-60w',
+  'sku' => 'CAPUSBCTOUSBC60W-JIAH',
+  'description' => 'Cáp USB-C to USB-C hỗ trợ sạc nhanh công suất lên đến 60W, phù hợp với iPhone sử dụng cổng USB-C và nhiều thiết bị điện tử khác. Dây cáp chắc chắn, hỗ trợ truyền dữ liệu tốc độ cao.',
+  'thumbnail' => NULL,
+  'status' => 1,
+),
+                'variants' => [
+                    [
+                        'data' => array (
+  'sku' => 'CAPUSBCTOUSBC60W-JIAH-0MA7',
+  'price' => '249000.00',
+  'sale_price' => '240000.00',
+  'stock' => 100,
+  'image' => NULL,
+  'status' => 1,
+),
+                        'attribute_value_ids' => array (
+  0 => 4,
+),
+                    ],
+                ],
+            ],
+            [
+                'data' => array (
+  'category_id' => 6,
+  'brand_id' => 1,
+  'name' => 'Củ sạc nhanh USB-C 20W',
+  'slug' => 'cu-sac-nhanh-usb-c-20w',
+  'sku' => 'CUSACNHANHUSBC20W-TVOK',
+  'description' => 'Củ sạc USB-C 20W nhỏ gọn, hỗ trợ công nghệ sạc nhanh, phù hợp sử dụng cho iPhone và các thiết bị có hỗ trợ USB-C. Thiết kế tiện lợi để mang theo khi đi học, đi làm hoặc du lịch.',
+  'thumbnail' => NULL,
+  'status' => 1,
+),
+                'variants' => [
+                    [
+                        'data' => array (
+  'sku' => 'CUSACNHANHUSBC20W-TVOK-IYYC',
+  'price' => '399000.00',
+  'sale_price' => '390000.00',
+  'stock' => 100,
+  'image' => NULL,
+  'status' => 1,
+),
+                        'attribute_value_ids' => array (
+  0 => 2,
+),
+                    ],
+                ],
+            ],
+            [
+                'data' => array (
+  'category_id' => 6,
+  'brand_id' => 1,
+  'name' => 'Pin dự phòng MagSafe 10.000mAh',
+  'slug' => 'pin-du-phong-magsafe-10000mah',
+  'sku' => 'PINDUPHONGMAGSAFE10000MAH-LDFG',
+  'description' => 'Pin dự phòng dung lượng 10.000mAh, thiết kế nhỏ gọn, hỗ trợ sạc không dây tương thích MagSafe. Phù hợp sử dụng khi đi học, đi làm hoặc đi du lịch.',
+  'thumbnail' => NULL,
+  'status' => 1,
+),
+                'variants' => [
+                    [
+                        'data' => array (
+  'sku' => 'PINDUPHONGMAGSAFE10000MAH-LDFG-OX8I',
+  'price' => '699000.00',
+  'sale_price' => '688000.00',
+  'stock' => 100,
+  'image' => NULL,
+  'status' => 1,
+),
+                        'attribute_value_ids' => array (
+  0 => 2,
+),
+                    ],
+                ],
+            ],
+            [
+                'data' => array (
+  'category_id' => 6,
+  'brand_id' => 9,
+  'name' => 'Ốp lưng Samsung Galaxy S24 Ultra chống sốc',
+  'slug' => 'op-lung-samsung-galaxy-s24-ultra-chong-soc',
+  'sku' => 'OPLUNGSAMSUNGGALAXYS24ULTRACHONGSOC-NRWX',
+  'description' => 'Ốp lưng dành cho Samsung Galaxy S24 Ultra, thiết kế chống sốc với các góc được gia cố, giúp bảo vệ điện thoại trước những va chạm và trầy xước trong quá trình sử dụng.',
+  'thumbnail' => NULL,
+  'status' => 1,
+),
+                'variants' => [
+                    [
+                        'data' => array (
+  'sku' => 'OPLUNGSAMSUNGGALAXYS24ULTRACHONGSOC-NRWX-JCZW',
+  'price' => '179000.00',
+  'sale_price' => '170000.00',
+  'stock' => 100,
+  'image' => NULL,
+  'status' => 1,
+),
+                        'attribute_value_ids' => array (
+  0 => 1,
+),
+                    ],
+                ],
+            ],
+            [
+                'data' => array (
+  'category_id' => 6,
+  'brand_id' => 9,
+  'name' => 'Cáp USB-C to USB-C Samsung 45W',
+  'slug' => 'cap-usb-c-to-usb-c-samsung-45w',
+  'sku' => 'CAPUSBCTOUSBCSAMSUNG45W-NHMS',
+  'description' => 'Cáp sạc USB-C to USB-C hỗ trợ công suất lên đến 45W, phù hợp với các thiết bị Samsung Galaxy hỗ trợ sạc nhanh. Dây cáp bền, đầu kết nối chắc chắn và hỗ trợ truyền dữ liệu.',
+  'thumbnail' => NULL,
+  'status' => 1,
+),
+                'variants' => [
+                    [
+                        'data' => array (
+  'sku' => 'CAPUSBCTOUSBCSAMSUNG45W-NHMS-5RKT',
+  'price' => '299000.00',
+  'sale_price' => '290000.00',
+  'stock' => 100,
+  'image' => NULL,
+  'status' => 1,
+),
+                        'attribute_value_ids' => array (
+  0 => 2,
+),
+                    ],
+                ],
+            ],
+            [
+                'data' => array (
+  'category_id' => 6,
+  'brand_id' => 9,
+  'name' => 'Củ sạc nhanh Samsung 45W',
+  'slug' => 'cu-sac-nhanh-samsung-45w',
+  'sku' => 'CUSACNHANHSAMSUNG45W-TBUP',
+  'description' => 'Củ sạc nhanh USB-C công suất 45W, phù hợp với các dòng Samsung Galaxy hỗ trợ sạc nhanh. Thiết kế nhỏ gọn, dễ dàng mang theo và sử dụng tại nhà hoặc văn phòng.',
+  'thumbnail' => NULL,
+  'status' => 1,
+),
+                'variants' => [
+                    [
+                        'data' => array (
+  'sku' => 'CUSACNHANHSAMSUNG45W-TBUP-NLGI',
+  'price' => '699000.00',
+  'sale_price' => '690000.00',
+  'stock' => 100,
+  'image' => NULL,
+  'status' => 1,
+),
+                        'attribute_value_ids' => array (
+  0 => 1,
+),
+                    ],
+                ],
+            ],
+            [
+                'data' => array (
+  'category_id' => 6,
+  'brand_id' => 9,
+  'name' => 'Pin dự phòng Samsung 10.000mAh',
+  'slug' => 'pin-du-phong-samsung-10000mah',
+  'sku' => 'PINDUPHONGSAMSUNG10000MAH-LSCS',
+  'description' => 'Pin dự phòng dung lượng 10.000mAh, thiết kế nhỏ gọn, hỗ trợ sạc nhanh qua cổng USB-C. Có thể sử dụng để sạc điện thoại Samsung và nhiều thiết bị điện tử khác.',
+  'thumbnail' => NULL,
+  'status' => 1,
+),
+                'variants' => [
+                    [
+                        'data' => array (
+  'sku' => 'PINDUPHONGSAMSUNG10000MAH-LSCS-RXRR',
+  'price' => '549000.00',
+  'sale_price' => '500000.00',
+  'stock' => 100,
+  'image' => NULL,
+  'status' => 1,
+),
+                        'attribute_value_ids' => array (
+  0 => 1,
 ),
                     ],
                 ],
