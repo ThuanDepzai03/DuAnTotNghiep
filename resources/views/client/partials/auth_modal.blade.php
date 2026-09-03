@@ -320,6 +320,12 @@
             });
         });
 
+        const requestedTab = new URLSearchParams(window.location.search).get('auth');
+        if (requestedTab === 'login' || requestedTab === 'register') {
+            setTab(requestedTab);
+            openModal();
+        }
+
         function showMessage(elementId, message, type) {
             const messageBox = document.getElementById(elementId);
             if (!messageBox) return;
