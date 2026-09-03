@@ -20,6 +20,9 @@ class AdditionalCatalogSeeder extends Seeder
             'tai-nghe',
             'bo-sac',
             'op-lung',
+            'cu-sac',
+            'day-sac',
+            'kinh-cuong-luc',
         ])->pluck('id', 'slug');
 
         $brands = Brand::whereIn('slug', ['apple', 'asus', 'samsung', 'xiaomi'])
@@ -107,6 +110,66 @@ class AdditionalCatalogSeeder extends Seeder
                 'sale_price' => 1290000,
                 'stock' => 40,
             ],
+            [
+                'slug' => 'apple-airpods-max',
+                'name' => 'Apple AirPods Max',
+                'category' => 'tai-nghe',
+                'brand' => 'apple',
+                'thumbnail' => 'image/products/apple-airpods-max.jpg',
+                'price' => 13490000,
+                'sale_price' => 12490000,
+                'stock' => 12,
+            ],
+            [
+                'slug' => 'xiaomi-watch-s3',
+                'name' => 'Xiaomi Watch S3',
+                'category' => 'dong-ho',
+                'brand' => 'xiaomi',
+                'thumbnail' => 'image/products/xiaomi-watch-s3.jpg',
+                'price' => 3990000,
+                'sale_price' => 3490000,
+                'stock' => 22,
+            ],
+            [
+                'slug' => 'samsung-25w-power-adapter',
+                'name' => 'Samsung 25W Power Adapter',
+                'category' => 'cu-sac',
+                'brand' => 'samsung',
+                'thumbnail' => 'image/products/samsung-25w-power-adapter.jpg',
+                'price' => 490000,
+                'sale_price' => 390000,
+                'stock' => 60,
+            ],
+            [
+                'slug' => 'xiaomi-usb-c-fast-charge-cable',
+                'name' => 'Xiaomi USB-C Fast Charge Cable',
+                'category' => 'day-sac',
+                'brand' => 'xiaomi',
+                'thumbnail' => 'image/products/xiaomi-usb-c-fast-charge-cable.jpg',
+                'price' => 250000,
+                'sale_price' => 190000,
+                'stock' => 80,
+            ],
+            [
+                'slug' => 'samsung-galaxy-s24-silicone-case',
+                'name' => 'Samsung Galaxy S24 Silicone Case',
+                'category' => 'op-lung',
+                'brand' => 'samsung',
+                'thumbnail' => 'image/products/samsung-galaxy-s24-silicone-case.jpg',
+                'price' => 790000,
+                'sale_price' => 590000,
+                'stock' => 45,
+            ],
+            [
+                'slug' => 'xiaomi-tempered-glass-protector',
+                'name' => 'Xiaomi Tempered Glass Protector',
+                'category' => 'kinh-cuong-luc',
+                'brand' => 'xiaomi',
+                'thumbnail' => 'image/products/xiaomi-tempered-glass-protector.jpg',
+                'price' => 180000,
+                'sale_price' => 120000,
+                'stock' => 100,
+            ],
         ];
 
         DB::transaction(function () use ($products, $categories, $brands, $colorValue) {
@@ -142,6 +205,6 @@ class AdditionalCatalogSeeder extends Seeder
             }
         });
 
-        $this->command?->info('Đã bổ sung 8 sản phẩm laptop, đồng hồ và phụ kiện.');
+        $this->command?->info('Đã bổ sung sản phẩm laptop, đồng hồ và phụ kiện.');
     }
 }
