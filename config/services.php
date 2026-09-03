@@ -41,4 +41,10 @@ return [
         'shop_id' => env('GHN_SHOP_ID'),
     ],
 
+    'gemini' => [
+        'api_key' => env('GEMINI_API_KEY'),
+        'image_model' => env('GEMINI_IMAGE_MODEL', 'gemini-2.0-flash-exp'),
+        'verify_ssl' => env('GEMINI_VERIFY_SSL', true),
+    ],
+
 ];
