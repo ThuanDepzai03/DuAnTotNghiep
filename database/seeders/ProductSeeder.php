@@ -382,9 +382,9 @@ class ProductSeeder extends Seeder
             [
                 'data' => array (
   'category_id' => 1,
-  'brand_id' => 2,
+  'brand_id' => 9,
   'name' => 'Samsung Galaxy A35 Chính Hãng',
-  'slug' => 'samsung-galaxy-a35-chinh-hang-7',
+  'slug' => 'samsung-galaxy-a35-chinh-hang',
   'sku' => 'SP0007',
   'description' => 'Samsung Galaxy A35 Chính Hãng đảm bảo chất lượng, nguyên zin, bảo hành 12 tháng tại Thanh Thảo Mobile.',
   'thumbnail' => 'image/samsung_a35_lilac.jpg',
@@ -411,9 +411,9 @@ class ProductSeeder extends Seeder
             [
                 'data' => array (
   'category_id' => 1,
-  'brand_id' => 2,
+  'brand_id' => 9,
   'name' => 'Samsung Galaxy A55 Chính Hãng',
-  'slug' => 'samsung-galaxy-a55-chinh-hang-8',
+  'slug' => 'samsung-galaxy-a55-chinh-hang',
   'sku' => 'SP0008',
   'description' => 'Samsung Galaxy A55 Chính Hãng đảm bảo chất lượng, nguyên zin, bảo hành 12 tháng tại Thanh Thảo Mobile.',
   'thumbnail' => 'image/samsung_a55_navy.jpg',
@@ -440,9 +440,9 @@ class ProductSeeder extends Seeder
             [
                 'data' => array (
   'category_id' => 1,
-  'brand_id' => 2,
+  'brand_id' => 9,
   'name' => 'Samsung Galaxy M54 Chính Hãng',
-  'slug' => 'samsung-galaxy-m54-chinh-hang-9',
+  'slug' => 'samsung-galaxy-m54-chinh-hang',
   'sku' => 'SP0009',
   'description' => 'Samsung Galaxy M54 Chính Hãng đảm bảo chất lượng, nguyên zin, bảo hành 12 tháng tại Thanh Thảo Mobile.',
   'thumbnail' => 'image/samsung_m54_silver.jpg',
