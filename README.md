@@ -118,7 +118,15 @@ npm run build
 
 ### Đăng nhập bằng Google
 
-Cài đặt Google OAuth trong Google Cloud Console, thêm redirect URI:
+Trong Google Cloud Console, cấu hình OAuth Client loại **Web application** như sau.
+
+Authorized JavaScript origins:
+
+```text
+http://127.0.0.1:8000
+```
+
+Authorized redirect URIs:
 
 ```text
 http://127.0.0.1:8000/auth/google/callback
@@ -132,11 +140,14 @@ GOOGLE_CLIENT_SECRET=your-client-secret
 GOOGLE_REDIRECT_URI=http://127.0.0.1:8000/auth/google/callback
 ```
 
-Chạy migration trước khi dùng tính năng:
+Khi chạy local, phải truy cập website bằng đúng host `http://127.0.0.1:8000`, không trộn với `http://localhost`. Sau khi thay đổi `.env` hoặc cấu hình OAuth, chạy:
 
 ```bash
 php artisan migrate
+php artisan optimize:clear
 ```
+
+Nếu PHP trên Windows báo `cURL error 60`, kiểm tra `curl.cainfo` và `openssl.cafile` trong `php.ini` trỏ tới file CA hợp lệ, sau đó khởi động lại Apache/WAMP hoặc tiến trình `php artisan serve`.
 
 Lệnh `db:seed` tạo sản phẩm, tài khoản mẫu, voucher và đánh giá/bình luận mẫu. Nếu muốn làm lại toàn bộ database trong môi trường phát triển, dùng `php artisan migrate:fresh --seed`.
 
@@ -882,11 +893,11 @@ Checklist kiểm thử chính:
 
 | Thành viên thực tế | Identity trong Git | Commit ghi nhận | Khu vực thay đổi nổi bật |
 |---|---|---:|---|
-| **Bùi Minh Thuận** `PP03513` - Trưởng nhóm | `Thuận`, `Thuandepzai03`, `thuanvillager243-dev`, `thuandz` | **155** | Tích hợp hệ thống, checkout, xác thực, địa chỉ, README, giao diện và migration |
+| **Bùi Minh Thuận** `PP03513` - Trưởng nhóm | `Thuận`, `Thuandepzai03`, `thuanvillager243-dev`, `thuandz` | **168** | Tích hợp hệ thống, checkout, xác thực, địa chỉ, README, giao diện và migration |
 | **Đỗ Trung Hiếu** `PP03417` | `hieu` | **30** | Nghiệp vụ đơn hàng, checkout, thanh toán và controller backend |
 | **Lưu Đức Kiệt** `PP03363` | `duckiet863` | **43** | Banner, đánh giá, admin view, migration và kiểm thử |
 | **Bùi Quang Sơn** `PP03356` | `Sown11` | **23** | Sản phẩm, thương hiệu, seeder, migration và giao diện |
-| **Nguyễn Văn Trung** `PP03493` | `tun` | **55** | Seeder, dữ liệu sản phẩm, controller và giao diện |
+| **Nguyễn Văn Trung** `PP03493` | `tun` | **36** | Seeder, dữ liệu sản phẩm, controller và giao diện |
 
 ### Quy đổi identity
 
@@ -894,6 +905,18 @@ Checklist kiểm thử chính:
 - `thuanvillager243-dev` và `thuandz` cùng dùng email `thuanvillager243@gmail.com`, được gộp vào Bùi Minh Thuận.
 - `hieu`, `duckiet863`, `Sown11` và `tun` được đối chiếu lần lượt với Đỗ Trung Hiếu, Lưu Đức Kiệt, Bùi Quang Sơn và Nguyễn Văn Trung theo email, tên nhánh và nội dung file/commit.
 - Identity `tuanvt18 <daotuan092006@gmail.com>` có 4 commit trong Git nhưng README hiện không có hồ sơ thành viên tương ứng để đối chiếu chắc chắn; không gán identity này vào tên khác.
+
+### Cập nhật commit gần đây
+
+Các commit gần đây liên quan đến đăng nhập Google được ghi nhận dưới identity `Thuandepzai03 <thuanvillager24@gmail.com>`:
+
+| Commit | Nội dung | Thành viên |
+|---|---|---|
+| `4914882` | Hoàn thành chức năng đăng ký, đăng nhập bằng Google | Bùi Minh Thuận |
+| `91cb483` | Thêm đăng nhập bằng Google | Bùi Minh Thuận |
+| `b9a5a4a` | Cập nhật README | Bùi Minh Thuận |
+
+Số lượng commit trong bảng trên được lấy trực tiếp bằng `git log --all` và gộp theo identity đã đối chiếu. Không tạo commit giả dưới tên hoặc email của thành viên khác.
 
 ### Phân công theo dữ liệu commit
 
