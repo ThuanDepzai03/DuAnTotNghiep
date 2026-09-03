@@ -33,7 +33,8 @@
 - [Dữ liệu Admin và Seeder](#dữ-liệu-admin-và-seeder)
 - [Cập nhật dự án giữ nguyên database](#cập-nhật-phiên-bản-mới-nhưng-giữ-nguyên-database)
 - [Chức năng chính](#4-chức-năng-chính)
-- [Kiến trúc và quy trình](#7-kiến-trúc-thư-mục)
+- [Luồng hoạt động toàn hệ thống](#8-luồng-hoạt-động-toàn-hệ-thống)
+- [Kiến trúc thư mục](#7-kiến-trúc-thư-mục)
 
 </details>
 
