@@ -16,7 +16,7 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h4 class="card-title mb-0">Danh sách khách hàng</h4>
+                            <h4 class="card-title mb-0">Danh sách tài khoản</h4>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -26,7 +26,10 @@
                                     <th>ID</th>
                                     <th>Tài khoản</th>
                                     <th>Email</th>
+                                    <th>Số điện thoại</th>
+                                    <th>Địa chỉ</th>
                                     <th>Vai trò</th>
+                                    <th>Ngày tạo</th>
                                     <th>Thao tác</th>
                                 </tr>
                             </thead>
@@ -36,11 +39,24 @@
                                     <td>#{{ $user->id }}</td>
                                     <td>{{ $user->user }}</td>
                                     <td>{{ $user->email }}</td>
+                                    <td>{{ $user->tel ?: 'Chưa cập nhật' }}</td>
+                                    <td style="min-width: 240px;">
+                                        @php
+                                            $addressParts = array_filter([
+                                                $user->address_detail ?? null,
+                                                $user->address ?? null,
+                                                $user->ward ?? null,
+                                                $user->city ?? null,
+                                            ]);
+                                        @endphp
+                                        {{ $addressParts ? implode(', ', $addressParts) : 'Chưa cập nhật' }}
+                                    </td>
                                     <td>
                                         <span class="badge {{ $user->role == 1 ? 'bg-primary' : 'bg-secondary' }}">
                                             {{ $user->role == 1 ? 'Admin' : 'Khách hàng' }}
                                         </span>
                                     </td>
+                                    <td>{{ $user->created_at ? date('d/m/Y H:i', strtotime($user->created_at)) : '---' }}</td>
                                     <td>
                                         <div class="d-flex gap-2 flex-wrap">
                                             <a href="{{ route('admin.users.edit', $user->id) }}" class="btn btn-sm btn-outline-secondary">Sửa</a>
