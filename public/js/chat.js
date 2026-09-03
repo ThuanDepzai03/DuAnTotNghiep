@@ -55,6 +55,8 @@ function closeChat() {
    GỬI TIN NHẮN KHÁCH
 ========================= */
 
+let customerMessagesLoading = false;
+
 function sendMessage() {
 
     const input = document.getElementById('chat-message');
@@ -144,6 +146,12 @@ function handleChatEnter(event) {
 
 function loadCustomerMessages() {
 
+    if (customerMessagesLoading) {
+        return;
+    }
+
+    customerMessagesLoading = true;
+
     fetch('/chat/messages')
 
         .then(response => {
@@ -168,6 +176,9 @@ function loadCustomerMessages() {
             if (!box) {
                 return;
             }
+
+            const wasNearBottom =
+                box.scrollHeight - box.scrollTop - box.clientHeight < 40;
 
             box.innerHTML = '';
 
@@ -194,6 +205,8 @@ function loadCustomerMessages() {
                         </div>
                     </div>
                 `;
+
+                customerMessagesLoading = false;
 
                 return;
             }
@@ -277,8 +290,9 @@ function loadCustomerMessages() {
             });
 
 
-            box.scrollTop =
-                box.scrollHeight;
+            if (wasNearBottom) {
+                box.scrollTop = box.scrollHeight;
+            }
 
         })
 
@@ -289,6 +303,9 @@ function loadCustomerMessages() {
                 error
             );
 
+        })
+        .finally(() => {
+            customerMessagesLoading = false;
         });
 }
 

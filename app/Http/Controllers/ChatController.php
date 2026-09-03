@@ -84,7 +84,32 @@ class ChatController extends Controller
     // =========================
     public function adminIndex()
     {
-        $conversations = Conversation::with([
+        $conversations = $this->getAdminConversations();
+
+        return view('admin.chat.index', compact('conversations'));
+    }
+
+    public function adminConversations()
+    {
+        return response()->json([
+            'conversations' => $this->getAdminConversations()->map(function ($conversation) {
+                $lastMessage = $conversation->messages->first();
+
+                return [
+                    'id' => $conversation->id,
+                    'customer_name' => $conversation->customer_user
+                        ?: ($conversation->customer_email ?: 'Khách hàng #' . $conversation->id),
+                    'customer_email' => $conversation->customer_email,
+                    'last_message' => $lastMessage ? $lastMessage->message : 'Chưa có tin nhắn',
+                    'unread' => $conversation->messages->where('sender_type', 'customer')->where('is_read', false)->count(),
+                ];
+            })->values(),
+        ]);
+    }
+
+    private function getAdminConversations()
+    {
+        return Conversation::with([
             'messages' => function ($query) {
                 $query->latest();
             }
@@ -93,8 +118,6 @@ class ChatController extends Controller
         ->select('conversations.*', 'nguoidung.user as customer_user', 'nguoidung.email as customer_email')
         ->orderByDesc('last_message_at')
         ->get();
-
-        return view('admin.chat.index', compact('conversations'));
     }
 
 
@@ -167,11 +190,11 @@ class ChatController extends Controller
 
         $conversation = Conversation::findOrFail($id);
 
-        $admin = session('admin');
-        $customer = session('customer');
+        $admin = session('admin', []);
+        $customer = session('customer', []);
         $adminId = $admin['id'] ?? $customer['id'] ?? null;
 
-        if (!$adminId || ((int) ($customer['role'] ?? 0) !== 1 && empty($admin))) {
+        if (!$adminId || ((int) ($customer['role'] ?? 0) !== 1 && !$admin)) {
             abort(403);
         }
 
