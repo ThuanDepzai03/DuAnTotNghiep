@@ -69,7 +69,7 @@ Website thương mại điện tử bán điện thoại, máy tính bảng và 
 
 ## 3. Cài đặt và chạy dự án trên máy khác
 
-Download evn https://docs.google.com/document/d/1WTROMSZGyiQrerM0kYiHL5741OwnXjZr6yuRSwcW3t0/edit?usp=sharing
+Download evn https://drive.google.com/file/d/1RSWNwgz06cFeIBwueJ4PLbYjA7ePuW6-/view?usp=sharing
 
 ### Yêu cầu
 
