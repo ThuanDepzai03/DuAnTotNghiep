@@ -30,6 +30,11 @@ class ProductController extends Controller
             $query->where('brand_id', $request->integer('brand_id'));
         }
 
+        if ($request->filled('category_id')) {
+            $category = Category::with('children')->find($request->integer('category_id'));
+            $query->whereIn('category_id', collect([$category?->id])->merge($category?->children->pluck('id') ?? [])->filter());
+        }
+
         match ($request->input('price')) {
             'low_to_high' => $query->withMin('variants', 'sale_price')->orderBy('variants_min_sale_price'),
             'high_to_low' => $query->withMin('variants', 'sale_price')->orderByDesc('variants_min_sale_price'),
@@ -38,8 +43,9 @@ class ProductController extends Controller
 
         $products = $query->get();
         $brands = Brand::where('status', 1)->orderBy('name')->get();
+        $categories = Category::where('status', 1)->with('children')->whereNull('parent_id')->orderBy('name')->get();
 
-        return view('admin.products.index', compact('products', 'brands'));
+        return view('admin.products.index', compact('products', 'brands', 'categories'));
     }
 
     public function create()

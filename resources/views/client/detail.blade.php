@@ -1068,6 +1068,23 @@ document.addEventListener('DOMContentLoaded', function () {
         return variants.find(variant => variantMatches(variant, selected));
     }
 
+    function getProductPriceRange() {
+        const prices = variants
+            .map(variant => Number(variant.final_price))
+            .filter(price => Number.isFinite(price));
+
+        if (!prices.length) {
+            return '';
+        }
+
+        const minPrice = Math.min(...prices);
+        const maxPrice = Math.max(...prices);
+
+        return minPrice === maxPrice
+            ? formatMoney(minPrice)
+            : formatMoney(minPrice) + ' - ' + formatMoney(maxPrice);
+    }
+
     function updateAvailableOptions() {
         buttons.forEach(button => {
             const attributeId = button.dataset.attributeId;
@@ -1091,7 +1108,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const variant = findSelectedVariant();
 
         if (!variant) {
-            priceElement.textContent = '';
+            priceElement.textContent = getProductPriceRange();
             oldPriceElement.style.display = 'none';
             stockElement.textContent = 'Chưa chọn sản phẩm';
             messageElement.textContent = 'Hãy chọn đầy đủ thuộc tính sản phẩm.';
@@ -1148,20 +1165,27 @@ document.addEventListener('DOMContentLoaded', function () {
             const valueId = button.dataset.valueId;
             const valueName = button.dataset.valueName;
 
-            selected[attributeId] = valueId;
-
             document
                 .querySelectorAll(`[data-attribute-id="${attributeId}"]`)
                 .forEach(item => item.classList.remove('active'));
-
-            button.classList.add('active');
 
             const selectedText = document.getElementById(
                 `selected-attribute-${attributeId}`
             );
 
-            if (selectedText) {
-                selectedText.textContent = valueName;
+            if (selected[attributeId] === valueId) {
+                delete selected[attributeId];
+
+                if (selectedText) {
+                    selectedText.textContent = 'Chưa chọn';
+                }
+            } else {
+                selected[attributeId] = valueId;
+                button.classList.add('active');
+
+                if (selectedText) {
+                    selectedText.textContent = valueName;
+                }
             }
 
             updateAvailableOptions();

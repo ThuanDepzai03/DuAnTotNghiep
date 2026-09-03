@@ -59,6 +59,19 @@
                         </div>
 
                         <div class="col-md-3">
+                            <label for="product-filter-category" class="form-label">Theo danh mục</label>
+                            <select id="product-filter-category" name="category_id" class="form-select">
+                                <option value="">Tất cả danh mục</option>
+                                @foreach($categories as $category)
+                                    <option value="{{ $category->id }}" @selected((string) request('category_id') === (string) $category->id)>{{ $category->name }}</option>
+                                    @foreach($category->children as $child)
+                                        <option value="{{ $child->id }}" @selected((string) request('category_id') === (string) $child->id)>— {{ $child->name }}</option>
+                                    @endforeach
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
                             <label for="product-filter-brand" class="form-label">Theo thương hiệu</label>
                             <select id="product-filter-brand" name="brand_id" class="form-select">
                                 <option value="">Tất cả thương hiệu</option>

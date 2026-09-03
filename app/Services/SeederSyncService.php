@@ -101,11 +101,13 @@ PHP;
         foreach ($categories as $category) {
             $name = addslashes($category->name ?? '');
             $slug = addslashes($category->slug ?? Str::slug($category->name ?? 'category'));
+            $parentSlug = $category->parent?->slug;
             $status = (int) ($category->status ?? 1);
 
             $content .= "            [\n";
             $content .= "                'name' => '{$name}',\n";
             $content .= "                'slug' => '{$slug}',\n";
+            $content .= "                'parent_slug' => " . ($parentSlug ? "'" . addslashes($parentSlug) . "'" : 'null') . ",\n";
             $content .= "                'status' => {$status},\n";
             $content .= "            ],\n";
         }
@@ -121,6 +123,14 @@ PHP;
                     'status' => $category['status'],
                 ]
             );
+        }
+
+        foreach ($categories as $category) {
+            Category::where('slug', $category['slug'])->update([
+                'parent_id' => $category['parent_slug']
+                    ? Category::where('slug', $category['parent_slug'])->value('id')
+                    : null,
+            ]);
         }
     }
 }

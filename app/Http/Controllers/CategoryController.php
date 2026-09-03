@@ -13,6 +13,7 @@ class CategoryController extends Controller
     public function index()
     {
         $categories = Category::query()
+            ->with('parent')
             ->orderByDesc('status')
             ->orderBy('name')
             ->get();
@@ -22,13 +23,16 @@ class CategoryController extends Controller
 
     public function create()
     {
-        return view('admin.categories.create');
+        $parentCategories = Category::whereNull('parent_id')->where('status', 1)->orderBy('name')->get();
+
+        return view('admin.categories.create', compact('parentCategories'));
     }
 
     public function store(Request $request)
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255', 'unique:categories,name'],
+            'parent_id' => ['nullable', 'exists:categories,id'],
             'status' => ['required', 'in:0,1'],
         ], [
             'name.required' => 'Vui lòng nhập tên danh mục.',
@@ -37,6 +41,7 @@ class CategoryController extends Controller
 
         Category::create([
             'name' => trim($data['name']),
+            'parent_id' => $data['parent_id'] ?? null,
             'slug' => $this->makeUniqueSlug($data['name']),
             'status' => (int) $data['status'],
         ]);
@@ -55,7 +60,13 @@ class CategoryController extends Controller
 
     public function edit(Category $category)
     {
-        return view('admin.categories.edit', compact('category'));
+        $parentCategories = Category::whereNull('parent_id')
+            ->where('status', 1)
+            ->where('id', '!=', $category->id)
+            ->orderBy('name')
+            ->get();
+
+        return view('admin.categories.edit', compact('category', 'parentCategories'));
     }
 
     public function update(Request $request, Category $category)
@@ -67,6 +78,7 @@ class CategoryController extends Controller
                 'max:255',
                 Rule::unique('categories', 'name')->ignore($category->id),
             ],
+            'parent_id' => ['nullable', 'exists:categories,id', 'not_in:' . $category->id],
             'status' => ['required', 'in:0,1'],
         ], [
             'name.required' => 'Vui lòng nhập tên danh mục.',
@@ -75,6 +87,7 @@ class CategoryController extends Controller
 
         $category->update([
             'name' => trim($data['name']),
+            'parent_id' => $data['parent_id'] ?? null,
             'slug' => $this->makeUniqueSlug($data['name'], $category->id),
             'status' => (int) $data['status'],
         ]);

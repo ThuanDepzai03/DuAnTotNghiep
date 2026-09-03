@@ -9,12 +9,20 @@ class BannerSeeder extends Seeder
 {
     public function run(): void
     {
-        $banners = [
+        $banners = [            [
+                'title' => 'Dự lễ trung thu nhận ngay quà khủng',
+                'subtitle' => '',
+                'image' => 'uploads/banners/1788466088-xXyOFlrI.jpg',
+                'link' => 'http://127.0.0.1:8000/vouchers',
+                'type' => 'static_rect',
+                'position' => 0,
+                'status' => 1,
+            ],
             [
                 'title' => 'Mừng lễ 2/9',
                 'subtitle' => 'Giảm sâu đến 30% cho điện thoại flagship',
                 'image' => 'img/logo.png',
-                'link' => route('shop', [], false),
+                'link' => '/shop',
                 'type' => 'hero',
                 'position' => 1,
                 'status' => 1,
@@ -23,7 +31,7 @@ class BannerSeeder extends Seeder
                 'title' => 'Apple Store',
                 'subtitle' => 'iPhone mới, ưu đãi lớn',
                 'image' => 'img/logo.png',
-                'link' => route('shop', [], false),
+                'link' => '/shop',
                 'type' => 'hero',
                 'position' => 2,
                 'status' => 1,

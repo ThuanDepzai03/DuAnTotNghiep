@@ -4372,6 +4372,35 @@ class ProductSeeder extends Seeder
                     ],
                 ],
             ],
+            [
+                'data' => array (
+  'category_id' => 1,
+  'brand_id' => 9,
+  'name' => 'Asus',
+  'slug' => 'asus',
+  'sku' => 'ASUS-CAXJ',
+  'description' => NULL,
+  'thumbnail' => NULL,
+  'status' => 1,
+),
+                'variants' => [
+                    [
+                        'data' => array (
+  'sku' => 'ASUS-CAXJ-G9AA',
+  'price' => '100000.00',
+  'sale_price' => NULL,
+  'stock' => 11111,
+  'image' => 'image/variants/1788465480-nBzAKzwZ.png',
+  'status' => 1,
+),
+                        'attribute_value_ids' => array (
+  0 => 1,
+  1 => 16,
+  2 => 21,
+),
+                    ],
+                ],
+            ],
         ];
 
         foreach ($products as $productData) {
