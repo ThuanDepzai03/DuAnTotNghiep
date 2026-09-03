@@ -527,9 +527,9 @@ class ProductSeeder extends Seeder
             [
                 'data' => array (
   'category_id' => 1,
-  'brand_id' => 2,
+  'brand_id' => 9,
   'name' => 'Samsung Galaxy S24 Plus Chính Hãng',
-  'slug' => 'samsung-galaxy-s24-plus-chinh-hang-12',
+  'slug' => 'samsung-galaxy-s24-plus-chinh-hang',
   'sku' => 'SP0012',
   'description' => 'Samsung Galaxy S24 Plus Chính Hãng đảm bảo chất lượng, nguyên zin, bảo hành 12 tháng tại Thanh Thảo Mobile.',
   'thumbnail' => 'image/samsung_s24_plus_black.jpg',
@@ -556,9 +556,9 @@ class ProductSeeder extends Seeder
             [
                 'data' => array (
   'category_id' => 1,
-  'brand_id' => 2,
+  'brand_id' => 9,
   'name' => 'Samsung Galaxy S24 Ultra Chính Hãng',
-  'slug' => 'samsung-galaxy-s24-ultra-chinh-hang-13',
+  'slug' => 'samsung-galaxy-s24-ultra-chinh-hang',
   'sku' => 'SP0013',
   'description' => 'Samsung Galaxy S24 Ultra Chính Hãng đảm bảo chất lượng, nguyên zin, bảo hành 12 tháng tại Thanh Thảo Mobile.',
   'thumbnail' => 'image/samsung_s24_ultra_gray.jpg',
@@ -585,9 +585,9 @@ class ProductSeeder extends Seeder
             [
                 'data' => array (
   'category_id' => 1,
-  'brand_id' => 2,
+  'brand_id' => 9,
   'name' => 'Samsung Galaxy Z Flip5 Chính Hãng',
-  'slug' => 'samsung-galaxy-z-flip5-chinh-hang-14',
+  'slug' => 'samsung-galaxy-z-flip5-chinh-hang',
   'sku' => 'SP0014',
   'description' => 'Samsung Galaxy Z Flip5 Chính Hãng đảm bảo chất lượng, nguyên zin, bảo hành 12 tháng tại Thanh Thảo Mobile.',
   'thumbnail' => 'image/samsung_zflip5_mint.jpg',
@@ -614,9 +614,9 @@ class ProductSeeder extends Seeder
             [
                 'data' => array (
   'category_id' => 1,
-  'brand_id' => 2,
+  'brand_id' => 9,
   'name' => 'Samsung Galaxy Z Fold5 Chính Hãng',
-  'slug' => 'samsung-galaxy-z-fold5-chinh-hang-15',
+  'slug' => 'samsung-galaxy-z-fold5-chinh-hang',
   'sku' => 'SP0015',
   'description' => 'Samsung Galaxy Z Fold5 Chính Hãng đảm bảo chất lượng, nguyên zin, bảo hành 12 tháng tại Thanh Thảo Mobile.',
   'thumbnail' => 'image/samsung_zfold5_blue.jpg',
@@ -1070,9 +1070,9 @@ class ProductSeeder extends Seeder
             [
                 'data' => array (
   'category_id' => 1,
-  'brand_id' => 2,
+  'brand_id' => 9,
   'name' => 'Samsung Galaxy A35 LL/A Mỹ',
-  'slug' => 'samsung-galaxy-a35-lla-my-24',
+  'slug' => 'samsung-galaxy-a35-lla-my',
   'sku' => 'SP0024',
   'description' => 'Samsung Galaxy A35 LL/A Mỹ đảm bảo chất lượng, nguyên zin, bảo hành 12 tháng tại Thanh Thảo Mobile.',
   'thumbnail' => 'image/samsung_a35_lilac.jpg',
