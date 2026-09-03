@@ -137,97 +137,6 @@
     </section>
 @endif
 
-@php
-    $showFeaturedProducts = isset($featuredProducts) ? $featuredProducts : collect();
-@endphp
-
-@if ($showFeaturedProducts->isNotEmpty())
-    <div class="section home-products home-featured-products">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="section-title-wrap">
-                        <h3 class="title">SẢN PHẨM NỔI BẬT</h3>
-                        <p class="section-subtitle">Dựa trên số lượng khách hàng click xem sản phẩm</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="product-carousel-container">
-                <button type="button" class="carousel-nav-btn prev-btn" id="featuredPrevBtn" aria-label="Lùi lại">
-                    <i class="fa fa-chevron-left"></i>
-                </button>
-
-                <div class="product-carousel-track" id="featuredProductTrack">
-                    @foreach ($showFeaturedProducts as $product)
-                        @php
-                            $featuredVariants = $product->variants
-                                ->where('status', 1)
-                                ->sortBy(fn($v) => $v->sale_price ?? $v->price)
-                                ->values();
-                            $featuredCheapest = $featuredVariants->first();
-                            $featuredDisplayPrice = $featuredCheapest ? ($featuredCheapest->sale_price ?? $featuredCheapest->price) : 0;
-                            $featuredOldPrice = ($featuredCheapest && $featuredCheapest->sale_price) ? $featuredCheapest->price : null;
-                            $featuredImgPath = $product->thumbnail ?? 'img/product01.png';
-                            $featuredImgPath = ltrim(str_replace('\\', '/', $featuredImgPath), '/');
-                            if (preg_match('#^https?://#', $featuredImgPath)) {
-                                $featuredImgSrc = $featuredImgPath;
-                            } elseif (str_starts_with($featuredImgPath, 'public/')) {
-                                $featuredImgSrc = asset(substr($featuredImgPath, 7));
-                            } elseif (str_starts_with($featuredImgPath, 'img/') || str_starts_with($featuredImgPath, 'image/') || str_starts_with($featuredImgPath, 'admin/') || str_starts_with($featuredImgPath, 'products/') || str_starts_with($featuredImgPath, 'storage/')) {
-                                $featuredImgSrc = asset($featuredImgPath);
-                            } else {
-                                $featuredImgSrc = asset('image/' . $featuredImgPath);
-                            }
-                        @endphp
-
-                        <div class="product-item-wrapper">
-                            <div class="product-card-custom">
-                                <div class="product-card-thumb">
-                                    <span class="badge-new">HOT</span>
-                                    <a href="{{ route('product.detail', ['id' => $product->id]) }}">
-                                        <img src="{{ $featuredImgSrc }}" alt="{{ $product->name }}" onerror="this.onerror=null;this.src='{{ asset('img/product01.png') }}';">
-                                    </a>
-                                </div>
-                                <div class="product-card-info">
-                                    <span class="cat-label">{{ $product->category?->name ?? 'Điện thoại' }}</span>
-                                    <h4 class="prod-title">
-                                        <a href="{{ route('product.detail', ['id' => $product->id]) }}">{{ $product->name }}</a>
-                                    </h4>
-                                    <div class="prod-price-box">
-                                        <span class="main-price">{{ number_format($featuredDisplayPrice, 0, ',', '.') }} ₫</span>
-                                        @if ($featuredOldPrice)
-                                            <del class="old-price">{{ number_format($featuredOldPrice, 0, ',', '.') }} ₫</del>
-                                        @endif
-                                    </div>
-                                    <div class="prod-click-meta">
-                                        <i class="fa fa-eye"></i> {{ $product->click_count ?? 0 }} lượt xem
-                                    </div>
-                                </div>
-                                <div class="product-card-bottom">
-                                    @if ($featuredCheapest && ($featuredCheapest->stock ?? 1) > 0)
-                                        <form action="{{ route('cart.add') }}" method="POST" style="margin: 0; width: 100%;">
-                                            @csrf
-                                            <input type="hidden" name="product_variant_id" value="{{ $featuredCheapest->id }}">
-                                            <button type="submit" class="btn-add-cart">THÊM VÀO GIỎ</button>
-                                        </form>
-                                    @else
-                                        <a href="{{ route('product.detail', ['id' => $product->id]) }}" class="btn-add-cart btn-view-detail">XEM CHI TIẾT</a>
-                                    @endif
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-
-                <button type="button" class="carousel-nav-btn next-btn" id="featuredNextBtn" aria-label="Tiếp theo">
-                    <i class="fa fa-chevron-right"></i>
-                </button>
-            </div>
-        </div>
-    </div>
-@endif
-
 {{-- =========================================================================
      2. SECTION SẢN PHẨM MỚI (CAROUSEL 1 HÀNG, NÚT 2 BÊN HÔNG)
      ========================================================================= --}}
@@ -257,7 +166,7 @@
 
         {{-- Slider Carousel --}}
         <div class="product-carousel-container">
-            
+
             {{-- Nút Trái --}}
             <button type="button" class="carousel-nav-btn prev-btn" id="prodPrevBtn" aria-label="Lùi lại">
                 <i class="fa fa-chevron-left"></i>
@@ -304,7 +213,7 @@
 
                     <div class="product-item-wrapper">
                         <div class="product-card-custom">
-                            
+
                             {{-- Ảnh sản phẩm --}}
                             <div class="product-card-thumb">
                                 <span class="badge-new">MỚI</span>
@@ -389,7 +298,7 @@
 </div>
 
 {{-- =========================================================================
-     3. BANNER TĨNH: 
+     3. BANNER TĨNH:
         - BANNER TO CHIỀU NGANG BẰNG WEB (FULL-WIDTH)
         - BANNER HÌNH CHỮ NHẬT (RECTANGLE / PROMO GRID)
      ========================================================================= --}}
@@ -418,8 +327,8 @@
 
 {{-- B. BANNER TĨNH HÌNH CHỮ NHẬT (Trong Container, chia cột linh hoạt) --}}
 @php
-    $rectBanners = isset($staticRectBanners) 
-        ? $staticRectBanners 
+    $rectBanners = isset($staticRectBanners)
+        ? $staticRectBanners
         : (isset($banners) ? $banners->where('type', 'static_rect') : collect());
 @endphp
 
@@ -451,11 +360,9 @@
             </div>
         </div>
     </div>
-    </section>
-@endif
+</div>
 {{-- =========================================================
     FLASH SALE + VOUCHER SỰ KIỆN
-    ========================================================= --}}
 
 @include('client.flash-voucher')
 <style>
@@ -508,10 +415,7 @@
     .home-products { padding-top: 35px; padding-bottom: 25px; }
     .section-title-wrap { border-bottom: 2px solid #f0f0f0; margin-bottom: 25px; padding-bottom: 8px; }
     .section-title-wrap .title { margin: 0 0 12px; font-size: 28px; font-weight: 800; color: #2b2d42; }
-    .section-subtitle { margin: -5px 0 0; color: #8d99ae; font-size: 14px; }
     .custom-tab-nav { display: flex; flex-wrap: wrap; gap: 12px 25px; list-style: none; padding: 0; margin: 0; }
-    .prod-click-meta { margin-top: 8px; font-size: 12px; color: #8d99ae; }
-    .prod-click-meta i { color: #d10024; margin-right: 5px; }
     .custom-tab-nav li a { color: #8d99ae; font-size: 14px; font-weight: 600; text-decoration: none; padding-bottom: 6px; display: inline-block; border-bottom: 2px solid transparent; transition: 0.2s ease; }
     .custom-tab-nav li.active a, .custom-tab-nav li a:hover { color: #d10024; border-bottom-color: #d10024; }
 
@@ -696,24 +600,7 @@
                 track.scrollBy({ left: -(cardWidth + 20), behavior: 'smooth' });
             });
         }
-
-        const featuredTrack = document.getElementById('featuredProductTrack');
-        const featuredPrevBtn = document.getElementById('featuredPrevBtn');
-        const featuredNextBtn = document.getElementById('featuredNextBtn');
-
-        if (featuredTrack && featuredPrevBtn && featuredNextBtn) {
-            featuredNextBtn.addEventListener('click', function () {
-                const cardWidth = featuredTrack.querySelector('.product-item-wrapper')?.offsetWidth || 280;
-                featuredTrack.scrollBy({ left: cardWidth + 20, behavior: 'smooth' });
-            });
-
-            featuredPrevBtn.addEventListener('click', function () {
-                const cardWidth = featuredTrack.querySelector('.product-item-wrapper')?.offsetWidth || 280;
-                featuredTrack.scrollBy({ left: -(cardWidth + 20), behavior: 'smooth' });
-            });
-        }
     });
 </script>
 
 @endsection
-<!-- ádsdaas -->
