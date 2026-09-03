@@ -41,6 +41,7 @@ class DemoCustomerOrderSeeder extends Seeder
                 $createdAt = $customerNumber === 1
                     ? $startDate->copy()
                     : $this->randomDate($faker, $startDate, $endDate->copy()->subDays(30));
+                $customerName = $faker->name();
 
                 DB::table('nguoidung')->updateOrInsert(
                     ['user' => $username],
@@ -56,7 +57,6 @@ class DemoCustomerOrderSeeder extends Seeder
                     ]
                 );
 
-                $customerName = $faker->name();
                 $orderCount = $faker->numberBetween(2, 6);
 
                 for ($orderNumber = 1; $orderNumber <= $orderCount; $orderNumber++) {

@@ -42,6 +42,11 @@
             <form id="client-register-form" class="auth-form" novalidate>
                 @csrf
                 <div class="auth-form__group">
+                    <label for="register-name">Họ và tên</label>
+                    <input id="register-name" type="text" name="name" placeholder="Họ và tên của bạn" required>
+                    <small class="auth-form__error" data-error-for="name"></small>
+                </div>
+                <div class="auth-form__group">
                     <label for="register-user">Tên đăng nhập</label>
                     <input id="register-user" type="text" name="user" placeholder="Tên đăng nhập" required>
                     <small class="auth-form__error" data-error-for="user"></small>

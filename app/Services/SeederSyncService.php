@@ -389,6 +389,7 @@ PHP;
 
         foreach ($users as $user) {
             $content .= '            ' . self::phpValue([
+                'name' => $user->name,
                 'user' => $user->user,
                 'pass' => $user->pass,
                 'email' => $user->email,
