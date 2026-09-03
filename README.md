@@ -864,7 +864,7 @@ Checklist kiểm thử chính:
 | **Đỗ Trung Hiếu** `PP03417` | `hieu` | **30** | Nghiệp vụ đơn hàng, checkout, thanh toán và controller backend |
 | **Lưu Đức Kiệt** `PP03363` | `duckiet863` | **43** | Banner, đánh giá, admin view, migration và kiểm thử |
 | **Bùi Quang Sơn** `PP03356` | `Sown11` | **23** | Sản phẩm, thương hiệu, seeder, migration và giao diện |
-| **Nguyễn Văn Trung** `PP03493` | `tun` | **25** | Seeder, dữ liệu sản phẩm, controller và giao diện |
+| **Nguyễn Văn Trung** `PP03493` | `tun` | **55** | Seeder, dữ liệu sản phẩm, controller và giao diện |
 
 ### Quy đổi identity
 
