@@ -262,30 +262,30 @@ Các mốc thời gian dưới đây được tổng hợp theo lịch sử phá
 
 | STT | Tên công việc | Bắt đầu | Kết thúc | Nhân sự | Tiến độ |
 |---:|---|---|---|---|---:|
-| 1 | Khảo sát và đánh giá dự án | 30/06/2026 | 30/06/2026 | Thuan, cả nhóm | 100% |
-| 2 | Xác định yêu cầu nghiệp vụ và bài toán | 30/06/2026 | 01/07/2026 | Thuan, cả nhóm | 100% |
-| 3 | Phân tích luồng xử lý chức năng | 30/06/2026 | 02/07/2026 | Thuan | 100% |
-| 4 | Thiết kế và chuẩn hóa cơ sở dữ liệu | 01/07/2026 | 03/07/2026 | Thuandepzai03, Sown11, Thuan | 100% |
-| 5 | Vẽ sơ đồ ERD | 01/07/2026 | 03/07/2026 | Thuan, Thuandepzai03 | 100% |
-| 6 | Thiết kế Use Case | 01/07/2026 | 03/07/2026 | Thuan, cả nhóm | 100% |
-| 7 | Thiết kế Activity Diagram | 02/07/2026 | 04/07/2026 | Thuan, cả nhóm | 100% |
-| 8 | Viết tài liệu và README dự án | 02/07/2026 | 24/08/2026 | Thuan, cả nhóm | 100% |
-| 9 | Xây dựng base Laravel và cấu hình môi trường | 30/06/2026 | 02/07/2026 | Thuandepzai03, Thuan | 100% |
-| 10 | Thiết kế layout, header, footer và responsive | 02/07/2026 | 15/08/2026 | Thuandepzai03, Sown11, Thuan | 100% |
-| 11 | Xây dựng trang chủ | 02/07/2026 | 24/08/2026 | Sown11, Thuan | 100% |
-| 12 | Đăng ký, đăng nhập và đăng xuất khách hàng | 02/07/2026 | 03/07/2026 | Thuandepzai03, hieu, Thuan | 100% |
-| 13 | Phân quyền khách hàng và quản trị viên | 03/07/2026 | 04/07/2026 | hieu, Sown11, Thuan | 100% |
-| 14 | Xác thực email bằng mã/link | 23/08/2026 | 24/08/2026 | Thuan | 100% |
-| 15 | Quản lý thông tin cá nhân | 03/07/2026 | 23/08/2026 | hieu, Thuan | 100% |
-| 16 | Đổi mật khẩu và bảo mật tài khoản | 23/08/2026 | 24/08/2026 | Thuan | 100% |
-| 17 | Danh sách sản phẩm theo danh mục | 02/07/2026 | 04/07/2026 | Sown11, Thuan | 100% |
-| 18 | Tìm kiếm và lọc sản phẩm | 02/07/2026 | 04/07/2026 | Sown11, Thuan | 100% |
-| 19 | Trang chi tiết sản phẩm | 02/07/2026 | 04/07/2026 | Sown11, Thuan | 100% |
-| 20 | Quản lý thuộc tính và giá trị thuộc tính | 03/07/2026 | 13/08/2026 | Sown11, Thuan | 100% |
-| 21 | Chọn biến thể sản phẩm | 03/07/2026 | 13/08/2026 | Sown11, Thuan | 100% |
-| 22 | Thêm sản phẩm vào giỏ hàng | 02/07/2026 | 04/07/2026 | Thuandepzai03, Thuan | 100% |
-| 23 | Cập nhật số lượng và tổng tiền giỏ hàng | 13/08/2026 | 15/08/2026 | Thuandepzai03, Thuan | 100% |
-| 24 | Xóa sản phẩm khỏi giỏ hàng | 13/08/2026 | 15/08/2026 | Thuandepzai03, Thuan | 100% |
+| 1 | Khảo sát và đánh giá dự án | 30/06/2026 | 30/06/2026 | Bùi Minh Thuận, cả nhóm | 100% |
+| 2 | Xác định yêu cầu nghiệp vụ và bài toán | 30/06/2026 | 01/07/2026 | Bùi Minh Thuận, cả nhóm | 100% |
+| 3 | Phân tích luồng xử lý chức năng | 30/06/2026 | 02/07/2026 | Bùi Minh Thuận | 100% |
+| 4 | Thiết kế và chuẩn hóa cơ sở dữ liệu | 01/07/2026 | 03/07/2026 | Bùi Minh Thuận, Bùi Quang Sơn | 100% |
+| 5 | Vẽ sơ đồ ERD | 01/07/2026 | 03/07/2026 | Bùi Minh Thuận | 100% |
+| 6 | Thiết kế Use Case | 01/07/2026 | 03/07/2026 | Bùi Minh Thuận, cả nhóm | 100% |
+| 7 | Thiết kế Activity Diagram | 02/07/2026 | 04/07/2026 | Bùi Minh Thuận, cả nhóm | 100% |
+| 8 | Viết tài liệu và README dự án | 02/07/2026 | 24/08/2026 | Bùi Minh Thuận, cả nhóm | 100% |
+| 9 | Xây dựng base Laravel và cấu hình môi trường | 30/06/2026 | 02/07/2026 | Bùi Minh Thuận | 100% |
+| 10 | Thiết kế layout, header, footer và responsive | 02/07/2026 | 15/08/2026 | Bùi Minh Thuận, Bùi Quang Sơn | 100% |
+| 11 | Xây dựng trang chủ | 02/07/2026 | 24/08/2026 | Bùi Quang Sơn, Bùi Minh Thuận | 100% |
+| 12 | Đăng ký, đăng nhập và đăng xuất khách hàng | 02/07/2026 | 03/07/2026 | Bùi Minh Thuận, Đỗ Trung Hiếu | 100% |
+| 13 | Phân quyền khách hàng và quản trị viên | 03/07/2026 | 04/07/2026 | Đỗ Trung Hiếu, Bùi Quang Sơn, Bùi Minh Thuận | 100% |
+| 14 | Xác thực email bằng mã/link | 23/08/2026 | 24/08/2026 | Bùi Minh Thuận | 100% |
+| 15 | Quản lý thông tin cá nhân | 03/07/2026 | 23/08/2026 | Đỗ Trung Hiếu, Bùi Minh Thuận | 100% |
+| 16 | Đổi mật khẩu và bảo mật tài khoản | 23/08/2026 | 24/08/2026 | Bùi Minh Thuận | 100% |
+| 17 | Danh sách sản phẩm theo danh mục | 02/07/2026 | 04/07/2026 | Bùi Quang Sơn, Bùi Minh Thuận | 100% |
+| 18 | Tìm kiếm và lọc sản phẩm | 02/07/2026 | 04/07/2026 | Bùi Quang Sơn, Bùi Minh Thuận | 100% |
+| 19 | Trang chi tiết sản phẩm | 02/07/2026 | 04/07/2026 | Bùi Quang Sơn, Bùi Minh Thuận | 100% |
+| 20 | Quản lý thuộc tính và giá trị thuộc tính | 03/07/2026 | 13/08/2026 | Bùi Quang Sơn, Bùi Minh Thuận | 100% |
+| 21 | Chọn biến thể sản phẩm | 03/07/2026 | 13/08/2026 | Bùi Quang Sơn, Bùi Minh Thuận | 100% |
+| 22 | Thêm sản phẩm vào giỏ hàng | 02/07/2026 | 04/07/2026 | Bùi Minh Thuận | 100% |
+| 23 | Cập nhật số lượng và tổng tiền giỏ hàng | 13/08/2026 | 15/08/2026 | Bùi Minh Thuận | 100% |
+| 24 | Xóa sản phẩm khỏi giỏ hàng | 13/08/2026 | 15/08/2026 | Bùi Minh Thuận | 100% |
 | 25 | Danh sách sản phẩm yêu thích | 23/08/2026 | 24/08/2026 | Thuan | 100% |
 | 26 | Trang tạo đơn hàng và checkout | 02/07/2026 | 24/08/2026 | hieu, Thuan | 100% |
 | 27 | Nhập địa chỉ tỉnh/thành phố và phường/xã | 24/08/2026 | 24/08/2026 | Thuan | 100% |
@@ -321,7 +321,7 @@ Phần phân công dưới đây được đối chiếu từ lịch sử Git v�
 
 ## Cụm Use Case - Customer
 
-Sơ đồ dưới đây mô tả các chức năng phía khách hàng mà Thuan đã trực tiếp phát triển, tích hợp hoặc sửa lỗi trong dự án.
+Sơ đồ dưới đây mô tả các chức năng phía khách hàng mà Bùi Minh Thuận đã trực tiếp phát triển, tích hợp hoặc sửa lỗi trong dự án.
 
 ```mermaid
 flowchart LR
@@ -860,7 +860,7 @@ Checklist kiểm thử chính:
 
 | Thành viên thực tế | Identity trong Git | Commit ghi nhận | Khu vực thay đổi nổi bật |
 |---|---|---:|---|
-| **Bùi Minh Thuận** `PP03513` - Trưởng nhóm | `Thuận`, `Thuandepzai03`, `thuanvillager243-dev`, `thuandz` | **153** | Tích hợp hệ thống, checkout, xác thực, địa chỉ, README, giao diện và migration |
+| **Bùi Minh Thuận** `PP03513` - Trưởng nhóm | `Thuận`, `Thuandepzai03`, `thuanvillager243-dev`, `thuandz` | **142** | Tích hợp hệ thống, checkout, xác thực, địa chỉ, README, giao diện và migration |
 | **Đỗ Trung Hiếu** `PP03417` | `hieu` | **30** | Nghiệp vụ đơn hàng, checkout, thanh toán và controller backend |
 | **Lưu Đức Kiệt** `PP03363` | `duckiet863` | **43** | Banner, đánh giá, admin view, migration và kiểm thử |
 | **Bùi Quang Sơn** `PP03356` | `Sown11` | **23** | Sản phẩm, thương hiệu, seeder, migration và giao diện |
