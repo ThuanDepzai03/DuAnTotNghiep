@@ -53,14 +53,20 @@
                             Tìm kiếm sản phẩm
                         </label>
 
-                        <input
-                            id="header-search-input"
-                            type="search"
-                            name="keyword"
-                            value="{{ request('keyword') }}"
-                            placeholder="Tìm kiếm sản phẩm..."
-                            autocomplete="off"
-                        >
+                        <div class="search-input-wrapper">
+                            <input
+                                id="header-search-input"
+                                type="search"
+                                name="keyword"
+                                value="{{ request('keyword') }}"
+                                placeholder="Tìm kiếm sản phẩm..."
+                                autocomplete="off"
+                                class="search-input"
+                            >
+
+                            <!-- Dropdown gợi ý -->
+                            <div id="search-suggestions" class="search-suggestions"></div>
+                        </div>
 
                         <button type="submit" aria-label="Tìm kiếm">
                             <i class="fa fa-search" aria-hidden="true"></i>
@@ -187,7 +193,7 @@
                     </li>
                     <li class="{{ request()->routeIs('compare.index') ? 'active' : '' }}">
                         <a href="{{ route('compare.index') }}">
-                            So sánh 
+                            So sánh
                         </a>
                     </li>
 
@@ -360,6 +366,165 @@
     <script src="{{ asset('js/slick.min.js') }}"></script>
     <script src="{{ asset('js/main.js') }}"></script>
     <script src="{{ asset('js/app-interactions.js') }}?v={{ filemtime(public_path('js/app-interactions.js')) }}"></script>
+
+    <!-- Search Suggestions CSS -->
+    <style>
+        .search-input {
+            color: #000 !important;
+        }
+
+        .search-input::placeholder {
+            color: #999 !important;
+        }
+
+        .search-input-wrapper {
+            position: relative;
+            width: 100%;
+            overflow: visible;
+        }
+
+        .search-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-top: none;
+            max-height: 400px;
+            overflow-y: auto;
+            z-index: 9999;
+            display: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-suggestions.active {
+            display: block;
+        }
+
+        .suggestion-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: background-color 0.2s;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .suggestion-item:hover {
+            background-color: #f9f9f9;
+        }
+
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+
+        .suggestion-image {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        .suggestion-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .suggestion-name {
+            font-weight: 500;
+            color: #333;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            font-size: 14px;
+        }
+
+        .suggestion-price {
+            color: #f53003;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .suggestion-empty {
+            padding: 20px 15px;
+            text-align: center;
+            color: #999;
+        }
+    </style>
+
+    <!-- Search Suggestions JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('header-search-input');
+            const suggestionsContainer = document.getElementById('search-suggestions');
+            let debounceTimer;
+
+            searchInput.addEventListener('input', function() {
+                clearTimeout(debounceTimer);
+                const keyword = this.value.trim();
+
+                if (keyword.length === 0) {
+                    suggestionsContainer.classList.remove('active');
+                    suggestionsContainer.innerHTML = '';
+                    return;
+                }
+
+                debounceTimer = setTimeout(function() {
+                    fetchSuggestions(keyword);
+                }, 300);
+            });
+
+            // Ẩn gợi ý khi click ra ngoài
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.top-header-search')) {
+                    suggestionsContainer.classList.remove('active');
+                }
+            });
+
+            function fetchSuggestions(keyword) {
+                fetch(`{{ route('api.search.suggestion') }}?keyword=${encodeURIComponent(keyword)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        displaySuggestions(data);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching suggestions:', error);
+                    });
+            }
+
+            function displaySuggestions(products) {
+                if (products.length === 0) {
+                    suggestionsContainer.innerHTML = '<div class="suggestion-empty">Không tìm thấy sản phẩm</div>';
+                    suggestionsContainer.classList.add('active');
+                    return;
+                }
+
+                suggestionsContainer.innerHTML = products.map(product => `
+                    <a href="${product.url}" class="suggestion-item">
+                        <img src="${product.image}" alt="${product.name}" class="suggestion-image">
+                        <div class="suggestion-content">
+                            <div class="suggestion-name">${product.name}</div>
+                            <div class="suggestion-price">${formatPrice(product.price)}</div>
+                        </div>
+                    </a>
+                `).join('');
+                suggestionsContainer.classList.add('active');
+            }
+
+            function formatPrice(price) {
+                return new Intl.NumberFormat('vi-VN', {
+                    style: 'currency',
+                    currency: 'VND'
+                }).format(price);
+            }
+        });
+    </script>
+
  <script>
         var CHAT_ROUTE = "{{ route('chat.send') }}";
     </script>

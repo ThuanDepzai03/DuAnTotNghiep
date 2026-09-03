@@ -439,4 +439,42 @@ class HomeController extends Controller
             'Đã gửi yêu cầu. Cửa hàng sẽ phản hồi sớm nhất.'
         );
     }
+
+
+    /**
+     * API tìm kiếm gợi ý sản phẩm
+     */
+    public function searchSuggestion(Request $request)
+    {
+        $keyword = $request->query('keyword', '');
+
+        // Nếu keyword trống, trả về danh sách rỗng
+        if (empty(trim($keyword))) {
+            return response()->json([]);
+        }
+
+        // Tìm kiếm sản phẩm theo tên hoặc SKU
+        $products = Product::where('status', 1)
+            ->where(function ($query) use ($keyword) {
+                $query->where('name', 'like', '%' . $keyword . '%')
+                    ->orWhere('sku', 'like', '%' . $keyword . '%');
+            })
+            ->with('category', 'brand', 'variants')
+            ->limit(8)
+            ->get()
+            ->map(function ($product) {
+                $price = $product->variants->first()?->price ?? $product->variants->first()?->sale_price ?? 0;
+                $image = $product->thumbnail ?? 'img/product01.png';
+
+                return [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'image' => asset($image),
+                    'price' => $price,
+                    'url' => route('product.detail', ['id' => $product->id]),
+                ];
+            });
+
+        return response()->json($products);
+    }
 }
