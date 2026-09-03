@@ -3967,9 +3967,9 @@ class ProductSeeder extends Seeder
             [
                 'data' => array (
   'category_id' => 1,
-  'brand_id' => 2,
+  'brand_id' => 9,
   'name' => 'Samsung Galaxy S24 Plus Nguyên Seal',
-  'slug' => 'samsung-galaxy-s24-plus-nguyen-seal-97',
+  'slug' => 'samsung-galaxy-s24-plus-nguyen-seal',
   'sku' => 'SP0097',
   'description' => 'Samsung Galaxy S24 Plus Nguyên Seal đảm bảo chất lượng, nguyên zin, bảo hành 12 tháng tại Thanh Thảo Mobile.',
   'thumbnail' => 'image/samsung_s24_plus_black.jpg',
