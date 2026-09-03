@@ -263,9 +263,6 @@ class CheckoutController extends Controller
         $shippingVoucher = $this->voucherFromSession('shipping_voucher');
         $orderVoucher = $this->voucherFromSession('order_voucher');
 
-        $shippingVoucher = $this->voucherFromSession('shipping_voucher');
-        $orderVoucher = $this->voucherFromSession('order_voucher');
-
         if ($shippingVoucher) {
             session()->put('shipping_voucher', $this->voucherPayload($shippingVoucher));
         } else {
@@ -336,45 +333,124 @@ class CheckoutController extends Controller
     public function applyVoucher(Request $request)
     {
         $request->validate([
-            'voucher_code' => 'required|string',
+            'voucher_code' => 'required|string|max:255',
         ], [
             'voucher_code.required' => 'Vui lòng nhập mã voucher.',
         ]);
 
+        // Chuẩn hóa mã voucher
         $code = strtoupper(trim($request->voucher_code));
-        $voucher = Voucher::where('code', $code)->first();
+
+        // Tìm voucher
+        $voucher = Voucher::whereRaw('UPPER(code) = ?', [$code])->first();
 
         if (!$voucher) {
-            return redirect()->route('checkout.show')->with('voucher_error', 'Mã voucher không tồn tại.');
+            return redirect()
+                ->route('checkout.show')
+                ->with('voucher_error', 'Mã voucher không tồn tại.');
         }
 
+        // Kiểm tra trạng thái
         if ((int) $voucher->status !== 1) {
-            return redirect()->route('checkout.show')->with('voucher_error', 'Voucher hiện đang bị khóa.');
+            return redirect()
+                ->route('checkout.show')
+                ->with('voucher_error', 'Voucher hiện đang bị khóa.');
         }
 
+        // Kiểm tra số lượng
         if (
             $voucher->quantity !== null &&
-            $voucher->used_quantity >= $voucher->quantity
+            (int) $voucher->used_quantity >= (int) $voucher->quantity
         ) {
-            return back()
-                ->with('error', 'Mã giảm giá đã hết lượt sử dụng.')
-                ->withInput();
+            return redirect()
+                ->route('checkout.show')
+                ->with('voucher_error', 'Voucher đã hết lượt sử dụng.');
         }
 
-        if ($voucher->start_date && now()->toDateString() < $voucher->start_date) {
-            return redirect()->route('checkout.show')->with('voucher_error', 'Voucher chưa đến thời gian sử dụng.');
+        // Kiểm tra ngày bắt đầu
+        if (
+            $voucher->start_date &&
+            today()->lt(\Carbon\Carbon::parse($voucher->start_date))
+        ) {
+            return redirect()
+                ->route('checkout.show')
+                ->with('voucher_error', 'Voucher chưa đến thời gian sử dụng.');
         }
 
-        if ($voucher->end_date && now()->toDateString() > $voucher->end_date) {
-            return redirect()->route('checkout.show')->with('voucher_error', 'Voucher đã hết hạn.');
+        // Kiểm tra ngày kết thúc
+        if (
+            $voucher->end_date &&
+            today()->gt(\Carbon\Carbon::parse($voucher->end_date))
+        ) {
+            return redirect()
+                ->route('checkout.show')
+                ->with('voucher_error', 'Voucher đã hết hạn.');
         }
+
+        // ==========================================
+        // TÍNH TỔNG TIỀN GIỎ HÀNG
+        // ==========================================
+
+        $cart = $this->getCartItems();
+
+        if (empty($cart)) {
+            return redirect()
+                ->route('cart.index')
+                ->with('error', 'Giỏ hàng đang trống.');
+        }
+
+        $totalPrice = 0;
+
+        foreach ($cart as $item) {
+            $price = (float) ($item['price'] ?? 0);
+            $quantity = (int) ($item['quantity'] ?? 0);
+
+            $totalPrice += $price * $quantity;
+        }
+
+        // ==========================================
+        // KIỂM TRA ĐƠN TỐI THIỂU
+        // ==========================================
+
+        $minOrder = (float) ($voucher->min_order ?? 0);
+
+        if (
+            $voucher->discount_type !== 'free_shipping' &&
+            $minOrder > $totalPrice
+        ) {
+            return redirect()
+                ->route('checkout.show')
+                ->with(
+                    'voucher_error',
+                    'Đơn hàng chưa đạt giá trị tối thiểu ' .
+                        number_format($minOrder, 0, ',', '.') .
+                        '₫ để sử dụng voucher này.'
+                );
+        }
+
+        // ==========================================
+        // KIỂM TRA LOẠI VOUCHER
+        // ==========================================
 
         $voucherKind = $request->input('voucher_kind', 'order');
-        if (($voucherKind === 'shipping') !== ($voucher->discount_type === 'free_shipping')) {
-            return redirect()->route('checkout.show')->with('voucher_error', $voucherKind === 'shipping'
-                ? 'Ô này chỉ nhận voucher phí vận chuyển.'
-                : 'Ô này chỉ nhận voucher đơn hàng.');
+
+        if (
+            ($voucherKind === 'shipping') !==
+            ($voucher->discount_type === 'free_shipping')
+        ) {
+            return redirect()
+                ->route('checkout.show')
+                ->with(
+                    'voucher_error',
+                    $voucherKind === 'shipping'
+                        ? 'Voucher này không phải voucher miễn phí vận chuyển.'
+                        : 'Voucher này chỉ dành cho phí vận chuyển.'
+                );
         }
+
+        // ==========================================
+        // LƯU VOUCHER VÀO SESSION
+        // ==========================================
 
         $voucherPayload = [
             'id' => $voucher->id,
@@ -384,23 +460,33 @@ class CheckoutController extends Controller
             'discount_value' => $voucher->discount_value,
             'max_discount' => $voucher->max_discount,
             'min_order' => $voucher->min_order,
+            'is_free_shipping' =>
+            $voucher->discount_type === 'free_shipping',
         ];
 
         if ($voucher->discount_type === 'free_shipping') {
-            $voucherPayload['name'] = $voucher->name ?: 'Miễn phí vận chuyển';
             $voucherPayload['discount_value'] = 0;
             $voucherPayload['max_discount'] = 0;
-            $voucherPayload['is_free_shipping'] = true;
         }
 
-        $sessionKey = $voucher->discount_type === 'free_shipping'
+        $sessionKey =
+            $voucher->discount_type === 'free_shipping'
             ? 'shipping_voucher'
             : 'order_voucher';
 
         session()->put($sessionKey, $voucherPayload);
+
+        // Xóa session voucher cũ
         session()->forget('voucher');
 
-        return redirect()->route('checkout.show')->with('voucher_success', $voucher->discount_type === 'free_shipping' ? 'Áp dụng voucher phí vận chuyển thành công!' : 'Áp dụng voucher đơn hàng thành công!');
+        return redirect()
+            ->route('checkout.show')
+            ->with(
+                'voucher_success',
+                $voucher->discount_type === 'free_shipping'
+                    ? 'Áp dụng voucher miễn phí vận chuyển thành công!'
+                    : 'Áp dụng voucher đơn hàng thành công!'
+            );
     }
 
     public function removeVoucher(Request $request)
