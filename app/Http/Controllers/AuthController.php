@@ -8,7 +8,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
@@ -97,6 +99,9 @@ class AuthController extends Controller
             if ($hasGoogleId) {
                 $data['google_id'] = $googleId;
             }
+            if (Schema::hasColumn('nguoidung', 'status')) {
+                $data['status'] = 1;
+            }
             if (Schema::hasColumn('nguoidung', 'email_verified_at')) {
                 $data['email_verified_at'] = now();
             }
@@ -126,7 +131,7 @@ class AuthController extends Controller
         }
 
         $request->session()->regenerate();
-        session(['customer' => [
+        $request->session()->put('customer', [
             'id' => $customer->id,
             'name' => $customer->name ?? $customer->user,
             'user' => $customer->user,
@@ -134,11 +139,24 @@ class AuthController extends Controller
             'address' => $customer->address ?? null,
             'tel' => $customer->tel ?? null,
             'role' => (int) ($customer->role ?? 0),
-        ]]);
+        ]);
+
+        Log::info('GOOGLE LOGIN SESSION CHECK', [
+            'session_id' => $request->session()->getId(),
+            'has_customer' => $request->session()->has('customer'),
+            'customer' => $request->session()->get('customer'),
+        ]);
 
         $this->migrateGuestCartToCustomer();
+        $request->session()->save();
 
-        return redirect()->intended(route('home'));
+        Log::info('GOOGLE LOGIN BEFORE REDIRECT', [
+            'session_id' => $request->session()->getId(),
+            'customer' => $request->session()->get('customer'),
+        ]);
+
+        URL::forceRootUrl($request->getSchemeAndHttpHost());
+        return redirect()->route('home');
     }
 
     public function login(Request $request)

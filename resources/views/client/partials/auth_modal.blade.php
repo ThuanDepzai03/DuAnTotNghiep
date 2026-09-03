@@ -375,8 +375,9 @@
             });
         });
 
+        const customerIsAuthenticated = @json((bool) session('customer'));
         const requestedTab = new URLSearchParams(window.location.search).get('auth');
-        if (requestedTab === 'login' || requestedTab === 'register') {
+        if (!customerIsAuthenticated && (requestedTab === 'login' || requestedTab === 'register')) {
             setTab(requestedTab);
             openModal();
         }

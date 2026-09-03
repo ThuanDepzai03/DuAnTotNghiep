@@ -51,6 +51,11 @@ return [
         'client_id' => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),
         'redirect' => env('GOOGLE_REDIRECT_URI', '/auth/google/callback'),
+        'guzzle' => [
+            'verify' => env('APP_ENV', 'production') === 'local'
+                ? false
+                : (ini_get('curl.cainfo') ?: true),
+        ],
     ],
 
 ];
