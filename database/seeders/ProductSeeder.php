@@ -1584,7 +1584,7 @@ class ProductSeeder extends Seeder
   'name' => 'iPhone 17 Pro Max ZA/A',
   'slug' => 'iphone-17-pro-max-zaa',
   'sku' => 'SP0039',
-  'description' => 'iPhone 17 Pro Max ZA/A đảm bảo chất lượng, nguyên zin, bảo hành 12 tháng tại Thanh Thảo Mobile.<div><img src="http://127.0.0.1:8000/image/products/description/1788368263-2l6oxQYqTtWm.jpg" alt="i_Phone_17_pro_relay_new_1_088e24a646.jpg" class="description-image" draggable="true" style="max-width: 100%; height: auto; display: block; margin: 15px 0px;"><p><br></p><br></div>',
+  'description' => 'iPhone 17 Pro Max ZA/A đảm bảo chất lượng, nguyên zin, bảo hành 12 tháng tại AE Phoenic.<div><img src="http://127.0.0.1:8000/image/products/description/1788368263-2l6oxQYqTtWm.jpg" alt="i_Phone_17_pro_relay_new_1_088e24a646.jpg" class="description-image" draggable="true" style="max-width: 100%; height: auto; display: block; margin: 15px 0px;"><p><br></p><br></div>',
   'thumbnail' => 'image/iphone17promax_blue.jpg',
   'status' => 1,
 ),
