@@ -7,9 +7,6 @@ use Illuminate\Http\Request;
 
 class VoucherController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         $vouchers = Voucher::latest()->get();
@@ -17,24 +14,18 @@ class VoucherController extends Controller
         return view('admin.vouchers.index', compact('vouchers'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         return view('admin.vouchers.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        $discountType = $request->discount_type ?? 'percent';
+        $discountType = $request->input('discount_type', 'percent');
 
         $request->validate([
-            'code' => 'required|unique:vouchers,code',
-            'name' => 'required',
+            'code' => 'required|string|max:255|unique:vouchers,code',
+            'name' => 'required|string|max:255',
             'voucher_type' => 'required|in:normal,flash_sale,mid_autumn',
             'discount_type' => 'required|in:percent,fixed,free_shipping',
             'discount_value' => [
@@ -52,7 +43,7 @@ class VoucherController extends Controller
         ]);
 
         Voucher::create([
-            'code' => $request->code,
+            'code' => strtoupper(trim($request->code)),
             'name' => $request->name,
             'voucher_type' => $request->voucher_type,
             'discount_type' => $discountType,
@@ -72,47 +63,37 @@ class VoucherController extends Controller
             ->route('admin.vouchers.index')
             ->with('success', 'Thêm Voucher thành công!');
     }
-    /**
-     * Display the specified resource.
-     */
+
     public function show(string $id)
     {
         //
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit($id)
     {
         $voucher = Voucher::findOrFail($id);
 
-        return view(
-            'admin.vouchers.edit',
-            compact('voucher')
-        );
+        return view('admin.vouchers.edit', compact('voucher'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, $id)
     {
         $voucher = Voucher::findOrFail($id);
 
-        $discountType = $request->discount_type ?? 'percent';
+        $discountType = $request->input('discount_type', 'percent');
 
         $request->validate([
             'code' => 'required|unique:vouchers,code,' . $id,
             'name' => 'required',
             'voucher_type' => 'required|in:normal,flash_sale,mid_autumn',
             'discount_type' => 'required|in:percent,fixed,free_shipping',
-            'discount_value' => [
-                'required',
-                'numeric',
-                $discountType === 'free_shipping' ? 'min:0' : 'min:1',
-                $discountType === 'free_shipping' ? '' : 'max:100',
-            ],
+
+            'discount_value' => $discountType === 'free_shipping'
+                ? 'nullable|numeric|min:0'
+                : ($discountType === 'percent'
+                    ? 'required|numeric|min:1|max:100'
+                    : 'required|numeric|min:1'),
+
             'max_discount' => 'nullable|numeric|min:0',
             'min_order' => 'nullable|numeric|min:0',
             'quantity' => 'required|integer|min:1',
@@ -122,12 +103,19 @@ class VoucherController extends Controller
         ]);
 
         $voucher->update([
-            'code' => $request->code,
+            'code' => strtoupper(trim($request->code)),
             'name' => $request->name,
             'voucher_type' => $request->voucher_type,
             'discount_type' => $discountType,
-            'discount_value' => $discountType === 'free_shipping' ? 0 : $request->discount_value,
-            'max_discount' => $discountType === 'free_shipping' ? 0 : $request->max_discount,
+
+            'discount_value' => $discountType === 'free_shipping'
+                ? 0
+                : $request->discount_value,
+
+            'max_discount' => $discountType === 'free_shipping'
+                ? null
+                : $request->max_discount,
+
             'min_order' => $request->input('min_order', 0) ?: 0,
             'quantity' => $request->quantity,
             'start_date' => $request->start_date,
@@ -142,9 +130,6 @@ class VoucherController extends Controller
             ->with('success', 'Cập nhật Voucher thành công!');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy($id)
     {
         Voucher::findOrFail($id)->delete();
