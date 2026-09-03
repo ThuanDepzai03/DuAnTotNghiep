@@ -453,12 +453,19 @@ class HomeController extends Controller
             return response()->json([]);
         }
 
-        // Tìm kiếm sản phẩm theo tên hoặc SKU
+        // Tìm kiếm sản phẩm theo tên hoặc SKU với ưu tiên những cái bắt đầu bằng keyword
         $products = Product::where('status', 1)
             ->where(function ($query) use ($keyword) {
                 $query->where('name', 'like', '%' . $keyword . '%')
                     ->orWhere('sku', 'like', '%' . $keyword . '%');
             })
+            ->orderByRaw("CASE
+                WHEN name LIKE ? THEN 0
+                WHEN name LIKE ? THEN 1
+                WHEN sku LIKE ? THEN 2
+                WHEN sku LIKE ? THEN 3
+                ELSE 4
+            END", [$keyword . '%', '%' . $keyword . '%', $keyword . '%', '%' . $keyword . '%'])
             ->with('category', 'brand', 'variants')
             ->limit(8)
             ->get()
