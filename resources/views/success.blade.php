@@ -7,3 +7,4 @@
     <a href="{{ route('home') }}" class="primary-btn" style="padding: 10px 30px; text-decoration: none;">Về trang chủ</a>
 </div>
 @endsection
+<!-- ádsdaas -->

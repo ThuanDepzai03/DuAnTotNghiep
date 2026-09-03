@@ -20,6 +20,16 @@
             {{ session('success') }}
         </div>
     @endif
+    @if(session('error'))
+        <div class="alert alert-danger">
+            {{ session('error') }}
+        </div>
+    @endif
+    @if($errors->any())
+        <div class="alert alert-danger">
+            {{ $errors->first('status') }}
+        </div>
+    @endif
 
     <section class="row">
         <div class="col-12 col-lg-7">
@@ -174,29 +184,40 @@
                         @csrf
                         @method('PUT')
 
-                        <label class="form-label">Chọn trạng thái mới</label>
+                        @php
+                            $statusOptions = [
+                                'pending' => 'Nhận đơn',
+                                'confirmed' => 'Đã xác nhận',
+                                'shipping' => 'Đang giao',
+                                'completed' => 'Hoàn thành',
+                                'cancelled' => 'Đã hủy',
+                            ];
+                            $statusOrder = ['pending', 'confirmed', 'shipping', 'completed'];
+                            $currentIndex = array_search($order->status, $statusOrder, true);
+                            $allowedStatuses = $order->status === 'pending_payment'
+                                ? ['pending', 'cancelled']
+                                : array_slice($statusOrder, ($currentIndex === false ? 0 : $currentIndex + 1));
+                            if (!in_array($order->status, ['completed', 'cancelled'], true)) {
+                                $allowedStatuses[] = 'cancelled';
+                            }
+                        @endphp
 
-                        <select name="status" class="form-select mb-3" required>
-                            <option value="pending" {{ $order->status == 'pending' ? 'selected' : '' }}>
-                                Nhận đơn
-                            </option>
-
-                            <option value="confirmed" {{ $order->status == 'confirmed' ? 'selected' : '' }}>
-                                Đã xác nhận
-                            </option>
-
-                            <option value="shipping" {{ $order->status == 'shipping' ? 'selected' : '' }}>
-                                Đang giao
-                            </option>
-
-                            <option value="completed" {{ $order->status == 'completed' ? 'selected' : '' }}>
-                                Hoàn thành
-                            </option>
-
-                            <option value="cancelled" {{ $order->status == 'cancelled' ? 'selected' : '' }}>
-                                Đã hủy
-                            </option>
-                        </select>
+                        <fieldset class="order-status-options">
+                            <legend class="form-label">Chọn trạng thái tiếp theo</legend>
+                            @foreach($statusOptions as $statusValue => $statusText)
+                                @php
+                                    $isPast = in_array($order->status, ['completed', 'cancelled'], true)
+                                        || ($currentIndex !== false && in_array($statusValue, array_slice($statusOrder, 0, $currentIndex + 1), true));
+                                    $isDisabled = $isPast || !in_array($statusValue, $allowedStatuses, true);
+                                @endphp
+                                <button type="submit" name="status" value="{{ $statusValue }}"
+                                    class="status-button {{ $isDisabled ? 'status-button-disabled' : '' }}"
+                                    {{ $isDisabled ? 'disabled' : '' }}>
+                                    <span class="status-button-mark"></span>
+                                    <span>{{ $statusText }}</span>
+                                </button>
+                            @endforeach
+                        </fieldset>
 
                         <button type="submit" class="btn btn-primary w-100">
                             Lưu trạng thái
@@ -207,4 +228,12 @@
         </div>
     </section>
 </div>
+<style>
+    .order-status-options { border: 0; padding: 0; margin-bottom: 1rem; }
+    .status-button { display: flex; align-items: center; gap: .6rem; width: 100%; padding: .65rem .75rem; margin-bottom: .45rem; border: 1px solid #dbe2ea; border-radius: .4rem; background: #fff; color: #293042; text-align: left; cursor: pointer; transition: background .2s ease, border-color .2s ease, transform .2s ease; }
+    .status-button:not(:disabled):hover { background: #eef4ff; border-color: #435ebe; color: #294aa5; transform: translateX(3px); }
+    .status-button-mark { width: 16px; height: 16px; border: 2px solid currentColor; border-radius: 3px; }
+    .status-button:not(:disabled):hover .status-button-mark { background: #435ebe; box-shadow: inset 0 0 0 3px #eef4ff; }
+    .status-button-disabled { color: #9aa1aa; background: #f0f1f3; border-color: #e1e3e6; cursor: not-allowed; }
+</style>
 @endsection

@@ -30,7 +30,7 @@
                         <input type="checkbox" name="remember" value="1">
                         Ghi nhớ tôi
                     </label>
-                    <a href="#" class="auth-form__link">Quên mật khẩu?</a>
+                    <a href="{{ route('password.request') }}" class="auth-form__link">Quên mật khẩu?</a>
                 </div>
 
                 <div id="login-message" class="auth-form__message" aria-live="polite"></div>

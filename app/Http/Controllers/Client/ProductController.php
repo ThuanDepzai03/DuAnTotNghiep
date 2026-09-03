@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\ProductClick;
 use Illuminate\Http\Request;
 use App\Models\Attribute;
 use App\Models\Review;
@@ -22,6 +23,36 @@ class ProductController extends Controller
         $recent = array_slice(array_unique($recent), 0, 8);
 
         session()->put('recently_viewed', $recent);
+    }
+
+    protected function trackProductClick(Product $product): void
+    {
+        $customer = session('customer');
+
+        $customerId = $customer['id'] ?? null;
+        $sessionId = session()->getId();
+        $ipAddress = request()->ip();
+        $userAgent = request()->userAgent();
+
+        if ($customerId) {
+            $recentCustomerClick = ProductClick::where('product_id', $product->id)
+                ->where('customer_id', $customerId)
+                ->where('clicked_at', '>=', now()->subMinutes(5))
+                ->exists();
+
+            if ($recentCustomerClick) {
+                return;
+            }
+        }
+
+        ProductClick::create([
+            'product_id' => $product->id,
+            'customer_id' => $customerId,
+            'session_id' => $sessionId,
+            'ip_address' => $ipAddress,
+            'user_agent' => $userAgent,
+            'clicked_at' => now(),
+        ]);
     }
 
     public function index(Request $request)
@@ -188,6 +219,7 @@ class ProductController extends Controller
         ->findOrFail($id);
 
     $this->trackRecentlyViewedProduct((int) $product->id);
+    $this->trackProductClick($product);
 
     $recentProductIds = array_values(array_unique(session()->get('recently_viewed', [])));
     $recentProducts = Product::with('variants')

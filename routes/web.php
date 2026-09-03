@@ -15,6 +15,7 @@ use App\Http\Controllers\VoucherController;
 use App\Http\Controllers\Admin\BrandController;
 use App\Http\Controllers\Admin\BannerController;
 use App\Http\Controllers\Admin\FeedbackController;
+use App\Http\Controllers\CompareController;
 // Admin Controllers cũ của nhóm
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminAuthController;
@@ -83,6 +84,12 @@ Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
 Route::post('/register', [AuthController::class, 'register'])->name('register.post');
+Route::get('/forgot-password', [AuthController::class, 'showForgotPassword'])->name('password.request');
+Route::post('/forgot-password', [AuthController::class, 'sendResetLink'])->name('password.email');
+Route::get('/forgot-password/otp', [AuthController::class, 'showOtp'])->name('password.otp');
+Route::post('/forgot-password/verify-otp', [AuthController::class, 'verifyResetOtp'])->name('password.otp.verify');
+Route::get('/reset-password/{token}', [AuthController::class, 'showResetPassword'])->name('password.reset');
+Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
 Route::get('/verify-email', [AuthController::class, 'showVerificationNotice'])->name('verification.notice');
 Route::post('/verify-email/code', [AuthController::class, 'verifyEmailCode'])->name('verification.code');
 Route::get('/verify-email/{id}/{token}', [AuthController::class, 'verifyEmail'])->name('verification.verify');
@@ -106,9 +113,13 @@ Route::get('/orders/tracking', [App\Http\Controllers\Client\OrderTrackingControl
 
 Route::get('/orders/tracking/{id}', [App\Http\Controllers\Client\OrderTrackingController::class, 'show'])
     ->name('orders.tracking.show');
+Route::post('/orders/tracking/{id}/reviews', [App\Http\Controllers\Client\OrderTrackingController::class, 'submitReview'])
+    ->name('orders.tracking.review');
 
 Route::put('/account/orders/{id}/cancel', [AuthController::class, 'cancelOrder'])
     ->name('account.order.cancel');
+    Route::get('/so-sanh', [CompareController::class, 'index'])->name('compare.index');
+Route::post('/api/ai-compare', [CompareController::class, 'compareWithAi'])->name('compare.ai');
 
 // ================= ADMIN =================
 
@@ -153,6 +164,9 @@ Route::middleware(['web', 'admin'])
         Route::get('/orders/{id}', [OrderController::class, 'show'])->name('orders.show');
         Route::put('/orders/{id}/status', [OrderController::class, 'updateStatus'])->name('orders.updateStatus');
 
+        Route::post('/products/upload-description-image', [AdminProductController::class, 'uploadDescriptionImage'])
+            ->name('products.upload-description-image');
+
         Route::resource('users', UserController::class);
         Route::resource('brands', BrandController::class);
         Route::resource('banners', BannerController::class);
@@ -171,6 +185,8 @@ Route::get('/chat', [ChatController::class, 'adminIndex'])
 
 Route::get('/chat/unread', [ChatController::class, 'unreadCount'])
     ->name('chat.unread');
+Route::get('/chat/conversations', [ChatController::class, 'adminConversations'])
+    ->name('chat.conversations');
 
 Route::get('/chat/{id}/messages', [ChatController::class, 'adminMessages'])
     ->name('chat.messages');

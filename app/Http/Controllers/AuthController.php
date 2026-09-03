@@ -213,6 +213,122 @@ class AuthController extends Controller
         return redirect()->route('login');
     }
 
+    public function showForgotPassword()
+    {
+        return view('auth.forgot-password');
+    }
+
+    public function sendResetLink(Request $request)
+    {
+        $data = $request->validate([
+            'user' => ['required', 'string'],
+            'email' => ['required', 'email'],
+            'tel' => ['required', 'string', 'max:20'],
+        ], [
+            'user.required' => 'Vui lòng nhập tên đăng nhập.',
+            'email.required' => 'Vui lòng nhập email.',
+            'email.email' => 'Email không đúng định dạng.',
+            'tel.required' => 'Vui lòng nhập số điện thoại.',
+        ]);
+
+        $user = DB::table('nguoidung')
+            ->where('user', trim($data['user']))
+            ->where('email', strtolower(trim($data['email'])))
+            ->where('tel', trim($data['tel']))
+            ->first();
+
+        if (!$user) {
+            return back()->withErrors(['email' => 'Tên đăng nhập, email hoặc số điện thoại không khớp.'])->withInput();
+        }
+
+        $otp = (string) random_int(100000, 999999);
+        DB::table('password_reset_tokens')->updateOrInsert(
+            ['email' => strtolower(trim($data['email']))],
+            ['token' => Hash::make($otp), 'created_at' => now()]
+        );
+
+        session(['password_reset_pending_email' => strtolower(trim($data['email']))]);
+        Mail::raw("Mã OTP đặt lại mật khẩu của bạn là: {$otp}\nMã có hiệu lực trong 10 phút.", function ($message) use ($data) {
+            $message->to($data['email'])->subject('Đặt lại mật khẩu');
+        });
+
+        return redirect()->route('password.otp')
+            ->with('status', 'Mã OTP đã được gửi đến email của bạn.');
+    }
+
+    public function showOtp()
+    {
+        $email = session('password_reset_pending_email');
+
+        if (!$email) {
+            return redirect()->route('password.request')
+                ->withErrors(['email' => 'Vui lòng yêu cầu mã OTP trước.']);
+        }
+
+        return view('auth.otp', ['email' => $email]);
+    }
+
+    public function verifyResetOtp(Request $request)
+    {
+        $data = $request->validate([
+            'otp' => ['required', 'digits:6'],
+        ], [
+            'otp.required' => 'Vui lòng nhập mã OTP.',
+            'otp.digits' => 'Mã OTP phải gồm 6 chữ số.',
+        ]);
+
+        $email = session('password_reset_pending_email');
+        $reset = $email
+            ? DB::table('password_reset_tokens')->where('email', $email)->first()
+            : null;
+
+        if (!$reset || now()->diffInMinutes($reset->created_at) > 10
+            || !Hash::check($data['otp'], $reset->token)) {
+            return back()->withErrors(['otp' => 'Mã OTP không đúng hoặc đã hết hạn.']);
+        }
+
+        $token = Str::random(64);
+        DB::table('password_reset_tokens')->where('email', $email)->update([
+            'token' => $token,
+            'created_at' => now(),
+        ]);
+        session()->forget('password_reset_pending_email');
+
+        return redirect()->route('password.reset', ['token' => $token, 'email' => $email]);
+    }
+
+    public function showResetPassword(Request $request, string $token)
+    {
+        return view('auth.reset-password', [
+            'token' => $token,
+            'email' => $request->query('email'),
+        ]);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $data = $request->validate([
+            'token' => ['required'],
+            'email' => ['required', 'email'],
+            'password' => ['required', 'string', 'min:6', 'confirmed'],
+        ]);
+        $reset = DB::table('password_reset_tokens')->where('email', $data['email'])->first();
+
+        if (!$reset || !hash_equals($reset->token, $data['token'])
+            || now()->diffInMinutes($reset->created_at) > 60) {
+            return back()->withErrors(['email' => 'Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.']);
+        }
+
+        $userData = ['pass' => Hash::make($data['password'])];
+        if (Schema::hasColumn('nguoidung', 'updated_at')) {
+            $userData['updated_at'] = now();
+        }
+        DB::table('nguoidung')->where('email', $data['email'])->update($userData);
+        DB::table('password_reset_tokens')->where('email', $data['email'])->delete();
+
+        return redirect()->route('login')->with('success', 'Đổi mật khẩu thành công.');
+    }
+
     public function showRegister()
     {
         $cityOptions = $this->cityList();

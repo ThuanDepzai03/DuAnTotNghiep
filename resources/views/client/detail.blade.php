@@ -10,21 +10,93 @@
     } else {
         $mainImage = asset($thumbnail);
     }
+    
+    // Lấy danh sách ảnh gallery từ database
+    $galleryImages = $product->images()->orderBy('sort_order', 'asc')->get();
+    
+    // Nếu có ảnh gallery, dùng gallery; nếu không, dùng thumbnail cũ
+    if ($galleryImages->isNotEmpty()) {
+        $images = $galleryImages;
+    } else {
+        // Fallback: dùng thumbnail cũ nếu không có gallery
+        $images = collect([
+            (object)['image_url' => $mainImage]
+        ]);
+    }
 @endphp
 
 <div class="section">
     <div class="container">
         <div class="row">
-            {{-- Ảnh sản phẩm --}}
+            {{-- Ảnh sản phẩm với Gallery --}}
             <div class="col-md-5">
                 <div class="product-preview">
-                    <img
-                        id="main-product-image"
-                        src="{{ $mainImage }}"
-                        alt="{{ $product->name }}"
-                        style="width: 100%; max-height: 450px; object-fit: contain;"
-                        onerror="this.onerror=null;this.src='{{ asset('img/product01.png') }}';"
-                    >
+                    {{-- Main Image --}}
+                    <div style="position: relative; background: #f5f5f5; border-radius: 8px; overflow: hidden;">
+                        <img
+                            id="main-product-image"
+                            src="{{ $images[0]->image_url }}"
+                            alt="{{ $product->name }}"
+                            style="width: 100%; max-height: 450px; object-fit: contain; display: block;"
+                            onerror="this.onerror=null;this.src='{{ asset('img/product01.png') }}';"
+                        >
+                        
+                        {{-- Navigation Arrows (chỉ hiển thị khi có nhiều ảnh) --}}
+                        @if(count($images) > 1)
+                            <button 
+                                type="button" 
+                                class="product-image-nav prev-btn" 
+                                onclick="previousImage()"
+                                style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; z-index: 10;"
+                            >
+                                &#10094;
+                            </button>
+                            
+                            <button 
+                                type="button" 
+                                class="product-image-nav next-btn" 
+                                onclick="nextImage()"
+                                style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; z-index: 10;"
+                            >
+                                &#10095;
+                            </button>
+                            
+                            {{-- Image Counter --}}
+                            <div style="position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; padding: 5px 10px; border-radius: 4px; font-size: 12px;">
+                                <span id="image-counter">1</span> / {{ count($images) }}
+                            </div>
+                        @endif
+                    </div>
+                    
+                    {{-- Thumbnail Gallery (nếu có nhiều ảnh) --}}
+                    @if(count($images) > 1)
+                        <div style="margin-top: 15px; display: flex; gap: 8px; overflow-x: auto;">
+                            @foreach($images as $index => $image)
+                                <button 
+                                    type="button"
+                                    class="product-thumbnail {{ $index == 0 ? 'active' : '' }}"
+                                    onclick="selectImage({{ $index }})"
+                                    style="
+                                        flex-shrink: 0;
+                                        width: 60px;
+                                        height: 60px;
+                                        border: 2px solid {{ $index == 0 ? '#FF6B6B' : '#ddd' }};
+                                        border-radius: 4px;
+                                        cursor: pointer;
+                                        padding: 0;
+                                        background: none;
+                                        overflow: hidden;
+                                    "
+                                >
+                                    <img 
+                                        src="{{ $image->image_url }}"
+                                        alt="Thumbnail"
+                                        style="width: 100%; height: 100%; object-fit: cover;"
+                                    >
+                                </button>
+                            @endforeach
+                        </div>
+                    @endif
                 </div>
             </div>
 
@@ -167,42 +239,327 @@
                 </div>
 
                 <div class="product-description">
-                    {!! nl2br(e($product->description ?? 'Thông tin sản phẩm đang được cập nhật.')) !!}
+                    @if($product->description)
+                        {!! \App\Helpers\HtmlHelper::sanitizeDescription($product->description) !!}
+                    @else
+                        <p>Thông tin sản phẩm đang được cập nhật.</p>
+                    @endif
                 </div>
             </div>
 
-            <div class="col-md-12" style="margin-top: 35px;">
-                <div class="section-title">
-                    <h3 class="title">Đánh giá sản phẩm</h3>
+            @php
+    $reviews = $product->reviews;
+    $reviewCount = $reviews->count();
+
+    $averageRating = $reviewCount > 0
+        ? round($reviews->avg('rating'), 1)
+        : 0;
+
+    $ratingCounts = [];
+
+    for ($star = 5; $star >= 1; $star--) {
+        $ratingCounts[$star] = $reviews
+            ->where('rating', $star)
+            ->count();
+    }
+@endphp
+
+<div class="col-md-12 product-review-section">
+
+    <div class="review-wrapper">
+
+        <h2 class="review-main-title">
+            Đánh giá và bình luận
+        </h2>
+
+        {{-- THỐNG KÊ ĐÁNH GIÁ --}}
+        <div class="review-summary">
+
+            {{-- BÊN TRÁI --}}
+            <div class="review-score-box">
+
+                <div class="review-average">
+                    {{ $averageRating }}
                 </div>
 
-                @if(session('success'))
-                    <div class="alert alert-success">{{ session('success') }}</div>
-                @endif
+                <div class="review-count">
+                    {{ $reviewCount }} lượt đánh giá
+                </div>
 
-                @forelse($product->reviews as $review)
-                    <div style="border-bottom: 1px solid #eee; padding: 14px 0;">
-                        <strong>{{ $review->customer_name }}</strong>
-                        <span style="color: #f0ad00; margin-left: 10px;">{{ str_repeat('★', $review->rating) }}{{ str_repeat('☆', 5 - $review->rating) }}</span>
-                        <p style="margin: 8px 0 0;">{{ $review->comment }}</p>
+                <div class="review-stars-big">
+                    @for($i = 1; $i <= 5; $i++)
+                        @if($i <= round($averageRating))
+                            <i class="fa fa-star"></i>
+                        @else
+                            <i class="fa fa-star-o"></i>
+                        @endif
+                    @endfor
+                </div>
+
+                <button
+                    type="button"
+                    class="review-product-btn"
+                    onclick="document.getElementById('review-comment').focus()"
+                >
+                    Đánh giá sản phẩm
+                </button>
+
+            </div>
+
+
+            {{-- BÊN PHẢI --}}
+            <div class="review-rating-bars">
+
+                @for($star = 5; $star >= 1; $star--)
+
+                    @php
+                        $count = $ratingCounts[$star];
+                        $percentage = $reviewCount > 0
+                            ? ($count / $reviewCount) * 100
+                            : 0;
+                    @endphp
+
+                    <div class="rating-bar-row">
+
+                        <div class="rating-label">
+                            {{ $star }}
+                            <i class="fa fa-star"></i>
+                        </div>
+
+                        <div class="rating-progress">
+
+                            <div
+                                class="rating-progress-fill"
+                                style="width: {{ $percentage }}%;"
+                            ></div>
+
+                        </div>
+
+                        <div class="rating-number">
+                            {{ $count }}
+                        </div>
+
                     </div>
-                @empty
-                    <p>Chưa có đánh giá nào cho sản phẩm này.</p>
-                @endforelse
 
-                <form action="{{ route('product.review.store', $product->id) }}" method="POST" style="margin-top: 20px; max-width: 650px;">
-                    @csrf
-                    <label for="review-rating">Số sao</label>
-                    <select id="review-rating" name="rating" class="input" required>
-                        @for($rating = 5; $rating >= 1; $rating--)
-                            <option value="{{ $rating }}">{{ $rating }} sao</option>
-                        @endfor
-                    </select>
-                    <label for="review-comment" style="margin-top: 12px;">Nhận xét</label>
-                    <textarea id="review-comment" name="comment" class="input" rows="4" maxlength="2000" required>{{ old('comment') }}</textarea>
-                    <button type="submit" class="primary-btn" style="margin-top: 12px;">Gửi đánh giá</button>
-                </form>
+                @endfor
+
             </div>
+
+        </div>
+
+
+        {{-- THÔNG BÁO --}}
+        @if(session('success'))
+            <div class="alert alert-success review-alert">
+                {{ session('success') }}
+            </div>
+        @endif
+
+
+        {{-- FORM ĐÁNH GIÁ --}}
+        <form
+            action="{{ route('product.review.store', $product->id) }}"
+            method="POST"
+            class="review-form"
+        >
+
+            @csrf
+
+            <div class="review-form-top">
+
+                <div class="review-rating-select">
+
+                    <label for="review-rating">
+                        Đánh giá của bạn
+                    </label>
+
+                    <select
+                        id="review-rating"
+                        name="rating"
+                        required
+                    >
+
+                        @for($rating = 5; $rating >= 1; $rating--)
+                            <option value="{{ $rating }}">
+                                {{ $rating }} sao
+                            </option>
+                        @endfor
+
+                    </select>
+
+                </div>
+
+            </div>
+
+
+            <div class="review-input-row">
+
+                <div class="review-textarea-box">
+
+                    <textarea
+                        id="review-comment"
+                        name="comment"
+                        maxlength="2000"
+                        required
+                        placeholder="Nhập nội dung bình luận..."
+                    >{{ old('comment') }}</textarea>
+
+                    <span class="review-character-count">
+                        <span id="comment-count">0</span>/2000
+                    </span>
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="review-submit-btn"
+                >
+                    Gửi bình luận
+                </button>
+
+            </div>
+
+        </form>
+
+
+        {{-- TAB --}}
+        <div class="review-tabs">
+
+            <button
+                type="button"
+                class="review-tab active"
+                data-filter="all"
+            >
+                Tất cả
+                <span>{{ $reviewCount }}</span>
+            </button>
+
+
+            <button
+                type="button"
+                class="review-tab"
+                data-filter="rating"
+            >
+                Đánh giá
+                <span>{{ $reviewCount }}</span>
+            </button>
+
+
+            <button
+                type="button"
+                class="review-tab"
+                data-filter="comment"
+            >
+                Bình luận
+                <span>{{ $reviewCount }}</span>
+            </button>
+
+        </div>
+
+
+        {{-- BỘ LỌC SAO --}}
+        <div class="review-filters">
+
+            <button
+                type="button"
+                class="review-filter active"
+                data-star="all"
+            >
+                Tất cả
+            </button>
+
+
+            @for($star = 5; $star >= 1; $star--)
+
+                <button
+                    type="button"
+                    class="review-filter"
+                    data-star="{{ $star }}"
+                >
+                    {{ $star }}
+                    <i class="fa fa-star-o"></i>
+                </button>
+
+            @endfor
+
+        </div>
+
+
+        {{-- DANH SÁCH ĐÁNH GIÁ --}}
+        <div class="review-list">
+
+            @forelse($reviews as $review)
+
+                <div
+                    class="review-item"
+                    data-rating="{{ $review->rating }}"
+                >
+
+                    <div class="review-avatar">
+
+                        {{ strtoupper(substr($review->customer_name ?? 'K', 0, 1)) }}
+
+                    </div>
+
+
+                    <div class="review-content">
+
+                        <div class="review-user-row">
+
+                            <strong>
+                                {{ $review->customer_name }}
+                            </strong>
+
+
+                            <div class="review-stars">
+
+                                @for($i = 1; $i <= 5; $i++)
+
+                                    @if($i <= $review->rating)
+                                        <i class="fa fa-star"></i>
+                                    @else
+                                        <i class="fa fa-star-o"></i>
+                                    @endif
+
+                                @endfor
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="review-comment-text">
+                            {{ $review->comment }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+            @empty
+
+                <div class="review-empty">
+
+                    <i class="fa fa-comment-o"></i>
+
+                    <p>
+                        Chưa có đánh giá nào cho sản phẩm này.
+                    </p>
+
+                    <span>
+                        Hãy là người đầu tiên đánh giá sản phẩm.
+                    </span>
+
+                </div>
+
+            @endforelse
+
+        </div>
+
+    </div>
+
+</div>
 
             @if(!empty($recentProducts) && $recentProducts->count())
                 <div class="col-md-12" style="margin-top: 35px;">
@@ -279,6 +636,394 @@
         cursor: not-allowed;
         text-decoration: line-through;
     }
+    /* =========================================
+   PRODUCT REVIEW - AE PHOENIC STORE
+========================================= */
+
+.product-review-section {
+    margin-top: 45px;
+}
+
+.review-wrapper {
+    background: #fff;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.06);
+}
+
+.review-main-title {
+    font-size: 30px;
+    font-weight: 700;
+    margin-bottom: 30px;
+    color: #1f2937;
+}
+
+
+/* ================= SUMMARY ================= */
+
+.review-summary {
+    display: flex;
+    gap: 60px;
+    align-items: center;
+    padding-bottom: 30px;
+    border-bottom: 1px solid #eeeeee;
+}
+
+.review-score-box {
+    width: 250px;
+    text-align: center;
+}
+
+.review-average {
+    font-size: 58px;
+    font-weight: 700;
+    color: #1f2937;
+    line-height: 1;
+}
+
+.review-count {
+    margin-top: 10px;
+    color: #6b7280;
+    font-size: 15px;
+}
+
+.review-stars-big {
+    margin-top: 10px;
+    color: #f5b301;
+    font-size: 24px;
+    letter-spacing: 3px;
+}
+
+.review-product-btn {
+    width: 100%;
+    margin-top: 20px;
+    border: none;
+    border-radius: 30px;
+    padding: 13px 20px;
+    background: #e52b2b;
+    color: white;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.25s;
+}
+
+.review-product-btn:hover {
+    background: #c91f1f;
+    transform: translateY(-2px);
+}
+
+
+/* ================= RATING BAR ================= */
+
+.review-rating-bars {
+    flex: 1;
+    max-width: 800px;
+}
+
+.rating-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.rating-label {
+    width: 40px;
+    font-size: 15px;
+    color: #4b5563;
+}
+
+.rating-label i {
+    color: #f5b301;
+}
+
+.rating-progress {
+    flex: 1;
+    height: 15px;
+    background: #e5e7eb;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.rating-progress-fill {
+    height: 100%;
+    background: #e52b2b;
+    border-radius: 20px;
+    transition: width 0.4s ease;
+}
+
+.rating-number {
+    width: 30px;
+    color: #6b7280;
+}
+
+
+/* ================= FORM ================= */
+
+.review-form {
+    margin-top: 30px;
+    background: #f8fafc;
+    padding: 15px;
+    border-radius: 16px;
+}
+
+.review-form-top {
+    margin-bottom: 12px;
+}
+
+.review-rating-select {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.review-rating-select label {
+    margin: 0;
+    font-weight: 600;
+    color: #374151;
+}
+
+.review-rating-select select {
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 8px 12px;
+    outline: none;
+}
+
+.review-input-row {
+    display: flex;
+    gap: 12px;
+    align-items: stretch;
+}
+
+.review-textarea-box {
+    flex: 1;
+    position: relative;
+}
+
+.review-textarea-box textarea {
+    width: 100%;
+    height: 75px;
+    resize: none;
+    border: 1px solid #d1d5db;
+    border-radius: 12px;
+    padding: 15px 70px 15px 15px;
+    font-size: 16px;
+    outline: none;
+}
+
+.review-textarea-box textarea:focus {
+    border-color: #e52b2b;
+}
+
+.review-character-count {
+    position: absolute;
+    right: 15px;
+    bottom: 12px;
+    color: #9ca3af;
+    font-size: 13px;
+}
+
+.review-submit-btn {
+    border: none;
+    border-radius: 30px;
+    padding: 0 28px;
+    background: #182230;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.25s;
+}
+
+.review-submit-btn:hover {
+    background: #000;
+}
+
+
+/* ================= TABS ================= */
+
+.review-tabs {
+    display: flex;
+    gap: 35px;
+    border-bottom: 1px solid #e5e7eb;
+    margin-top: 30px;
+}
+
+.review-tab {
+    position: relative;
+    padding: 15px 5px;
+    border: none;
+    background: transparent;
+    color: #6b7280;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.review-tab.active {
+    color: #d92323;
+}
+
+.review-tab.active::after {
+    content: "";
+    position: absolute;
+    height: 3px;
+    background: #d92323;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    border-radius: 10px;
+}
+
+.review-tab span {
+    display: inline-block;
+    margin-left: 5px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    background: #9ca3af;
+    color: white;
+    font-size: 13px;
+}
+
+.review-tab.active span {
+    background: #d92323;
+}
+
+
+/* ================= FILTER ================= */
+
+.review-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 18px 0;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.review-filter {
+    padding: 8px 20px;
+    border-radius: 25px;
+    border: 1px solid #d1d5db;
+    background: white;
+    color: #374151;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.review-filter:hover,
+.review-filter.active {
+    border-color: #e52b2b;
+    color: #e52b2b;
+    background: #fff5f5;
+}
+
+
+/* ================= REVIEW ITEM ================= */
+
+.review-list {
+    margin-top: 10px;
+}
+
+.review-item {
+    display: flex;
+    gap: 15px;
+    padding: 22px 0;
+    border-bottom: 1px solid #eeeeee;
+}
+
+.review-avatar {
+    width: 45px;
+    height: 45px;
+    min-width: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e5e7eb;
+    color: #4b5563;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.review-content {
+    flex: 1;
+}
+
+.review-user-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.review-stars {
+    color: #f5b301;
+}
+
+.review-comment-text {
+    margin-top: 10px;
+    color: #4b5563;
+    line-height: 1.6;
+}
+
+.review-empty {
+    padding: 50px 20px;
+    text-align: center;
+    color: #9ca3af;
+}
+
+.review-empty i {
+    font-size: 45px;
+}
+
+.review-empty p {
+    margin: 15px 0 5px;
+    color: #4b5563;
+    font-size: 18px;
+}
+
+
+/* ================= MOBILE ================= */
+
+@media (max-width: 768px) {
+
+    .review-wrapper {
+        padding: 20px;
+    }
+
+    .review-main-title {
+        font-size: 24px;
+    }
+
+    .review-summary {
+        flex-direction: column;
+        gap: 25px;
+    }
+
+    .review-score-box {
+        width: 100%;
+    }
+
+    .review-input-row {
+        flex-direction: column;
+    }
+
+    .review-submit-btn {
+        padding: 14px;
+    }
+
+    .review-tabs {
+        gap: 15px;
+        overflow-x: auto;
+    }
+
+    .review-user-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+}
 </style>
 
 <script>
@@ -427,5 +1172,133 @@ document.addEventListener('DOMContentLoaded', function () {
     updateAvailableOptions();
     updateVariantInformation();
 });
+document.addEventListener('DOMContentLoaded', function () {
+
+    // Code JavaScript cũ của bạn ở đây
+
+});
+</script>
+
+
+<!-- THÊM CODE BƯỚC 3 Ở ĐÂY -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const reviewFilters = document.querySelectorAll('.review-filter');
+    const reviewItems = document.querySelectorAll('.review-item');
+
+    reviewFilters.forEach(function (filter) {
+
+        filter.addEventListener('click', function () {
+
+            reviewFilters.forEach(function (item) {
+                item.classList.remove('active');
+            });
+
+            filter.classList.add('active');
+
+            const selectedStar = filter.dataset.star;
+
+            reviewItems.forEach(function (review) {
+
+                if (
+                    selectedStar === 'all' ||
+                    review.dataset.rating === selectedStar
+                ) {
+                    review.style.display = 'flex';
+                } else {
+                    review.style.display = 'none';
+                }
+
+            });
+
+        });
+
+    });
+
+
+    const comment = document.getElementById('review-comment');
+    const commentCount = document.getElementById('comment-count');
+
+    if (comment && commentCount) {
+
+        commentCount.textContent = comment.value.length;
+
+        comment.addEventListener('input', function () {
+            commentCount.textContent = comment.value.length;
+        });
+
+    }
+
+
+    const reviewTabs = document.querySelectorAll('.review-tab');
+
+    reviewTabs.forEach(function (tab) {
+
+        tab.addEventListener('click', function () {
+
+            reviewTabs.forEach(function (item) {
+                item.classList.remove('active');
+            });
+
+            tab.classList.add('active');
+
+        });
+
+    });
+
+});
+
+// ============ GALLERY FUNCTIONS ============
+let currentImageIndex = 0;
+const galleryImages = {!! json_encode($images->pluck('image_url')->values()) !!};
+
+function nextImage() {
+    currentImageIndex = (currentImageIndex + 1) % galleryImages.length;
+    updateMainImage();
+}
+
+function previousImage() {
+    currentImageIndex = (currentImageIndex - 1 + galleryImages.length) % galleryImages.length;
+    updateMainImage();
+}
+
+function selectImage(index) {
+    currentImageIndex = index;
+    updateMainImage();
+}
+
+function updateMainImage() {
+    const mainImage = document.getElementById('main-product-image');
+    const counter = document.getElementById('image-counter');
+    
+    mainImage.src = galleryImages[currentImageIndex];
+    
+    if (counter) {
+        counter.textContent = (currentImageIndex + 1);
+    }
+    
+    // Cập nhật active thumbnail
+    const thumbnails = document.querySelectorAll('.product-thumbnail');
+    thumbnails.forEach((thumb, index) => {
+        if (index === currentImageIndex) {
+            thumb.style.borderColor = '#FF6B6B';
+        } else {
+            thumb.style.borderColor = '#ddd';
+        }
+    });
+}
+
+// Hỗ trợ keyboard navigation
+document.addEventListener('keydown', function(e) {
+    if (galleryImages.length > 1) {
+        if (e.key === 'ArrowLeft') {
+            previousImage();
+        } else if (e.key === 'ArrowRight') {
+            nextImage();
+        }
+    }
+});
 </script>
 @endsection
+<!-- ádsdaas -->

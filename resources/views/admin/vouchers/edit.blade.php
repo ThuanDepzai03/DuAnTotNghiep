@@ -43,6 +43,23 @@
 
 
                 <div class="mb-3">
+                    <label class="form-label">Loại Voucher</label>
+
+                    <select name="voucher_type" class="form-select" required>
+                        <option value="normal" {{ old('voucher_type', $voucher->voucher_type) === 'normal' ? 'selected' : '' }}>
+                            Voucher thường
+                        </option>
+                        <option value="flash_sale" {{ old('voucher_type', $voucher->voucher_type) === 'flash_sale' ? 'selected' : '' }}>
+                            Flash Sale
+                        </option>
+                        <option value="mid_autumn" {{ old('voucher_type', $voucher->voucher_type) === 'mid_autumn' ? 'selected' : '' }}>
+                            Voucher Trung Thu
+                        </option>
+                    </select>
+                </div>
+
+
+                <div class="mb-3">
                     <label class="form-label">Loại giảm giá</label>
 
                     <select name="discount_type" class="form-select" id="voucher-discount-type" required>

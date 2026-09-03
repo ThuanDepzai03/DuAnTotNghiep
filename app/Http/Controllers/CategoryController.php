@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Services\SeederSyncService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -40,6 +41,8 @@ class CategoryController extends Controller
             'status' => (int) $data['status'],
         ]);
 
+        SeederSyncService::syncCategories();
+
         return redirect()
             ->route('admin.categories.index')
             ->with('success', 'Thêm danh mục thành công.');
@@ -76,6 +79,8 @@ class CategoryController extends Controller
             'status' => (int) $data['status'],
         ]);
 
+        SeederSyncService::syncCategories();
+
         return redirect()
             ->route('admin.categories.index')
             ->with('success', 'Cập nhật danh mục thành công.');
@@ -87,6 +92,8 @@ class CategoryController extends Controller
         $category->update([
             'status' => 0,
         ]);
+
+        SeederSyncService::syncCategories();
 
         return redirect()
             ->route('admin.categories.index')
@@ -100,6 +107,8 @@ class CategoryController extends Controller
         $category->update([
             'status' => 1,
         ]);
+
+        SeederSyncService::syncCategories();
 
         return redirect()
             ->route('admin.categories.index')

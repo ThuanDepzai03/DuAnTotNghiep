@@ -28,13 +28,12 @@ class VoucherController extends Controller
             'name' => 'required|string|max:255',
             'voucher_type' => 'required|in:normal,flash_sale,mid_autumn',
             'discount_type' => 'required|in:percent,fixed,free_shipping',
-
-            'discount_value' => $discountType === 'free_shipping'
-                ? 'nullable|numeric|min:0'
-                : ($discountType === 'percent'
-                    ? 'required|numeric|min:1|max:100'
-                    : 'required|numeric|min:1'),
-
+            'discount_value' => [
+                'required',
+                'numeric',
+                $discountType === 'free_shipping' ? 'min:0' : 'min:1',
+                $discountType === 'percent' ? 'max:100' : '',
+            ],
             'max_discount' => 'nullable|numeric|min:0',
             'min_order' => 'nullable|numeric|min:0',
             'quantity' => 'required|integer|min:1',
@@ -48,15 +47,8 @@ class VoucherController extends Controller
             'name' => $request->name,
             'voucher_type' => $request->voucher_type,
             'discount_type' => $discountType,
-
-            'discount_value' => $discountType === 'free_shipping'
-                ? 0
-                : $request->discount_value,
-
-            'max_discount' => $discountType === 'free_shipping'
-                ? null
-                : $request->max_discount,
-
+            'discount_value' => $discountType === 'free_shipping' ? 0 : $request->discount_value,
+            'max_discount' => $request->max_discount,
             'min_order' => $request->input('min_order', 0) ?: 0,
             'quantity' => $request->quantity,
             'used_quantity' => 0,
@@ -64,6 +56,8 @@ class VoucherController extends Controller
             'end_date' => $request->end_date,
             'status' => $request->status,
         ]);
+
+        \App\Services\SeederSyncService::syncVouchers();
 
         return redirect()
             ->route('admin.vouchers.index')
@@ -89,8 +83,8 @@ class VoucherController extends Controller
         $discountType = $request->input('discount_type', 'percent');
 
         $request->validate([
-            'code' => 'required|string|max:255|unique:vouchers,code,' . $id,
-            'name' => 'required|string|max:255',
+            'code' => 'required|unique:vouchers,code,' . $id,
+            'name' => 'required',
             'voucher_type' => 'required|in:normal,flash_sale,mid_autumn',
             'discount_type' => 'required|in:percent,fixed,free_shipping',
 
@@ -129,6 +123,8 @@ class VoucherController extends Controller
             'status' => $request->status,
         ]);
 
+        \App\Services\SeederSyncService::syncVouchers();
+
         return redirect()
             ->route('admin.vouchers.index')
             ->with('success', 'Cập nhật Voucher thành công!');
@@ -138,6 +134,9 @@ class VoucherController extends Controller
     {
         Voucher::findOrFail($id)->delete();
 
-        return back()->with('success', 'Đã xóa');
+        \App\Services\SeederSyncService::syncVouchers();
+
+        return back()
+            ->with('success', 'Đã xóa');
     }
 }

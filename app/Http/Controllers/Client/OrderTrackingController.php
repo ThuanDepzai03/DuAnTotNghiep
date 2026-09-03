@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\Review;
 use Illuminate\Http\Request;
 
 class OrderTrackingController extends Controller
@@ -49,7 +50,52 @@ class OrderTrackingController extends Controller
 
         $this->applyStatusTimeline($order);
 
-        return view('client.orders.tracking-detail', compact('order'));
+        $productIds = $order->items->pluck('variant.product_id')->filter()->unique();
+        $reviews = Review::whereIn('product_id', $productIds)
+            ->where('customer_id', $customer['id'] ?? 0)
+            ->get()
+            ->keyBy('product_id');
+
+        return view('client.orders.tracking-detail', compact('order', 'reviews'));
+    }
+
+    public function submitReview(Request $request, $id)
+    {
+        $customer = session('customer');
+        if (!$customer) {
+            return redirect()->route('login');
+        }
+
+        $data = $request->validate([
+            'product_id' => ['required', 'integer'],
+            'rating' => ['required', 'integer', 'between:1,5'],
+            'comment' => ['required', 'string', 'max:2000'],
+        ]);
+
+        $order = Order::with('items.variant')
+            ->where('id', $id)
+            ->where(function ($query) use ($customer) {
+                $query->where('phone', $customer['tel'] ?? '')
+                    ->orWhere('email', $customer['email'] ?? '');
+            })->firstOrFail();
+
+        $hasProduct = $order->items->contains(fn ($item) =>
+            (int) ($item->variant?->product_id) === (int) $data['product_id']
+        );
+
+        abort_unless($hasProduct, 403);
+
+        Review::updateOrCreate(
+            ['product_id' => $data['product_id'], 'customer_id' => $customer['id']],
+            [
+                'customer_name' => $customer['user'] ?? 'Khách hàng',
+                'rating' => $data['rating'],
+                'comment' => $data['comment'],
+                'status' => 'approved',
+            ]
+        );
+
+        return back()->with('success', 'Đã lưu đánh giá sản phẩm.');
     }
 
     protected function applyStatusTimeline(Order $order): void

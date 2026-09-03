@@ -3,6 +3,23 @@
 @section('content')
 <div class="section">
     <div class="container">
+        <div class="brand-strip">
+            @foreach ($brands as $brand)
+                @php
+                    $brandLogo = $brand->logo
+                        ? (str_starts_with($brand->logo, 'http')
+                            ? $brand->logo
+                            : asset($brand->logo))
+                        : asset('img/logo.png');
+                @endphp
+
+                <a href="{{ route('shop', ['brand_id' => $brand->id]) }}" class="brand-item" title="{{ $brand->name }}">
+                    <img src="{{ $brandLogo }}" alt="{{ $brand->name }}" onerror="this.onerror=null;this.src='{{ asset('img/logo.png') }}';">
+                    <span class="brand-item__name">{{ $brand->name }}</span>
+                </a>
+            @endforeach
+        </div>
+
         <div class="row">
 
             {{-- Bộ lọc --}}

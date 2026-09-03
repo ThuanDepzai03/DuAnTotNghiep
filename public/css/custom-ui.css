@@ -6,6 +6,52 @@ body {
     padding-top: 175px;
 }
 
+.brand-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin: 0 0 24px;
+    padding: 12px 0 0;
+}
+
+.brand-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 150px;
+    padding: 12px 14px;
+    border: 1px solid #e6e6e6;
+    border-radius: 12px;
+    background: #fff;
+    transition: all 0.2s ease;
+    color: #2b2d42;
+    text-decoration: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.brand-item:hover,
+.brand-item:focus {
+    border-color: #d10024;
+    box-shadow: 0 6px 16px rgba(209, 0, 36, 0.08);
+    color: #2b2d42;
+    text-decoration: none;
+}
+
+.brand-item img {
+    width: 34px;
+    height: 34px;
+    object-fit: contain;
+    border-radius: 8px;
+    background: #f8f8f8;
+}
+
+.brand-item__name {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+}
+
 /* =========================================================
    HEADER
    ========================================================= */
@@ -164,8 +210,8 @@ body {
 }
 
 .brand-logo__img {
-    width: auto;
-    height: 42px;
+    width: 100px;
+    height: 100px;
 
     object-fit: contain;
 
@@ -805,4 +851,768 @@ a:hover:not(.brand-logo):not(.header-links a) {
     100% {
         transform: translateX(100%);
     }
+}
+/* =========================================================
+   HEADER MỚI
+   2 HÀNG:
+   HÀNG 1 = LOGO + SEARCH + ACTIONS
+   HÀNG 2 = NAVIGATION
+   ========================================================= */
+
+body {
+    padding-top: 124px;
+}
+
+
+/* =========================================================
+   HÀNG 1
+   ========================================================= */
+
+#top-header {
+    height: 74px;
+    min-height: 74px;
+    padding: 0;
+    background: rgba(18, 21, 27, 0.98);
+    color: #fff;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+
+.top-header-inner {
+    height: 74px;
+    min-height: 74px;
+
+    display: flex;
+    align-items: center;
+
+    width: 100%;
+
+    gap: 28px;
+}
+
+
+/* =========================================================
+   LOGO
+   ========================================================= */
+
+.top-header-logo {
+    flex: 0 0 auto;
+}
+
+.brand-logo {
+    display: flex;
+    align-items: center;
+
+    gap: 9px;
+
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+
+.brand-logo__img {
+    width: 48px;
+    height: 48px;
+
+    object-fit: contain;
+
+    filter: drop-shadow(
+        0 3px 7px rgba(255,255,255,0.12)
+    );
+}
+
+
+.brand-logo__text {
+    color: #fff;
+
+    font-size: 18px;
+    font-weight: 700;
+
+    letter-spacing: 0.04em;
+}
+
+
+/* =========================================================
+   SEARCH
+   ========================================================= */
+
+.top-header-search {
+    flex: 1 1 auto;
+    min-width: 250px;
+    max-width: 620px;
+}
+
+
+.top-header-search .header-search-form {
+    width: 100%;
+
+    display: flex;
+
+    margin: 0;
+}
+
+
+.top-header-search .header-search-form input {
+    width: 100%;
+    height: 40px;
+
+    flex: 1;
+
+    padding: 0 16px;
+
+    border: 1px solid #e4e7ed;
+    border-right: 0;
+
+    border-radius: 22px 0 0 22px;
+
+    outline: none;
+
+    font-family: "Montserrat", sans-serif;
+    font-size: 13px;
+
+    background: #fff;
+}
+
+
+.top-header-search .header-search-form input:focus {
+    border-color: #d10024;
+}
+
+
+.top-header-search .header-search-form button {
+    width: 52px;
+    height: 40px;
+
+    flex: 0 0 52px;
+
+    border: 0;
+
+    border-radius: 0 22px 22px 0;
+
+    background: #d10024;
+
+    color: #fff;
+
+    cursor: pointer;
+
+    transition: background 0.2s ease;
+}
+
+
+.top-header-search .header-search-form button:hover {
+    background: #a9001d;
+}
+
+
+/* =========================================================
+   ACTIONS BÊN PHẢI
+   ========================================================= */
+
+.top-header-actions {
+    margin-left: auto;
+
+    display: flex;
+    align-items: center;
+
+    justify-content: flex-end;
+
+    gap: 16px;
+
+    flex: 0 0 auto;
+
+    white-space: nowrap;
+}
+
+
+.header-action {
+    display: inline-flex;
+    align-items: center;
+
+    gap: 7px;
+
+    padding: 6px 0;
+
+    color: #e2e8f0 !important;
+
+    font-size: 12px;
+    font-weight: 600;
+
+    text-decoration: none;
+
+    white-space: nowrap;
+
+    background: none;
+}
+
+
+.header-action i {
+    color: #d10024;
+
+    font-size: 14px;
+
+    width: 16px;
+
+    text-align: center;
+}
+
+
+.header-action:hover {
+    color: #fff !important;
+    text-decoration: none;
+}
+
+
+.header-action:hover i {
+    color: #e11d48;
+}
+
+
+/* =========================================================
+   FORM ĐĂNG XUẤT
+   ========================================================= */
+
+.logout-form {
+    display: inline-flex;
+
+    margin: 0;
+    padding: 0;
+}
+
+
+.header-action-button {
+    border: 0;
+
+    cursor: pointer;
+
+    font-family: "Montserrat", sans-serif;
+}
+
+
+/* =========================================================
+   HÀNG 2 - NAVIGATION
+   Giữ nguyên giao diện menu hiện tại
+   ========================================================= */
+
+#navigation {
+    height: 50px;
+    min-height: 50px;
+
+    background: rgba(24, 28, 36, 0.98);
+
+    border-top: 2px solid #d10024;
+    border-bottom: 1px solid rgba(148,163,184,0.12);
+
+    display: flex;
+    align-items: center;
+}
+
+
+#responsive-nav {
+    width: 100%;
+}
+
+
+.main-nav {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: flex-start;
+
+    gap: 4px;
+
+    margin: 0;
+    padding: 0;
+
+    list-style: none;
+}
+
+
+.main-nav li {
+    margin: 0 8px;
+}
+
+
+.main-nav li a {
+    padding: 14px 10px;
+
+    display: inline-flex;
+    align-items: center;
+
+    position: relative;
+
+    color: #e2e8f0;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    text-decoration: none;
+}
+
+
+.main-nav li.active a,
+.main-nav li a:hover {
+    color: #fff;
+}
+
+
+/* =========================================================
+   TẮT CSS HEADER CŨ KHÔNG CẦN THIẾT
+   ========================================================= */
+
+.header-search-bar {
+    display: none !important;
+}
+
+
+.header-links--left {
+    display: none !important;
+}
+
+
+/* Không để CSS cũ ảnh hưởng */
+#top-header .header-links {
+    display: none !important;
+}
+
+
+/* =========================================================
+   DESKTOP
+   ========================================================= */
+
+@media (min-width: 1200px) {
+
+    #top-header > .container,
+    #navigation > .container {
+        width: 100%;
+        max-width: 1400px;
+    }
+
+}
+
+
+/* =========================================================
+   LAPTOP
+   ========================================================= */
+
+@media (max-width: 1199px) {
+
+    .top-header-inner {
+        gap: 18px;
+    }
+
+    .top-header-search {
+        max-width: 500px;
+    }
+
+    .top-header-actions {
+        gap: 12px;
+    }
+
+    .header-action {
+        font-size: 11px;
+    }
+
+    .brand-logo__text {
+        font-size: 16px;
+    }
+
+}
+
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 991px) {
+
+    body {
+        padding-top: 116px;
+    }
+
+    #top-header {
+        height: 66px;
+        min-height: 66px;
+    }
+
+    .top-header-inner {
+        height: 66px;
+        min-height: 66px;
+
+        gap: 12px;
+    }
+
+    .brand-logo__img {
+        width: 42px;
+        height: 42px;
+    }
+
+    .brand-logo__text {
+        font-size: 14px;
+    }
+
+    .top-header-search {
+        min-width: 180px;
+    }
+
+    .top-header-actions {
+        gap: 9px;
+    }
+
+    .header-action {
+        font-size: 10px;
+        gap: 4px;
+    }
+
+    .header-action i {
+        font-size: 12px;
+    }
+
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+    body {
+        padding-top: 104px;
+    }
+
+    #top-header {
+        height: 58px;
+        min-height: 58px;
+    }
+
+    .top-header-inner {
+        height: 58px;
+        min-height: 58px;
+
+        gap: 8px;
+    }
+
+    .brand-logo {
+        gap: 0;
+    }
+
+    .brand-logo__img {
+        width: 38px;
+        height: 38px;
+    }
+
+    .brand-logo__text {
+        display: none;
+    }
+
+    .top-header-search {
+        min-width: 0;
+        max-width: none;
+    }
+
+    .top-header-search .header-search-form input {
+        height: 36px;
+        padding: 0 11px;
+
+        font-size: 11px;
+    }
+
+    .top-header-search .header-search-form button {
+        width: 42px;
+        height: 36px;
+
+        flex-basis: 42px;
+    }
+
+    .top-header-actions {
+        gap: 7px;
+    }
+
+    .header-action span {
+        display: none;
+    }
+
+    .header-action i {
+        font-size: 15px;
+    }
+
+    #navigation {
+        height: 46px;
+        min-height: 46px;
+
+        overflow-x: auto;
+    }
+
+    .main-nav {
+        width: max-content;
+    }
+
+    .main-nav li {
+        margin: 0 4px;
+    }
+
+    .main-nav li a {
+        padding: 12px 8px;
+        font-size: 11px;
+    }
+
+}/* =========================================================
+   FIX HEADER - LOGOUT + ACTIVE NAV
+   ========================================================= */
+
+
+/* =========================================================
+   1. ICON ĐĂNG XUẤT
+   ========================================================= */
+
+/* Icon logout phải màu trắng vì nền nút đã là đỏ */
+.logout-form .header-action-button i,
+.logout-form .header-action-button:hover i,
+.logout-form .header-action-button:focus i {
+    color: #ffffff !important;
+}
+
+
+/* Chữ logout cũng luôn trắng */
+.logout-form .header-action-button,
+.logout-form .header-action-button:hover,
+.logout-form .header-action-button:focus {
+    color: #ffffff !important;
+}
+
+
+/* Hover nút logout */
+.logout-form .header-action-button:hover {
+    background: linear-gradient(135deg, #a9001d, #d10024);
+}
+
+
+/* =========================================================
+   2. MENU - TRANG HIỆN TẠI
+   ========================================================= */
+
+/* Mặc định không có gạch */
+.main-nav li a::after {
+    transform: scaleX(0);
+    opacity: 0;
+
+    transition:
+        transform 0.25s ease,
+        opacity 0.25s ease;
+}
+
+
+/* Hover */
+.main-nav li a:hover::after {
+    transform: scaleX(1);
+    opacity: 1;
+}
+
+
+/* TRANG HIỆN TẠI */
+.main-nav li.active > a {
+    color: #ffffff !important;
+}
+
+
+/* Gạch đỏ luôn hiện ở trang hiện tại */
+.main-nav li.active > a::after {
+    transform: scaleX(1) !important;
+    opacity: 1 !important;
+}
+
+
+/* =========================================================
+   3. ACTIVE + HOVER
+   ========================================================= */
+
+.main-nav li.active > a:hover {
+    color: #ffffff !important;
+}
+
+.main-nav li.active > a:hover::after {
+    transform: scaleX(1) !important;
+    opacity: 1 !important;
+}
+
+
+/* =========================================================
+   4. NÚT LOGOUT - ĐẸP HƠN
+   ========================================================= */
+
+.logout-form .header-action-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 7px;
+
+    min-height: 38px;
+    padding: 0 18px;
+
+    border: none;
+    border-radius: 12px;
+
+    background: linear-gradient(
+        135deg,
+        #d10024,
+        #e11d48
+    );
+
+    color: #ffffff !important;
+
+    font-family: "Montserrat", sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
+}
+
+
+/* Icon */
+.logout-form .header-action-button i {
+    color: #ffffff !important;
+    font-size: 13px;
+}
+
+
+/* Hover */
+.logout-form .header-action-button:hover {
+    transform: translateY(-1px);
+
+    background: linear-gradient(
+        135deg,
+        #b00020,
+        #d10024
+    );
+
+    box-shadow:
+        0 6px 14px rgba(209, 0, 36, 0.28);
+}
+
+
+/* Click */
+.logout-form .header-action-button:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+
+/* =========================================================
+   5. TRÁNH CSS CHUNG LÀM ICON LOGOUT ĐỎ LẠI
+   ========================================================= */
+
+.top-header-actions .logout-form i {
+    color: #ffffff !important;
+}/* =========================================================
+   ACTIVE MENU - HIỆU ỨNG ÁNH SÁNG ĐỎ
+   ========================================================= */
+
+/* Mục đang ở trang hiện tại */
+.main-nav li.active > a {
+    color: #ffffff !important;
+
+    /* ánh sáng đỏ xung quanh chữ */
+    text-shadow:
+        0 0 5px rgba(209, 0, 36, 0.65),
+        0 0 12px rgba(209, 0, 36, 0.45),
+        0 0 20px rgba(209, 0, 36, 0.25);
+
+    transition:
+        color 0.25s ease,
+        text-shadow 0.25s ease;
+}
+
+
+/* Gạch đỏ bên dưới */
+.main-nav li.active > a::after {
+    transform: scaleX(1) !important;
+    opacity: 1 !important;
+
+    background: #d10024 !important;
+
+    box-shadow:
+        0 0 5px rgba(209, 0, 36, 0.9),
+        0 0 10px rgba(209, 0, 36, 0.7),
+        0 0 18px rgba(209, 0, 36, 0.45);
+
+    height: 2px;
+}
+
+
+/* Hover mục active → sáng hơn */
+.main-nav li.active > a:hover {
+    color: #ffffff !important;
+
+    text-shadow:
+        0 0 6px rgba(209, 0, 36, 0.8),
+        0 0 14px rgba(209, 0, 36, 0.65),
+        0 0 24px rgba(209, 0, 36, 0.4);
+}
+
+
+/* =========================================================
+   CÁC MENU KHÁC KHI HOVER
+   ========================================================= */
+
+.main-nav li:not(.active) > a:hover {
+    color: #ffffff !important;
+
+    text-shadow:
+        0 0 6px rgba(209, 0, 36, 0.55);
+}
+
+
+.main-nav li:not(.active) > a:hover::after {
+    transform: scaleX(1) !important;
+    opacity: 1 !important;
+
+    box-shadow:
+        0 0 6px rgba(209, 0, 36, 0.7);
+}/* Menu căn giữa */
+.main-nav li {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.main-nav li a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+
+    position: relative;
+}
+
+
+/* Gạch đỏ nằm giữa chữ */
+.main-nav li a::after {
+    left: 50% !important;
+    right: auto !important;
+
+    width: 70px;
+
+    transform: translateX(-50%) scaleX(0) !important;
+    transform-origin: center !important;
+}
+
+
+/* Active */
+.main-nav li.active > a::after {
+    transform: translateX(-50%) scaleX(1) !important;
+    opacity: 1 !important;
+}
+
+
+/* Hover */
+.main-nav li a:hover::after {
+    transform: translateX(-50%) scaleX(1) !important;
+    opacity: 1 !important;
 }

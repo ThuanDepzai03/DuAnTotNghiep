@@ -56,6 +56,13 @@
                         </a>
                     </li>
 
+                    <li class="sidebar-item {{ request()->routeIs('admin.brands.*') ? 'active' : '' }}">
+                        <a href="{{ route('admin.brands.index') }}" class="sidebar-link">
+                            <i class="bi bi-tags-fill"></i>
+                            <span>Thương hiệu</span>
+                        </a>
+                    </li>
+
                     <li class="sidebar-item {{ request()->routeIs('admin.products.*') ? 'active' : '' }}">
                         <a href="{{ route('admin.products.index') }}" class="sidebar-link">
                             <i class="bi bi-phone"></i>
@@ -149,7 +156,7 @@
                     <p>2026 © AE Phoenic Store</p>
                 </div>
                 <div class="float-end">
-                    <p>Facebook admin <span class="text-danger"><i class="bi bi-heart"></i></span> : <a href="https://www.facebook.com/sad.boiz.see.tynk">Sơn Bùi</a></p>
+                    <p>REPO GIT<span class="text-danger"><i class="bi bi-heart"></i></span> : <a href="https://github.com/ThuanDepzai03/DuAnTotNghiep">Thuandepzai03</a></p>
                 </div>
             </div>
         </footer>
@@ -160,6 +167,34 @@
 <script src="{{ asset('admin-assets/js/bootstrap.bundle.min.js') }}"></script>
 <script src="{{ asset('admin-assets/vendors/simple-datatables/simple-datatables.js') }}"></script>
 <script src="{{ asset('admin-assets/js/main.js') }}"></script>
+<script>
+    function updateAdminChatUnreadCount() {
+        fetch('/admin/chat/unread', {
+            headers: { 'Accept': 'application/json' }
+        })
+            .then(function (response) {
+                if (!response.ok) {
+                    throw new Error('HTTP Status: ' + response.status);
+                }
+
+                return response.json();
+            })
+            .then(function (data) {
+                var badge = document.getElementById('notification-count');
+
+                if (badge) {
+                    badge.textContent = data.count || 0;
+                    badge.style.display = data.count ? 'inline-block' : 'none';
+                }
+            })
+            .catch(function (error) {
+                console.log('Lỗi tải số tin nhắn chưa đọc:', error);
+            });
+    }
+
+    updateAdminChatUnreadCount();
+    window.setInterval(updateAdminChatUnreadCount, 5000);
+</script>
 @stack('scripts')
 </body>
 </html>

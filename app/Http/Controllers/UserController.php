@@ -76,6 +76,8 @@ class UserController extends Controller
             'role' => (int) $data['role'],
         ]);
 
+        \App\Services\SeederSyncService::syncUsers();
+
         return redirect()
             ->route('admin.users.index')
             ->with('success', 'Thêm tài khoản thành công.');
@@ -151,6 +153,8 @@ class UserController extends Controller
             ->where('id', $id)
             ->update($updateData);
 
+        \App\Services\SeederSyncService::syncUsers();
+
         return redirect()
             ->route('admin.users.index')
             ->with('success', 'Cập nhật tài khoản thành công.');
@@ -161,6 +165,8 @@ class UserController extends Controller
         DB::table('nguoidung')
             ->where('id', $id)
             ->delete();
+
+        \App\Services\SeederSyncService::syncUsers();
 
         return redirect()
             ->route('admin.users.index')
