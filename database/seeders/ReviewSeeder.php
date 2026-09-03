@@ -16,6 +16,8 @@ class ReviewSeeder extends Seeder
             ['name' => 'Thu Hà', 'rating' => 5, 'comment' => 'Hàng mới, chất lượng tốt, rất hài lòng với lần mua này.'],
             ['name' => 'Quốc Bảo', 'rating' => 4, 'comment' => 'Tư vấn rõ ràng, sản phẩm hoạt động tốt và đúng nhu cầu.'],
             ['name' => 'Ngọc Mai', 'rating' => 5, 'comment' => 'Mình rất thích sản phẩm, hình thức đẹp và trải nghiệm tốt.'],
+            ['name' => 'Đức Anh', 'rating' => 5, 'comment' => 'Sản phẩm dùng mượt, hiệu năng đáp ứng tốt các nhu cầu hằng ngày.'],
+            ['name' => 'Thanh Trúc', 'rating' => 4, 'comment' => 'Giao hàng nhanh, sản phẩm nguyên vẹn và được hướng dẫn sử dụng đầy đủ.'],
         ];
 
         foreach (Product::query()->select(['id', 'name'])->get() as $product) {
