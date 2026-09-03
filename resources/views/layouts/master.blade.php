@@ -185,6 +185,11 @@
                             Tin tức
                         </a>
                     </li>
+                    <li class="{{ request()->routeIs('compare.index') ? 'active' : '' }}">
+                        <a href="{{ route('compare.index') }}">
+                            So sánh 
+                        </a>
+                    </li>
 
                     <li class="{{ request()->routeIs('contact') ? 'active' : '' }}">
                         <a href="{{ route('contact') }}">
@@ -346,6 +351,7 @@
     </div>
 </footer>
 @include('layouts.chat')
+    @include('client.partials.rotating_ad')
 
     @include('client.partials.auth_modal')
 
