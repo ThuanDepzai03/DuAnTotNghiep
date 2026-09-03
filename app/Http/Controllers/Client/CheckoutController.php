@@ -84,93 +84,93 @@ class CheckoutController extends Controller
     }
 
     public function addressOptions(Request $request)
-{
-    $type = (string) $request->query('type', '');
-    $parentId = $request->query('parent_id');
-    $baseUrl = 'https://provinces.open-api.vn/api/v2';
+    {
+        $type = (string) $request->query('type', '');
+        $parentId = $request->query('parent_id');
+        $baseUrl = 'https://provinces.open-api.vn/api/v2';
 
-    try {
-        if ($type === 'provinces') {
-            $data = $this->publicAddressRequest($baseUrl . '/p/');
+        try {
+            if ($type === 'provinces') {
+                $data = $this->publicAddressRequest($baseUrl . '/p/');
 
-            if (isset($data['data']) && is_array($data['data'])) {
-                $data = $data['data'];
-            } elseif (isset($data['items']) && is_array($data['items'])) {
-                $data = $data['items'];
+                if (isset($data['data']) && is_array($data['data'])) {
+                    $data = $data['data'];
+                } elseif (isset($data['items']) && is_array($data['items'])) {
+                    $data = $data['items'];
+                }
+
+                $items = collect(is_array($data) ? $data : [])
+                    ->map(function ($item) {
+                        if (!is_array($item)) return null;
+
+                        $name = trim((string) ($item['name'] ?? ''));
+                        $code = $item['code'] ?? null;
+
+                        if ($name === '' || empty($code)) return null;
+
+                        $value = preg_replace('/^(Tỉnh|Thành phố)\s+/iu', '', $name);
+
+                        return [
+                            'id' => (int) $code,
+                            'value' => trim((string) $value),
+                            'label' => $name,
+                        ];
+                    })
+                    ->filter()
+                    ->values()
+                    ->all();
+
+                return response()->json(['items' => $items]);
             }
 
-            $items = collect(is_array($data) ? $data : [])
-                ->map(function ($item) {
-                    if (!is_array($item)) return null;
+            if ($type === 'wards') {
+                if (empty($parentId) || !is_numeric($parentId)) {
+                    return response()->json([
+                        'items' => [],
+                        'message' => 'Thiếu mã Tỉnh/Thành phố.',
+                    ], 422);
+                }
 
-                    $name = trim((string) ($item['name'] ?? ''));
-                    $code = $item['code'] ?? null;
+                // Gọi chi tiết tỉnh kèm danh sách đơn vị con (depth=2)
+                $url = $baseUrl . '/p/' . (int) $parentId . '?depth=2';
+                $data = $this->publicAddressRequest($url);
 
-                    if ($name === '' || empty($code)) return null;
+                // API trả về object tỉnh, danh sách xã/phường hoặc quận/huyện nằm trong 'wards' hoặc 'districts'
+                $rawWards = $data['wards'] ?? $data['data']['wards'] ?? [];
 
-                    $value = preg_replace('/^(Tỉnh|Thành phố)\s+/iu', '', $name);
+                // Nếu dữ liệu chia theo quận/huyện (depth=3)
+                if (empty($rawWards) && !empty($data['districts'])) {
+                    $rawWards = collect($data['districts'])->pluck('wards')->flatten(1)->filter()->all();
+                }
 
-                    return [
-                        'id' => (int) $code,
-                        'value' => trim((string) $value),
-                        'label' => $name,
-                    ];
-                })
-                ->filter()
-                ->values()
-                ->all();
+                $items = collect($rawWards)
+                    ->map(function ($item) {
+                        if (!is_array($item)) return null;
 
-            return response()->json(['items' => $items]);
+                        $name = trim((string) ($item['name'] ?? ''));
+                        $code = $item['code'] ?? null;
+
+                        if ($name === '' || empty($code)) return null;
+
+                        return [
+                            'id' => (int) $code,
+                            'value' => $name,
+                            'label' => $name,
+                        ];
+                    })
+                    ->filter()
+                    ->values()
+                    ->all();
+
+                return response()->json(['items' => $items]);
+            }
+
+            return response()->json(['items' => [], 'message' => 'Loại dữ liệu không hợp lệ.'], 400);
+        } catch (\Throwable $e) {
+            \Log::error('Address API error: ' . $e->getMessage());
+            return response()->json(['items' => [], 'message' => 'Không thể tải dữ liệu.'], 500);
         }
-
-        if ($type === 'wards') {
-            if (empty($parentId) || !is_numeric($parentId)) {
-                return response()->json([
-                    'items' => [],
-                    'message' => 'Thiếu mã Tỉnh/Thành phố.',
-                ], 422);
-            }
-
-            // Gọi chi tiết tỉnh kèm danh sách đơn vị con (depth=2)
-            $url = $baseUrl . '/p/' . (int) $parentId . '?depth=2';
-            $data = $this->publicAddressRequest($url);
-
-            // API trả về object tỉnh, danh sách xã/phường hoặc quận/huyện nằm trong 'wards' hoặc 'districts'
-            $rawWards = $data['wards'] ?? $data['data']['wards'] ?? [];
-
-            // Nếu dữ liệu chia theo quận/huyện (depth=3)
-            if (empty($rawWards) && !empty($data['districts'])) {
-                $rawWards = collect($data['districts'])->pluck('wards')->flatten(1)->filter()->all();
-            }
-
-            $items = collect($rawWards)
-                ->map(function ($item) {
-                    if (!is_array($item)) return null;
-
-                    $name = trim((string) ($item['name'] ?? ''));
-                    $code = $item['code'] ?? null;
-
-                    if ($name === '' || empty($code)) return null;
-
-                    return [
-                        'id' => (int) $code,
-                        'value' => $name,
-                        'label' => $name,
-                    ];
-                })
-                ->filter()
-                ->values()
-                ->all();
-
-            return response()->json(['items' => $items]);
-        }
-
-        return response()->json(['items' => [], 'message' => 'Loại dữ liệu không hợp lệ.'], 400);
-    } catch (\Throwable $e) {
-        \Log::error('Address API error: ' . $e->getMessage());
-        return response()->json(['items' => [], 'message' => 'Không thể tải dữ liệu.'], 500);
     }
-}
 
     public function index()
     {
@@ -232,8 +232,8 @@ class CheckoutController extends Controller
 
         $addressData = $this->publicAddressRequest('https://provinces.open-api.vn/api/v2/');
         $addressProvinces = collect($addressData)
-            ->filter(fn ($item) => is_array($item) && !empty($item['code']) && !empty($item['name']))
-            ->map(fn ($item) => [
+            ->filter(fn($item) => is_array($item) && !empty($item['code']) && !empty($item['name']))
+            ->map(fn($item) => [
                 'id' => (int) $item['code'],
                 'value' => trim((string) preg_replace('/^(Tỉnh|Thành phố)\s+/iu', '', $item['name'])),
                 'label' => (string) $item['name'],
@@ -250,8 +250,8 @@ class CheckoutController extends Controller
                 'https://provinces.open-api.vn/api/v2/w/?province=' . $savedProvince['id']
             );
             $addressWards = collect($wardData)
-                ->filter(fn ($item) => is_array($item) && !empty($item['code']) && !empty($item['name']))
-                ->map(fn ($item) => [
+                ->filter(fn($item) => is_array($item) && !empty($item['code']) && !empty($item['name']))
+                ->map(fn($item) => [
                     'id' => (int) $item['code'],
                     'value' => (string) $item['name'],
                     'label' => (string) $item['name'],
@@ -263,13 +263,8 @@ class CheckoutController extends Controller
         $shippingVoucher = $this->voucherFromSession('shipping_voucher');
         $orderVoucher = $this->voucherFromSession('order_voucher');
 
-        if (!$shippingVoucher) {
-            $shippingVoucher = $this->bestAvailableVoucher('free_shipping', $totalPrice);
-        }
-
-        if (!$orderVoucher) {
-            $orderVoucher = $this->bestOrderVoucher($totalPrice);
-        }
+        $shippingVoucher = $this->voucherFromSession('shipping_voucher');
+        $orderVoucher = $this->voucherFromSession('order_voucher');
 
         if ($shippingVoucher) {
             session()->put('shipping_voucher', $this->voucherPayload($shippingVoucher));
@@ -304,7 +299,7 @@ class CheckoutController extends Controller
             ->get();
 
         $availableVouchers = $availableVouchers
-            ->filter(fn ($availableVoucher) => $availableVoucher->discount_type === 'free_shipping'
+            ->filter(fn($availableVoucher) => $availableVoucher->discount_type === 'free_shipping'
                 || (float) ($availableVoucher->min_order ?? 0) <= $totalPrice)
             ->sortByDesc(function ($availableVoucher) use ($totalPrice) {
                 if ($availableVoucher->discount_type === 'free_shipping') {
@@ -688,8 +683,8 @@ class CheckoutController extends Controller
                 $query->whereNull('quantity')->orWhereColumn('used_quantity', '<', 'quantity');
             })
             ->get()
-            ->filter(fn ($voucher) => (float) ($voucher->min_order ?? 0) <= $totalPrice)
-            ->sortByDesc(fn ($voucher) => $this->calculateOrderDiscount($voucher, $totalPrice))
+            ->filter(fn($voucher) => (float) ($voucher->min_order ?? 0) <= $totalPrice)
+            ->sortByDesc(fn($voucher) => $this->calculateOrderDiscount($voucher, $totalPrice))
             ->first();
     }
 
@@ -738,9 +733,11 @@ class CheckoutController extends Controller
             ->where('status', 1)
             ->first();
 
-        if (!$voucher || ($voucher->quantity !== null && $voucher->used_quantity >= $voucher->quantity)
+        if (
+            !$voucher || ($voucher->quantity !== null && $voucher->used_quantity >= $voucher->quantity)
             || ($voucher->start_date && now()->toDateString() < $voucher->start_date)
-            || ($voucher->end_date && now()->toDateString() > $voucher->end_date)) {
+            || ($voucher->end_date && now()->toDateString() > $voucher->end_date)
+        ) {
             session()->forget($key);
 
             return null;

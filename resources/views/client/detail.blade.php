@@ -10,21 +10,93 @@
     } else {
         $mainImage = asset($thumbnail);
     }
+    
+    // Lấy danh sách ảnh gallery từ database
+    $galleryImages = $product->images()->orderBy('sort_order', 'asc')->get();
+    
+    // Nếu có ảnh gallery, dùng gallery; nếu không, dùng thumbnail cũ
+    if ($galleryImages->isNotEmpty()) {
+        $images = $galleryImages;
+    } else {
+        // Fallback: dùng thumbnail cũ nếu không có gallery
+        $images = collect([
+            (object)['image_url' => $mainImage]
+        ]);
+    }
 @endphp
 
 <div class="section">
     <div class="container">
         <div class="row">
-            {{-- Ảnh sản phẩm --}}
+            {{-- Ảnh sản phẩm với Gallery --}}
             <div class="col-md-5">
                 <div class="product-preview">
-                    <img
-                        id="main-product-image"
-                        src="{{ $mainImage }}"
-                        alt="{{ $product->name }}"
-                        style="width: 100%; max-height: 450px; object-fit: contain;"
-                        onerror="this.onerror=null;this.src='{{ asset('img/product01.png') }}';"
-                    >
+                    {{-- Main Image --}}
+                    <div style="position: relative; background: #f5f5f5; border-radius: 8px; overflow: hidden;">
+                        <img
+                            id="main-product-image"
+                            src="{{ $images[0]->image_url }}"
+                            alt="{{ $product->name }}"
+                            style="width: 100%; max-height: 450px; object-fit: contain; display: block;"
+                            onerror="this.onerror=null;this.src='{{ asset('img/product01.png') }}';"
+                        >
+                        
+                        {{-- Navigation Arrows (chỉ hiển thị khi có nhiều ảnh) --}}
+                        @if(count($images) > 1)
+                            <button 
+                                type="button" 
+                                class="product-image-nav prev-btn" 
+                                onclick="previousImage()"
+                                style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; z-index: 10;"
+                            >
+                                &#10094;
+                            </button>
+                            
+                            <button 
+                                type="button" 
+                                class="product-image-nav next-btn" 
+                                onclick="nextImage()"
+                                style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; z-index: 10;"
+                            >
+                                &#10095;
+                            </button>
+                            
+                            {{-- Image Counter --}}
+                            <div style="position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; padding: 5px 10px; border-radius: 4px; font-size: 12px;">
+                                <span id="image-counter">1</span> / {{ count($images) }}
+                            </div>
+                        @endif
+                    </div>
+                    
+                    {{-- Thumbnail Gallery (nếu có nhiều ảnh) --}}
+                    @if(count($images) > 1)
+                        <div style="margin-top: 15px; display: flex; gap: 8px; overflow-x: auto;">
+                            @foreach($images as $index => $image)
+                                <button 
+                                    type="button"
+                                    class="product-thumbnail {{ $index == 0 ? 'active' : '' }}"
+                                    onclick="selectImage({{ $index }})"
+                                    style="
+                                        flex-shrink: 0;
+                                        width: 60px;
+                                        height: 60px;
+                                        border: 2px solid {{ $index == 0 ? '#FF6B6B' : '#ddd' }};
+                                        border-radius: 4px;
+                                        cursor: pointer;
+                                        padding: 0;
+                                        background: none;
+                                        overflow: hidden;
+                                    "
+                                >
+                                    <img 
+                                        src="{{ $image->image_url }}"
+                                        alt="Thumbnail"
+                                        style="width: 100%; height: 100%; object-fit: cover;"
+                                    >
+                                </button>
+                            @endforeach
+                        </div>
+                    @endif
                 </div>
             </div>
 
@@ -167,7 +239,11 @@
                 </div>
 
                 <div class="product-description">
-                    {!! nl2br(e($product->description ?? 'Thông tin sản phẩm đang được cập nhật.')) !!}
+                    @if($product->description)
+                        {!! \App\Helpers\HtmlHelper::sanitizeDescription($product->description) !!}
+                    @else
+                        <p>Thông tin sản phẩm đang được cập nhật.</p>
+                    @endif
                 </div>
             </div>
 
@@ -1171,6 +1247,57 @@ document.addEventListener('DOMContentLoaded', function () {
 
     });
 
+});
+
+// ============ GALLERY FUNCTIONS ============
+let currentImageIndex = 0;
+const galleryImages = {!! json_encode($images->pluck('image_url')->values()) !!};
+
+function nextImage() {
+    currentImageIndex = (currentImageIndex + 1) % galleryImages.length;
+    updateMainImage();
+}
+
+function previousImage() {
+    currentImageIndex = (currentImageIndex - 1 + galleryImages.length) % galleryImages.length;
+    updateMainImage();
+}
+
+function selectImage(index) {
+    currentImageIndex = index;
+    updateMainImage();
+}
+
+function updateMainImage() {
+    const mainImage = document.getElementById('main-product-image');
+    const counter = document.getElementById('image-counter');
+    
+    mainImage.src = galleryImages[currentImageIndex];
+    
+    if (counter) {
+        counter.textContent = (currentImageIndex + 1);
+    }
+    
+    // Cập nhật active thumbnail
+    const thumbnails = document.querySelectorAll('.product-thumbnail');
+    thumbnails.forEach((thumb, index) => {
+        if (index === currentImageIndex) {
+            thumb.style.borderColor = '#FF6B6B';
+        } else {
+            thumb.style.borderColor = '#ddd';
+        }
+    });
+}
+
+// Hỗ trợ keyboard navigation
+document.addEventListener('keydown', function(e) {
+    if (galleryImages.length > 1) {
+        if (e.key === 'ArrowLeft') {
+            previousImage();
+        } else if (e.key === 'ArrowRight') {
+            nextImage();
+        }
+    }
 });
 </script>
 @endsection

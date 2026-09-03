@@ -155,17 +155,58 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Mô tả sản phẩm</label>
+                            <label class="form-label">Mô tả sản phẩm (hỗ trợ HTML cơ bản)</label>
 
                             <textarea
+                                id="description-editor"
                                 name="description"
                                 rows="5"
                                 class="form-control @error('description') is-invalid @enderror"
-                                placeholder="Nhập mô tả, thông số hoặc đặc điểm nổi bật..."
+                                placeholder="Nhập mô tả, thông số hoặc đặc điểm nổi bật... Hỗ trợ &lt;b&gt;, &lt;i&gt;, &lt;br&gt;, &lt;img src='url'&gt;"
                             >{{ old('description', $product->description) }}</textarea>
 
+                            <small class="text-muted d-block mt-2">
+                                Bạn có thể sử dụng: &lt;b&gt;in đậm&lt;/b&gt;, &lt;i&gt;in nghiêng&lt;/i&gt;, &lt;br&gt;xuống dòng, &lt;img src="url"&gt; để thêm ảnh
+                            </small>
+
+                            <!-- Formatting Buttons -->
+                            <div class="mt-2 d-flex gap-2 flex-wrap">
+                                <button 
+                                    type="button" 
+                                    class="btn btn-sm btn-outline-secondary" 
+                                    onclick="insertImageToDescription()"
+                                    title="Thêm ảnh vào mô tả"
+                                >
+                                    <i class="bi bi-image me-1"></i>Thêm ảnh
+                                </button>
+                                <button 
+                                    type="button" 
+                                    class="btn btn-sm btn-outline-secondary" 
+                                    onclick="insertBoldToDescription()"
+                                    title="In đậm"
+                                >
+                                    <b>B</b> In đậm
+                                </button>
+                                <button 
+                                    type="button" 
+                                    class="btn btn-sm btn-outline-secondary" 
+                                    onclick="insertItalicToDescription()"
+                                    title="In nghiêng"
+                                >
+                                    <i>I</i> In nghiêng
+                                </button>
+                                <button 
+                                    type="button" 
+                                    class="btn btn-sm btn-outline-secondary" 
+                                    onclick="insertLineBreakToDescription()"
+                                    title="Xuống dòng"
+                                >
+                                    <i class="bi bi-arrow-return-left me-1"></i>Xuống dòng
+                                </button>
+                            </div>
+
                             @error('description')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
                         </div>
 
@@ -461,5 +502,78 @@
 
     previewImage('thumbnail-input', 'thumbnail-preview');
     previewImage('variant-image-input', 'variant-preview');
+
+    // ========== DESCRIPTION FORMATTING FUNCTIONS ==========
+    
+    // Thêm ảnh vào mô tả
+    function insertImageToDescription() {
+        const url = prompt('Nhập URL ảnh hoặc đường dẫn:', 'https://example.com/image.jpg');
+        if (url) {
+            const textarea = document.getElementById('description-editor');
+            const imageHtml = '<img src="' + url + '" style="max-width: 100%; height: auto; margin: 10px 0;" alt="Product Image"> ';
+            
+            // Chèn vào vị trí con trỏ
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const before = textarea.value.substring(0, start);
+            const after = textarea.value.substring(end);
+            
+            textarea.value = before + imageHtml + after;
+            textarea.focus();
+            textarea.selectionStart = textarea.selectionEnd = start + imageHtml.length;
+        }
+    }
+    
+    // In đậm (Bold)
+    function insertBoldToDescription() {
+        const textarea = document.getElementById('description-editor');
+        const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
+        
+        if (selectedText) {
+            const boldText = '<b>' + selectedText + '</b>';
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const before = textarea.value.substring(0, start);
+            const after = textarea.value.substring(end);
+            
+            textarea.value = before + boldText + after;
+            textarea.focus();
+            textarea.selectionStart = textarea.selectionEnd = start + boldText.length;
+        } else {
+            alert('Vui lòng chọn đoạn text để in đậm');
+        }
+    }
+    
+    // In nghiêng (Italic)
+    function insertItalicToDescription() {
+        const textarea = document.getElementById('description-editor');
+        const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
+        
+        if (selectedText) {
+            const italicText = '<i>' + selectedText + '</i>';
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const before = textarea.value.substring(0, start);
+            const after = textarea.value.substring(end);
+            
+            textarea.value = before + italicText + after;
+            textarea.focus();
+            textarea.selectionStart = textarea.selectionEnd = start + italicText.length;
+        } else {
+            alert('Vui lòng chọn đoạn text để in nghiêng');
+        }
+    }
+    
+    // Xuống dòng (Line break)
+    function insertLineBreakToDescription() {
+        const textarea = document.getElementById('description-editor');
+        const start = textarea.selectionStart;
+        const before = textarea.value.substring(0, start);
+        const after = textarea.value.substring(start);
+        
+        textarea.value = before + '<br>' + after;
+        textarea.focus();
+        textarea.selectionStart = textarea.selectionEnd = start + 4; // <br> có 4 ký tự
+    }
 </script>
 @endsection

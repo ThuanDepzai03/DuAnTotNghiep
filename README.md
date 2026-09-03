@@ -30,6 +30,7 @@
 - [Mục tiêu dự án](#1-mục-tiêu-dự-án)
 - [Công nghệ sử dụng](#2-công-nghệ-sử-dụng)
 - [Cài đặt và chạy dự án](#3-cài-đặt-và-chạy-dự-án-trên-máy-khác)
+- [Dữ liệu Admin và Seeder](#dữ-liệu-admin-và-seeder)
 - [Cập nhật dự án giữ nguyên database](#cập-nhật-phiên-bản-mới-nhưng-giữ-nguyên-database)
 - [Chức năng chính](#4-chức-năng-chính)
 - [Kiến trúc và quy trình](#7-kiến-trúc-thư-mục)
@@ -47,7 +48,6 @@ Website thương mại điện tử bán điện thoại, máy tính bảng và 
 - Cung cấp dashboard quản trị cho nhân viên cửa hàng.
 
 ## 2. Công nghệ sử dụng
-
 | Thành phần | Công nghệ |
 |---|---|
 | Backend | PHP 8.3+, Laravel 13 |
@@ -69,7 +69,7 @@ Website thương mại điện tử bán điện thoại, máy tính bảng và 
 
 ## 3. Cài đặt và chạy dự án trên máy khác
 
-Download evn https://docs.google.com/document/d/1WTROMSZGyiQrerM0kYiHL5741OwnXjZr6yuRSwcW3t0/edit?usp=sharing
+Download evn https://drive.google.com/file/d/1RSWNwgz06cFeIBwueJ4PLbYjA7ePuW6-/view?usp=sharing
 
 ### Yêu cầu
 
@@ -115,6 +115,75 @@ npm run build
 ```
 
 Lệnh `db:seed` tạo sản phẩm, tài khoản mẫu, voucher và đánh giá/bình luận mẫu. Nếu muốn làm lại toàn bộ database trong môi trường phát triển, dùng `php artisan migrate:fresh --seed`.
+
+## Dữ liệu Admin và Seeder
+
+> [!WARNING]
+> `php artisan migrate:fresh --seed` luôn xóa và tạo lại toàn bộ database từ Seeder. Đây là hành vi chuẩn của Laravel, không phải bug.
+
+### Quy tắc nền tảng
+
+- `Database` là nơi admin thao tác dữ liệu trong giao diện quản trị.
+- `Seeder` là dữ liệu khởi tạo mẫu để tái tạo database trên máy mới hoặc khi reset môi trường dev.
+- Dữ liệu do admin tạo/sửa qua trang Admin không tự động "theo nhánh" hoặc "theo máy khác" nếu không được lưu vào seed hoặc backup.
+
+### Quy trình làm việc đúng chuẩn
+
+1. Admin CRUD dữ liệu trong trang Admin.
+2. Dữ liệu được cập nhật vào database.
+3. Nếu đang ở môi trường local/dev, hệ thống có thể đồng bộ dữ liệu đó vào file Seeder tương ứng.
+4. Lưu lại file Seeder bằng Git.
+5. Commit và push lên repository.
+6. Thành viên khác pull code rồi chạy:
+
+```bash
+php artisan migrate:fresh --seed
+```
+
+### Lưu ý quan trọng
+
+- Chế độ auto-sync Seed từ database chỉ nên dùng ở môi trường local/dev.
+- Không nên để admin tự sửa trực tiếp source code hoặc file Seeder trên production.
+- Brand, Category, Banner, Product, ProductVariant, Voucher và tài khoản `nguoidung` được đồng bộ vào Seeder khi Admin CRUD ở local/dev.
+- Dữ liệu runtime như đơn hàng, đánh giá, tin nhắn và lịch sử giao dịch không tự động đưa vào Seeder.
+- Các file ảnh upload qua Admin vẫn cần được commit hoặc lưu trữ riêng nếu muốn máy khác hiển thị ảnh sau khi clone.
+- Khi làm với database thật, không nên chạy `migrate:fresh --seed` nếu không có backup.
+
+### Quy trình sync local
+
+```bash
+# 1. Admin CRUD dữ liệu trên UI
+# 2. Database được cập nhật
+# 3. Seed được đồng bộ local
+# 4. Commit Seeder lên Git
+
+git add .
+git commit -m "Sync seed data from admin"
+git push
+```
+
+Sau đó, người khác thực hiện:
+
+```bash
+git pull
+php artisan migrate:fresh --seed
+```
+
+### Mục tiêu mong muốn
+
+Dự án cần giữ được quy trình sau:
+
+Admin CRUD
+↓
+Database cập nhật
+↓
+Seeder được đồng bộ lại
+↓
+Git commit / push
+↓
+Máy khác pull code và chạy fresh + seed
+↓
+Database mới giống dữ liệu mẫu hiện tại của Admin
 
 ### Khởi động
 
