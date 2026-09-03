@@ -42,6 +42,27 @@
     @error('image') <div class="invalid-feedback">{{ $message }}</div> @enderror
 </div>
 
+@if(!$isEdit)
+    <div class="border rounded p-3 mb-4 bg-light">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="mb-0"><i class="bi bi-stars me-1"></i> Tạo ảnh bằng AI</h6>
+            <span class="text-muted small">Ảnh nền, không chèn chữ</span>
+        </div>
+        <textarea id="banner-ai-style" class="form-control mb-2" rows="2" placeholder="Phong cách: ví dụ nền đỏ cao cấp, ánh sáng studio, sản phẩm nổi bật..."></textarea>
+        <input type="hidden" name="generated_image" id="generated-image-path">
+        <div id="banner-ai-error" class="alert alert-danger d-none py-2"></div>
+        <div id="banner-ai-preview-wrap" class="d-none mt-3">
+            <img id="banner-ai-preview" src="" alt="Ảnh banner AI xem trước" class="img-fluid rounded border w-100" style="max-height: 260px; object-fit: cover;">
+            <div class="d-flex gap-2 mt-2">
+                <button type="button" id="banner-ai-regenerate" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-repeat me-1"></i>Làm lại</button>
+                <button type="button" id="banner-ai-use" class="btn btn-success btn-sm"><i class="bi bi-check2 me-1"></i>Dùng ảnh này</button>
+            </div>
+        </div>
+        <button type="button" id="banner-ai-generate" class="btn btn-dark btn-sm mt-2"><i class="bi bi-magic me-1"></i>Tạo ảnh AI</button>
+        <div id="banner-ai-status" class="small text-muted mt-2"></div>
+    </div>
+@endif
+
 <div class="row">
     <div class="col-md-6 mb-3">
         <label for="banner-type" class="form-label">Loại banner <span class="text-danger">*</span></label>
@@ -94,6 +115,67 @@
                     preview.classList.remove('d-none');
                 });
             });
+
+            const aiGenerateButton = document.getElementById('banner-ai-generate');
+            if (aiGenerateButton) {
+                const aiStyle = document.getElementById('banner-ai-style');
+                const aiPreviewWrap = document.getElementById('banner-ai-preview-wrap');
+                const aiPreview = document.getElementById('banner-ai-preview');
+                const aiPath = document.getElementById('generated-image-path');
+                const aiError = document.getElementById('banner-ai-error');
+                const aiStatus = document.getElementById('banner-ai-status');
+                let generatedPath = '';
+                const generateImage = function () {
+                    aiGenerateButton.disabled = true;
+                    aiError.classList.add('d-none');
+                    aiStatus.textContent = 'AI đang tạo ảnh, bạn đợi một chút...';
+                    fetch('{{ route('admin.banners.generate-image') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify({
+                            title: document.getElementById('banner-title').value,
+                            subtitle: document.getElementById('banner-subtitle').value,
+                            type: document.getElementById('banner-type').value,
+                            style: aiStyle.value,
+                            previous_image: generatedPath
+                        })
+                    }).then(response => response.text().then(text => {
+                        let data;
+                        try {
+                            data = JSON.parse(text);
+                        } catch (error) {
+                            throw new Error(response.status === 419
+                                ? 'Phiên làm việc đã hết hạn. Hãy tải lại trang rồi thử lại.'
+                                : response.status === 302 || response.redirected
+                                    ? 'Phiên admin đã hết hạn. Hãy đăng nhập lại.'
+                                    : 'Máy chủ trả về lỗi không hợp lệ. Kiểm tra log Laravel.');
+                        }
+                        return { ok: response.ok, data: data };
+                    })).then(result => {
+                        if (!result.ok) throw new Error(result.data.message || 'Không thể tạo ảnh.');
+                        generatedPath = result.data.path;
+                        aiPreview.src = '{{ asset('') }}' + result.data.path;
+                        aiPreviewWrap.classList.remove('d-none');
+                        aiStatus.textContent = 'Đã tạo ảnh. Bạn có thể làm lại hoặc dùng ảnh này.';
+                    }).catch(error => {
+                        aiError.textContent = error.message;
+                        aiError.classList.remove('d-none');
+                        aiStatus.textContent = '';
+                    }).finally(() => { aiGenerateButton.disabled = false; });
+                };
+                aiGenerateButton.addEventListener('click', generateImage);
+                document.getElementById('banner-ai-regenerate').addEventListener('click', generateImage);
+                document.getElementById('banner-ai-use').addEventListener('click', function () {
+                    aiPath.value = generatedPath;
+                    document.getElementById('banner-image').value = '';
+                    document.getElementById('banner-image-preview').classList.add('d-none');
+                    aiStatus.textContent = 'Đã chọn ảnh AI. Bấm Lưu banner để hoàn tất.';
+                });
+            }
         </script>
     @endpush
 @endonce

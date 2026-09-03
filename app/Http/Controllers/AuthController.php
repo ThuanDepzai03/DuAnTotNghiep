@@ -47,7 +47,7 @@ class AuthController extends Controller
 
     public function showLogin()
     {
-        return view('auth.login');
+        return redirect()->route('home', ['auth' => 'login']);
     }
 
     public function login(Request $request)
@@ -331,10 +331,7 @@ class AuthController extends Controller
 
     public function showRegister()
     {
-        $cityOptions = $this->cityList();
-        $wardOptions = $this->wardListByCity();
-
-        return view('auth.register', compact('cityOptions', 'wardOptions'));
+        return redirect()->route('home', ['auth' => 'register']);
     }
 
     public function register(Request $request)

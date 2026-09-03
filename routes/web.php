@@ -173,6 +173,8 @@ Route::middleware(['web', 'admin'])
         Route::resource('users', UserController::class);
         Route::resource('brands', BrandController::class);
         Route::resource('banners', BannerController::class);
+        Route::post('/banners/generate-image', [BannerController::class, 'generateImage'])
+            ->name('banners.generate-image');
         Route::patch('/banners/{banner}/toggle-status', [BannerController::class, 'toggleStatus'])
             ->name('banners.toggle-status');
         Route::resource('vouchers', VoucherController::class);

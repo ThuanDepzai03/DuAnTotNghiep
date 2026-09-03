@@ -44,6 +44,53 @@
                         </div>
                     @endif
 
+                    <form method="GET" action="{{ route('admin.products.index') }}" class="row g-3 align-items-end mb-4">
+                        <div class="col-md-3">
+                            <label for="product-filter-id" class="form-label">Theo ID</label>
+                            <input
+                                type="number"
+                                min="1"
+                                id="product-filter-id"
+                                name="id"
+                                class="form-control"
+                                value="{{ request('id') }}"
+                                placeholder="Nhập ID sản phẩm"
+                            >
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="product-filter-brand" class="form-label">Theo thương hiệu</label>
+                            <select id="product-filter-brand" name="brand_id" class="form-select">
+                                <option value="">Tất cả thương hiệu</option>
+                                @foreach($brands as $brand)
+                                    <option value="{{ $brand->id }}" @selected((string) request('brand_id') === (string) $brand->id)>
+                                        {{ $brand->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="product-filter-price" class="form-label">Theo giá</label>
+                            <select id="product-filter-price" name="price" class="form-select">
+                                <option value="">Mới nhất</option>
+                                <option value="low_to_high" @selected(request('price') === 'low_to_high')>Giá thấp đến cao</option>
+                                <option value="high_to_low" @selected(request('price') === 'high_to_low')>Giá cao đến thấp</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3 d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-funnel me-1"></i>
+                                Lọc
+                            </button>
+                            <a href="{{ route('admin.products.index') }}" class="btn btn-light-secondary">
+                                <i class="bi bi-arrow-counterclockwise me-1"></i>
+                                Xóa lọc
+                            </a>
+                        </div>
+                    </form>
+
                     <div class="table-responsive">
                         <table class="table table-hover align-middle">
                             <thead>
