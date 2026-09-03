@@ -589,6 +589,28 @@ class CheckoutController extends Controller
                 ]);
             }
 
+            $customerId = session('customer.id');
+            if ($customerId) {
+                $customerData = [
+                    'tel' => trim($request->phone),
+                    'address' => $address,
+                ];
+
+                foreach (['city', 'ward', 'address_detail'] as $field) {
+                    if (Schema::hasColumn('nguoidung', $field)) {
+                        $customerData[$field] = trim($request->{$field});
+                    }
+                }
+
+                if (Schema::hasColumn('nguoidung', 'updated_at')) {
+                    $customerData['updated_at'] = now();
+                }
+
+                DB::table('nguoidung')
+                    ->where('id', $customerId)
+                    ->update($customerData);
+            }
+
             $shippingVoucher?->increment('used_quantity');
             $orderVoucher?->increment('used_quantity');
 
