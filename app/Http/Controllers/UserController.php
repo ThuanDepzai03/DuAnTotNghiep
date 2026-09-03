@@ -12,6 +12,15 @@ class UserController extends Controller
     public function index()
     {
         $users = DB::table('nguoidung')
+            ->select([
+                'id',
+                'user',
+                'email',
+                'tel',
+                'address',
+                'role',
+                'created_at',
+            ])
             ->orderByDesc('id')
             ->get();
 
