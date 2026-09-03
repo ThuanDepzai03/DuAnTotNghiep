@@ -362,10 +362,16 @@ class ProductController extends Controller
 
     private function uploadImage($file, string $folder): string
     {
+        $directory = public_path('image/' . $folder);
+
+        if (! is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+
         $fileName = time() . '-' . Str::random(8) . '.' . $file->getClientOriginalExtension();
 
         $file->move(
-            public_path('image/' . $folder),
+            $directory,
             $fileName
         );
 
