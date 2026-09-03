@@ -1963,7 +1963,7 @@ class ProductSeeder extends Seeder
   'category_id' => 1,
   'brand_id' => 2,
   'name' => 'Samsung Galaxy Z Flip5 ZA/A',
-  'slug' => 'samsung-galaxy-z-flip5-zaa-48',
+  'slug' => 'samsung',
   'sku' => 'SP0048',
   'description' => 'Samsung Galaxy Z Flip5 ZA/A đảm bảo chất lượng, nguyên zin, bảo hành 12 tháng tại Thanh Thảo Mobile.',
   'thumbnail' => 'image/samsung_zflip5_mint.jpg',
@@ -4267,7 +4267,7 @@ class ProductSeeder extends Seeder
             [
                 'data' => array (
   'category_id' => 6,
-  'brand_id' => 9,
+  'brand_id' => 2,
   'name' => 'Ốp lưng Samsung Galaxy S24 Ultra chống sốc',
   'slug' => 'op-lung-samsung-galaxy-s24-ultra-chong-soc',
   'sku' => 'OPLUNGSAMSUNGGALAXYS24ULTRACHONGSOC-NRWX',
@@ -4294,7 +4294,7 @@ class ProductSeeder extends Seeder
             [
                 'data' => array (
   'category_id' => 6,
-  'brand_id' => 9,
+  'brand_id' => 2,
   'name' => 'Cáp USB-C to USB-C Samsung 45W',
   'slug' => 'cap-usb-c-to-usb-c-samsung-45w',
   'sku' => 'CAPUSBCTOUSBCSAMSUNG45W-NHMS',
@@ -4321,7 +4321,7 @@ class ProductSeeder extends Seeder
             [
                 'data' => array (
   'category_id' => 6,
-  'brand_id' => 9,
+  'brand_id' => 2,
   'name' => 'Củ sạc nhanh Samsung 45W',
   'slug' => 'cu-sac-nhanh-samsung-45w',
   'sku' => 'CUSACNHANHSAMSUNG45W-TBUP',
@@ -4348,7 +4348,7 @@ class ProductSeeder extends Seeder
             [
                 'data' => array (
   'category_id' => 6,
-  'brand_id' => 9,
+  'brand_id' => 2,
   'name' => 'Pin dự phòng Samsung 10.000mAh',
   'slug' => 'pin-du-phong-samsung-10000mah',
   'sku' => 'PINDUPHONGSAMSUNG10000MAH-LSCS',

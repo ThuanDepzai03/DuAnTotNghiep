@@ -4,6 +4,11 @@
 <div class="section">
     <div class="container">
         <div class="brand-strip">
+            <a href="{{ route('shop') }}" class="brand-item {{ !request('brand_id') ? 'is-active' : '' }}" title="Tất cả sản phẩm">
+                <img src="{{ asset('img/logo.png') }}" alt="Tất cả sản phẩm">
+                <span class="brand-item__name">Tất cả sản phẩm</span>
+            </a>
+
             @foreach ($brands as $brand)
                 @php
                     $brandLogo = $brand->logo
