@@ -22,7 +22,9 @@ class ProductSeeder extends Seeder
         $baseProducts = [
             // ================= APPLE IPHONE =================
             [
-                'name' => 'iPhone 13', 'brand_id' => 1, 'category_id' => 1,
+                'name' => 'iPhone 13',
+                'brand_id' => 1,
+                'category_id' => 1,
                 'variants' => [
                     ['color' => 'Midnight', 'ram' => '4GB', 'storage' => '128GB', 'image' => 'image/iphone13_black.jpg', 'price' => 13990000],
                     ['color' => 'Xanh dương', 'ram' => '4GB', 'storage' => '128GB', 'image' => 'image/iphone13_blue.jpg', 'price' => 13990000],
@@ -30,28 +32,36 @@ class ProductSeeder extends Seeder
                 ],
             ],
             [
-                'name' => 'iPhone 14', 'brand_id' => 1, 'category_id' => 1,
+                'name' => 'iPhone 14',
+                'brand_id' => 1,
+                'category_id' => 1,
                 'variants' => [
                     ['color' => 'Midnight', 'ram' => '6GB', 'storage' => '128GB', 'image' => 'image/iphone14_midnight.jpg', 'price' => 16490000],
                     ['color' => 'Starlight', 'ram' => '6GB', 'storage' => '256GB', 'image' => 'image/iphone14_starlight.jpg', 'price' => 19490000],
                 ],
             ],
             [
-                'name' => 'iPhone 15', 'brand_id' => 1, 'category_id' => 1,
+                'name' => 'iPhone 15',
+                'brand_id' => 1,
+                'category_id' => 1,
                 'variants' => [
                     ['color' => 'Hồng', 'ram' => '6GB', 'storage' => '128GB', 'image' => 'image/iphone15_pink.jpg', 'price' => 19990000],
                     ['color' => 'Vàng', 'ram' => '6GB', 'storage' => '256GB', 'image' => 'image/iphone15_yellow.jpg', 'price' => 22990000],
                 ],
             ],
             [
-                'name' => 'iPhone 16', 'brand_id' => 1, 'category_id' => 1,
+                'name' => 'iPhone 16',
+                'brand_id' => 1,
+                'category_id' => 1,
                 'variants' => [
                     ['color' => 'Đen', 'ram' => '8GB', 'storage' => '128GB', 'image' => 'image/iphone16_black.jpg', 'price' => 22990000],
                     ['color' => 'Trắng', 'ram' => '8GB', 'storage' => '256GB', 'image' => 'image/iphone16_white.jpg', 'price' => 25990000],
                 ],
             ],
             [
-                'name' => 'iPhone 17 Pro Max', 'brand_id' => 1, 'category_id' => 1,
+                'name' => 'iPhone 17 Pro Max',
+                'brand_id' => 1,
+                'category_id' => 1,
                 'variants' => [
                     ['color' => 'Xanh dương', 'ram' => '12GB', 'storage' => '256GB', 'image' => 'image/iphone17promax_blue.jpg', 'price' => 34990000],
                     ['color' => 'Titan', 'ram' => '12GB', 'storage' => '512GB', 'image' => 'image/iphone17promax_titanium.jpg', 'price' => 39990000],
@@ -60,7 +70,9 @@ class ProductSeeder extends Seeder
 
             // ================= APPLE IPAD =================
             [
-                'name' => 'iPad Gen 10 WiFi', 'brand_id' => 1, 'category_id' => 3,
+                'name' => 'iPad Gen 10 WiFi',
+                'brand_id' => 1,
+                'category_id' => 3,
                 'variants' => [
                     ['color' => 'Xanh dương', 'ram' => '4GB', 'storage' => '64GB', 'image' => 'image/ipad10_blue_64.jpg', 'price' => 8990000],
                     ['color' => 'Hồng', 'ram' => '4GB', 'storage' => '64GB', 'image' => 'image/ipad10_pink_64.jpg', 'price' => 8990000],
@@ -75,87 +87,181 @@ class ProductSeeder extends Seeder
 
             // ================= SAMSUNG GALAXY =================
             [
-                'name' => 'Samsung Galaxy A35', 'brand_id' => 2, 'category_id' => 1,
+                'name' => 'Samsung Galaxy A35',
+                'brand_id' => 2,
+                'category_id' => 1,
                 'variants' => [
                     ['color' => 'Tím Lilac', 'ram' => '8GB', 'storage' => '128GB', 'image' => 'image/samsung_a35_lilac.jpg', 'price' => 7490000],
                 ],
             ],
             [
-                'name' => 'Samsung Galaxy A55', 'brand_id' => 2, 'category_id' => 1,
+                'name' => 'Samsung Galaxy A55',
+                'brand_id' => 2,
+                'category_id' => 1,
                 'variants' => [
                     ['color' => 'Navy', 'ram' => '8GB', 'storage' => '128GB', 'image' => 'image/samsung_a55_navy.jpg', 'price' => 9990000],
                 ],
             ],
             [
-                'name' => 'Samsung Galaxy M54', 'brand_id' => 2, 'category_id' => 1,
+                'name' => 'Samsung Galaxy M54',
+                'brand_id' => 2,
+                'category_id' => 1,
                 'variants' => [
                     ['color' => 'Bạc', 'ram' => '8GB', 'storage' => '256GB', 'image' => 'image/samsung_m54_silver.jpg', 'price' => 8290000],
                 ],
             ],
             [
-                'name' => 'Samsung Galaxy S23 FE', 'brand_id' => 2, 'category_id' => 1,
+                'name' => 'Samsung Galaxy S23 FE',
+                'brand_id' => 2,
+                'category_id' => 1,
                 'variants' => [
                     ['color' => 'Kem', 'ram' => '8GB', 'storage' => '128GB', 'image' => 'image/samsung_s23_fe_cream.jpg', 'price' => 10990000],
                 ],
             ],
             [
-                'name' => 'Samsung Galaxy S24', 'brand_id' => 2, 'category_id' => 1,
+                'name' => 'Samsung Galaxy S24',
+                'brand_id' => 2,
+                'category_id' => 1,
                 'variants' => [
                     ['color' => 'Vàng', 'ram' => '8GB', 'storage' => '256GB', 'image' => 'image/samsung_s24_yellow.jpg', 'price' => 18990000],
                 ],
             ],
             [
-                'name' => 'Samsung Galaxy S24 Plus', 'brand_id' => 2, 'category_id' => 1,
+                'name' => 'Samsung Galaxy S24 Plus',
+                'brand_id' => 2,
+                'category_id' => 1,
                 'variants' => [
                     ['color' => 'Đen', 'ram' => '12GB', 'storage' => '256GB', 'image' => 'image/samsung_s24_plus_black.jpg', 'price' => 22990000],
                 ],
             ],
             [
-                'name' => 'Samsung Galaxy S24 Ultra', 'brand_id' => 2, 'category_id' => 1,
+                'name' => 'Samsung Galaxy S24 Ultra',
+                'brand_id' => 2,
+                'category_id' => 1,
                 'variants' => [
                     ['color' => 'Xám', 'ram' => '12GB', 'storage' => '256GB', 'image' => 'image/samsung_s24_ultra_gray.jpg', 'price' => 26990000],
                 ],
             ],
             [
-                'name' => 'Samsung Galaxy Z Flip5', 'brand_id' => 2, 'category_id' => 1,
+                'name' => 'Samsung Galaxy Z Flip5',
+                'brand_id' => 2,
+                'category_id' => 1,
                 'variants' => [
                     ['color' => 'Mint', 'ram' => '8GB', 'storage' => '256GB', 'image' => 'image/samsung_zflip5_mint.jpg', 'price' => 15990000],
                 ],
             ],
             [
-                'name' => 'Samsung Galaxy Z Fold5', 'brand_id' => 2, 'category_id' => 1,
+                'name' => 'Samsung Galaxy Z Fold5',
+                'brand_id' => 2,
+                'category_id' => 1,
                 'variants' => [
                     ['color' => 'Xanh dương', 'ram' => '12GB', 'storage' => '256GB', 'image' => 'image/samsung_zfold5_blue.jpg', 'price' => 29990000],
                 ],
             ],
             [
-                'name' => 'Samsung Galaxy Tab S9', 'brand_id' => 2, 'category_id' => 3,
+                'name' => 'Samsung Galaxy Tab S9',
+                'brand_id' => 2,
+                'category_id' => 3,
                 'variants' => [
                     ['color' => 'Be', 'ram' => '8GB', 'storage' => '128GB', 'image' => 'image/samsung_tab_s9_beige.jpg', 'price' => 16990000],
                 ],
             ],
             [
-                'name' => 'Samsung Galaxy Tab S10', 'brand_id' => 2, 'category_id' => 3,
+                'name' => 'Samsung Galaxy Tab S10',
+                'brand_id' => 2,
+                'category_id' => 3,
                 'variants' => [
                     ['color' => 'Xám', 'ram' => '12GB', 'storage' => '256GB', 'image' => 'image/6936a29f1020f_tabs10.jpg', 'price' => 20990000],
                 ],
             ],
         ];
 
-        // 3. Nhân bản danh sách này lên thành 100 sản phẩm thật với mã phiên bản VN/A, LL/A, Like New...
-        $suffixes = [' Chính Hãng VN/A', ' LL/A Mỹ', ' ZA/A', ' Like New 99%', ' Lướt 98%', ' Nguyên Seal'];
+        // 3. Tạo thêm 30 sản phẩm mới, không trùng dữ liệu hiện có
+        $suffixes = [
+            ' Chính Hãng VN/A',
+            ' LL/A Mỹ',
+            ' ZA/A',
+            ' Like New 99%',
+            ' Lướt 98%',
+            ' Nguyên Seal',
+        ];
+
         $totalProducts = 0;
-        $skuCounter = 1;
 
-        while ($totalProducts < 100) {
+        // Lấy SKU lớn nhất hiện có trong database.
+        // Ví dụ đang có SP0088 -> sản phẩm mới bắt đầu từ SP0089.
+        $lastSkuNumber = Product::query()
+            ->where('sku', 'like', 'SP%')
+            ->get(['sku'])
+            ->map(function ($product) {
+                return (int) preg_replace('/\D/', '', $product->sku);
+            })
+            ->max() ?? 0;
+
+        $skuCounter = $lastSkuNumber + 1;
+
+        // Tạo danh sách slug hiện có để tránh trùng
+        $existingSlugs = Product::pluck('slug')->flip()->toArray();
+
+        // Tạo 30 sản phẩm
+        while ($totalProducts < 30) {
             foreach ($baseProducts as $item) {
-                if ($totalProducts >= 100) break;
+                if ($totalProducts >= 30) {
+                    break;
+                }
 
-                $suffixIndex = floor($totalProducts / count($baseProducts));
-                $suffix = $suffixIndex > 0 ? $suffixes[$suffixIndex % count($suffixes)] : ' Chính Hãng';
-                
+                // Chọn hậu tố dựa theo số sản phẩm
+                $suffixIndex = intdiv($totalProducts, count($baseProducts));
+                $suffix = $suffixes[$suffixIndex % count($suffixes)];
+
                 $realName = $item['name'] . $suffix;
-                $slug = Str::slug($realName) . '-' . $skuCounter;
+
+                /*
+         * Tạo slug từ tên + SKU.
+         *
+         * Ví dụ:
+         * iPhone 13 Chính Hãng VN/A
+         * -> iphone-13-chinh-hang-vn-a-sp0089
+         */
+                $sku = 'SP' . str_pad($skuCounter, 4, '0', STR_PAD_LEFT);
+
+                $baseSlug = Str::slug($realName);
+                $slug = $baseSlug . '-' . strtolower($sku);
+
+                // Kiểm tra thêm một lần nữa để chắc chắn slug không trùng
+                $slugIndex = 1;
+
+                while (
+                    isset($existingSlugs[$slug]) ||
+                    Product::where('slug', $slug)->exists()
+                ) {
+                    $slug = $baseSlug . '-' . strtolower($sku) . '-' . $slugIndex;
+                    $slugIndex++;
+                }
+
+                // Đảm bảo SKU cũng không bị trùng
+                while (Product::where('sku', $sku)->exists()) {
+                    $skuCounter++;
+
+                    $sku = 'SP' . str_pad(
+                        $skuCounter,
+                        4,
+                        '0',
+                        STR_PAD_LEFT
+                    );
+
+                    $slug = $baseSlug . '-' . strtolower($sku);
+
+                    $slugIndex = 1;
+
+                    while (
+                        isset($existingSlugs[$slug]) ||
+                        Product::where('slug', $slug)->exists()
+                    ) {
+                        $slug = $baseSlug . '-' . strtolower($sku) . '-' . $slugIndex;
+                        $slugIndex++;
+                    }
+                }
 
                 // Tạo sản phẩm
                 $product = Product::create([
@@ -163,44 +269,86 @@ class ProductSeeder extends Seeder
                     'brand_id' => $item['brand_id'],
                     'name' => $realName,
                     'slug' => $slug,
-                    'sku' => 'SP' . str_pad($skuCounter, 4, '0', STR_PAD_LEFT),
-                    'description' => $realName . ' đảm bảo chất lượng, nguyên zin, bảo hành 12 tháng tại Thanh Thảo Mobile.',
+                    'sku' => $sku,
+                    'description' => $realName .
+                        ' đảm bảo chất lượng, nguyên zin, bảo hành 12 tháng tại Thanh Thảo Mobile.',
                     'thumbnail' => $item['variants'][0]['image'],
                     'status' => 1,
                 ]);
 
-                // Tạo biến thể
+                // Đánh dấu slug vừa sử dụng
+                $existingSlugs[$slug] = true;
+
+                // Tạo các biến thể
                 foreach ($item['variants'] as $variantIndex => $data) {
-                    $priceModifier = str_contains($suffix, '99%') ? 0.8 : 1; 
-                    $finalPrice = $data['price'] * $priceModifier;
+
+                    // Hàng Like New / Lướt giảm giá
+                    $priceModifier = 1;
+
+                    if (
+                        str_contains($suffix, '99%') ||
+                        str_contains($suffix, '98%')
+                    ) {
+                        $priceModifier = 0.8;
+                    }
+
+                    $finalPrice = (int) ($data['price'] * $priceModifier);
+
+                    // SKU biến thể
+                    $variantSku = $product->sku . '-V' . ($variantIndex + 1);
+
+                    // Nếu SKU biến thể đã tồn tại thì tạo số khác
+                    $variantCounter = 1;
+                    $originalVariantSku = $variantSku;
+
+                    while (
+                        ProductVariant::where('sku', $variantSku)->exists()
+                    ) {
+                        $variantSku = $originalVariantSku . '-' . $variantCounter;
+                        $variantCounter++;
+                    }
 
                     $variant = ProductVariant::create([
                         'product_id' => $product->id,
-                        'sku' => $product->sku . '-V' . ($variantIndex + 1),
+                        'sku' => $variantSku,
                         'price' => $finalPrice,
-                        'sale_price' => $finalPrice - 500000,
+                        'sale_price' => max(0, $finalPrice - 500000),
                         'stock' => rand(10, 40),
                         'image' => $data['image'],
                         'status' => 1,
                     ]);
 
-                    // Gắn thuộc tính (Màu, RAM, Dung lượng)
+                    // Gắn thuộc tính
                     $attachData = [];
-                    if (isset($data['color']) && isset($colors[$data['color']])) {
+
+                    if (
+                        isset($data['color']) &&
+                        isset($colors[$data['color']])
+                    ) {
                         $attachData[] = $colors[$data['color']];
                     }
-                    if (isset($data['ram']) && isset($rams[$data['ram']])) {
+
+                    if (
+                        isset($data['ram']) &&
+                        isset($rams[$data['ram']])
+                    ) {
                         $attachData[] = $rams[$data['ram']];
                     }
-                    if (isset($data['storage']) && isset($storages[$data['storage']])) {
+
+                    if (
+                        isset($data['storage']) &&
+                        isset($storages[$data['storage']])
+                    ) {
                         $attachData[] = $storages[$data['storage']];
                     }
 
                     if (!empty($attachData)) {
-                        $variant->attributeValues()->sync($attachData);
+                        $variant->attributeValues()->sync(
+                            array_unique($attachData)
+                        );
                     }
                 }
-                
+
                 $totalProducts++;
                 $skuCounter++;
             }
