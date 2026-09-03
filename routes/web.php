@@ -15,6 +15,7 @@ use App\Http\Controllers\VoucherController;
 use App\Http\Controllers\Admin\BrandController;
 use App\Http\Controllers\Admin\BannerController;
 use App\Http\Controllers\Admin\FeedbackController;
+use App\Http\Controllers\CompareController;
 // Admin Controllers cũ của nhóm
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminAuthController;
@@ -117,6 +118,8 @@ Route::post('/orders/tracking/{id}/reviews', [App\Http\Controllers\Client\OrderT
 
 Route::put('/account/orders/{id}/cancel', [AuthController::class, 'cancelOrder'])
     ->name('account.order.cancel');
+    Route::get('/so-sanh', [CompareController::class, 'index'])->name('compare.index');
+Route::post('/api/ai-compare', [CompareController::class, 'compareWithAi'])->name('compare.ai');
 
 // ================= ADMIN =================
 

@@ -185,6 +185,11 @@
                             Tin tức
                         </a>
                     </li>
+                    <li class="{{ request()->routeIs('compare.index') ? 'active' : '' }}">
+                        <a href="{{ route('compare.index') }}">
+                            So sánh 
+                        </a>
+                    </li>
 
                     <li class="{{ request()->routeIs('contact') ? 'active' : '' }}">
                         <a href="{{ route('contact') }}">
