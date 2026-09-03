@@ -860,7 +860,7 @@ Checklist kiểm thử chính:
 
 | Thành viên thực tế | Identity trong Git | Commit ghi nhận | Khu vực thay đổi nổi bật |
 |---|---|---:|---|
-| **Bùi Minh Thuận** `PP03513` - Trưởng nhóm | `Thuận`, `Thuandepzai03`, `thuanvillager243-dev`, `thuandz` | **142** | Tích hợp hệ thống, checkout, xác thực, địa chỉ, README, giao diện và migration |
+| **Bùi Minh Thuận** `PP03513` - Trưởng nhóm | `Thuận`, `Thuandepzai03`, `thuanvillager243-dev`, `thuandz` | **155** | Tích hợp hệ thống, checkout, xác thực, địa chỉ, README, giao diện và migration |
 | **Đỗ Trung Hiếu** `PP03417` | `hieu` | **30** | Nghiệp vụ đơn hàng, checkout, thanh toán và controller backend |
 | **Lưu Đức Kiệt** `PP03363` | `duckiet863` | **43** | Banner, đánh giá, admin view, migration và kiểm thử |
 | **Bùi Quang Sơn** `PP03356` | `Sown11` | **23** | Sản phẩm, thương hiệu, seeder, migration và giao diện |
