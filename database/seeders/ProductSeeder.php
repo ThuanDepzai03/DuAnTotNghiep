@@ -469,9 +469,9 @@ class ProductSeeder extends Seeder
             [
                 'data' => array (
   'category_id' => 1,
-  'brand_id' => 2,
+  'brand_id' => 9,
   'name' => 'Samsung Galaxy S23 FE Chính Hãng',
-  'slug' => 'samsung-galaxy-s23-fe-chinh-hang-10',
+  'slug' => 'samsung-galaxy-s23-fe-chinh-hang',
   'sku' => 'SP0010',
   'description' => 'Samsung Galaxy S23 FE Chính Hãng đảm bảo chất lượng, nguyên zin, bảo hành 12 tháng tại Thanh Thảo Mobile.',
   'thumbnail' => 'image/samsung_s23_fe_cream.jpg',
@@ -498,9 +498,9 @@ class ProductSeeder extends Seeder
             [
                 'data' => array (
   'category_id' => 1,
-  'brand_id' => 2,
+  'brand_id' => 9,
   'name' => 'Samsung Galaxy S24 Chính Hãng',
-  'slug' => 'samsung-galaxy-s24-chinh-hang-11',
+  'slug' => 'samsung-galaxy-s24-chinh-hang',
   'sku' => 'SP0011',
   'description' => 'Samsung Galaxy S24 Chính Hãng đảm bảo chất lượng, nguyên zin, bảo hành 12 tháng tại Thanh Thảo Mobile.',
   'thumbnail' => 'image/samsung_s24_yellow.jpg',
@@ -1758,9 +1758,9 @@ class ProductSeeder extends Seeder
             [
                 'data' => array (
   'category_id' => 1,
-  'brand_id' => 2,
+  'brand_id' => 9,
   'name' => 'Samsung Galaxy A35 ZA/A',
-  'slug' => 'samsung-galaxy-a35-zaa-41',
+  'slug' => 'samsung-galaxy-a35-zaa',
   'sku' => 'SP0041',
   'description' => 'Samsung Galaxy A35 ZA/A đảm bảo chất lượng, nguyên zin, bảo hành 12 tháng tại Thanh Thảo Mobile.',
   'thumbnail' => 'image/samsung_a35_lilac.jpg',
