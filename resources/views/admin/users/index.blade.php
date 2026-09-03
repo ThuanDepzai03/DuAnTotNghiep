@@ -27,6 +27,7 @@
                             <thead>
                                 <tr>
                                     <th>ID</th>
+                                    <th>Họ và tên</th>
                                     <th>Tài khoản</th>
                                     <th>Email</th>
                                     <th>Số điện thoại</th>
@@ -40,7 +41,8 @@
                                 @forelse($users as $user)
                                 <tr>
                                     <td>#{{ $user->id }}</td>
-                                    <td><strong>{{ $user->user }}</strong></td>
+                                    <td><strong>{{ $user->name ?: $user->user }}</strong></td>
+                                    <td>{{ $user->user }}</td>
                                     <td>{{ $user->email ?: 'Chưa cập nhật' }}</td>
                                     <td>{{ $user->tel ?: 'Chưa cập nhật' }}</td>
                                     <td style="min-width: 240px;">
@@ -65,7 +67,7 @@
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="8" class="text-center py-5">Chưa có tài khoản trong cơ sở dữ liệu.</td>
+                                    <td colspan="9" class="text-center py-5">Chưa có tài khoản trong cơ sở dữ liệu.</td>
                                 </tr>
                                 @endforelse
                             </tbody>

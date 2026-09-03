@@ -45,6 +45,7 @@ class DemoCustomerOrderSeeder extends Seeder
                 DB::table('nguoidung')->updateOrInsert(
                     ['user' => $username],
                     [
+                        'name' => $customerName,
                         'email' => $email,
                         'address' => $faker->address(),
                         'tel' => '09' . $faker->numerify('########'),

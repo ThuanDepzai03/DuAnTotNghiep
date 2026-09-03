@@ -172,6 +172,7 @@ class AuthController extends Controller
     session([
         'customer' => [
             'id' => $customer->id,
+                'name' => $customer->name ?? $customer->user,
             'user' => $customer->user,
             'email' => $customer->email ?? null,
             'address' => $customer->address ?? null,
@@ -337,6 +338,7 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $request->validate([
+            'name' => 'required|string|max:255',
             'user' => 'required|string|max:255',
             'email' => 'required|email',
             'pass' => 'required|string|min:4',
@@ -358,6 +360,7 @@ class AuthController extends Controller
         }
 
         $data = [
+            'name' => trim($request->name),
             'user' => $request->user,
             'pass' => Hash::make($request->pass),
             'email' => $request->email,
@@ -437,6 +440,7 @@ class AuthController extends Controller
 
         session(['customer' => [
             'id' => $id,
+            'name' => trim($request->name),
             'user' => $request->user,
             'email' => $request->email,
             'address' => $parsedAddress,
@@ -492,6 +496,7 @@ class AuthController extends Controller
         $request->session()->regenerate();
         session(['customer' => [
             'id' => $user->id,
+            'name' => $user->name ?? $user->user,
             'user' => $user->user,
             'email' => $user->email,
             'address' => $user->address ?? null,

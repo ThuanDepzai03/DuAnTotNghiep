@@ -14,6 +14,7 @@ class UserController extends Controller
         $users = DB::table('nguoidung')
             ->select([
                 'id',
+                'name',
                 'user',
                 'email',
                 'tel',
@@ -35,6 +36,7 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
             'user' => [
                 'required',
                 'string',
@@ -77,6 +79,7 @@ class UserController extends Controller
         ]);
 
         DB::table('nguoidung')->insert([
+            'name' => trim($data['name']),
             'user' => trim($data['user']),
             'pass' => Hash::make($data['pass']),
             'email' => trim($data['email']),
@@ -106,6 +109,7 @@ class UserController extends Controller
     public function update(Request $request, $id)
     {
         $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
             'user' => [
                 'required',
                 'string',
@@ -146,6 +150,7 @@ class UserController extends Controller
         ]);
 
         $updateData = [
+            'name' => trim($data['name']),
             'user' => trim($data['user']),
             'email' => trim($data['email']),
             'address' => $data['address'] ?? null,
