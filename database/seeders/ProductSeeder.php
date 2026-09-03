@@ -643,9 +643,9 @@ class ProductSeeder extends Seeder
             [
                 'data' => array (
   'category_id' => 3,
-  'brand_id' => 2,
+  'brand_id' => 9,
   'name' => 'Samsung Galaxy Tab S9 Chính Hãng',
-  'slug' => 'samsung-galaxy-tab-s9-chinh-hang-16',
+  'slug' => 'samsung-galaxy-tab-s9-chinh-hang',
   'sku' => 'SP0016',
   'description' => 'Samsung Galaxy Tab S9 Chính Hãng đảm bảo chất lượng, nguyên zin, bảo hành 12 tháng tại Thanh Thảo Mobile.',
   'thumbnail' => 'image/samsung_tab_s9_beige.jpg',
@@ -672,9 +672,9 @@ class ProductSeeder extends Seeder
             [
                 'data' => array (
   'category_id' => 3,
-  'brand_id' => 2,
+  'brand_id' => 9,
   'name' => 'Samsung Galaxy Tab S10 Chính Hãng',
-  'slug' => 'samsung-galaxy-tab-s10-chinh-hang-17',
+  'slug' => 'samsung-galaxy-tab-s10-chinh-hang',
   'sku' => 'SP0017',
   'description' => 'Samsung Galaxy Tab S10 Chính Hãng đảm bảo chất lượng, nguyên zin, bảo hành 12 tháng tại Thanh Thảo Mobile.',
   'thumbnail' => 'image/6936a29f1020f_tabs10.jpg',
@@ -1099,9 +1099,9 @@ class ProductSeeder extends Seeder
             [
                 'data' => array (
   'category_id' => 1,
-  'brand_id' => 2,
+  'brand_id' => 9,
   'name' => 'Samsung Galaxy A55 LL/A Mỹ',
-  'slug' => 'samsung-galaxy-a55-lla-my-25',
+  'slug' => 'samsung-galaxy-a55-lla-my',
   'sku' => 'SP0025',
   'description' => 'Samsung Galaxy A55 LL/A Mỹ đảm bảo chất lượng, nguyên zin, bảo hành 12 tháng tại Thanh Thảo Mobile.',
   'thumbnail' => 'image/samsung_a55_navy.jpg',
@@ -1128,9 +1128,9 @@ class ProductSeeder extends Seeder
             [
                 'data' => array (
   'category_id' => 1,
-  'brand_id' => 2,
+  'brand_id' => 9,
   'name' => 'Samsung Galaxy M54 LL/A Mỹ',
-  'slug' => 'samsung-galaxy-m54-lla-my-26',
+  'slug' => 'samsung-galaxy-m54-lla-my',
   'sku' => 'SP0026',
   'description' => 'Samsung Galaxy M54 LL/A Mỹ đảm bảo chất lượng, nguyên zin, bảo hành 12 tháng tại Thanh Thảo Mobile.',
   'thumbnail' => 'image/samsung_m54_silver.jpg',
@@ -1157,9 +1157,9 @@ class ProductSeeder extends Seeder
             [
                 'data' => array (
   'category_id' => 1,
-  'brand_id' => 2,
+  'brand_id' => 9,
   'name' => 'Samsung Galaxy S23 FE LL/A Mỹ',
-  'slug' => 'samsung-galaxy-s23-fe-lla-my-27',
+  'slug' => 'samsung-galaxy-s23-fe-lla-my',
   'sku' => 'SP0027',
   'description' => 'Samsung Galaxy S23 FE LL/A Mỹ đảm bảo chất lượng, nguyên zin, bảo hành 12 tháng tại Thanh Thảo Mobile.',
   'thumbnail' => 'image/samsung_s23_fe_cream.jpg',
