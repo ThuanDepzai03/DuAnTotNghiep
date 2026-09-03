@@ -579,63 +579,63 @@ Sơ đồ dưới đây mô tả luồng chạy thực tế của website từ r
 
 ```mermaid
 flowchart TD
-    Browser[Trình duyệt người dùng] --> Web[Laravel web routes]
-    Web --> Public{Nhánh truy cập}
+        Browser["Trình duyệt người dùng"] --> Web["Laravel web routes"]
+        Web --> PublicEntry{"Nhánh truy cập"}
 
-    Public --> Client[Client]
-    Public --> Auth[Auth]
-    Public --> AdminGate[Admin middleware]
+        PublicEntry --> Client["Client"]
+        PublicEntry --> Auth["Auth"]
+        PublicEntry --> AdminGate["Admin middleware"]
 
-    subgraph ClientFlow[Luồng khách hàng]
-        Client --> Home[HomeController@index]
-        Client --> Shop[Client\\ProductController@index]
-        Client --> Detail[Client\\ProductController@show]
-        Client --> Cart[Client\\CartController]
-        Client --> Checkout[Client\\CheckoutController]
-        Client --> Content[HomeController: about/news/contact/vouchers]
+        subgraph ClientFlow["Luồng khách hàng"]
+                Client --> Home["HomeController@index"]
+                Client --> Shop["Client\\ProductController@index"]
+                Client --> Detail["Client\\ProductController@show"]
+                Client --> Cart["Client\\CartController"]
+                Client --> Checkout["Client\\CheckoutController"]
+                Client --> Content["HomeController: about/news/contact/vouchers"]
 
-        Home --> HomeView[client/home.blade.php]
-        Shop --> ShopView[client/shop.blade.php]
-        Detail --> DetailView[client/detail.blade.php]
-        Cart --> CartSession[Session cart.guest hoặc cart.{customer_id}]
-        Checkout --> OrderDB[(orders + order_items)]
-        Detail --> ProductDB[(products + variants + attributes)]
+                Home --> HomeView["client/home.blade.php"]
+                Shop --> ShopView["client/shop.blade.php"]
+                Detail --> DetailView["client/detail.blade.php"]
+                Cart --> CartSession["Session cart.guest hoặc cart.{customer_id}"]
+                Checkout --> OrderDB[("orders + order_items")]
+                Detail --> ProductDB[("products + variants + attributes")]
         Shop --> ProductDB
         Home --> ProductDB
         Checkout --> VoucherDB[(vouchers)]
     end
 
-    subgraph AuthFlow[Đăng nhập và tài khoản]
-        Auth --> Login[AuthController@login]
-        Auth --> Register[AuthController@register]
-        Auth --> Verify[AuthController@verifyEmail / verifyEmailCode]
-        Auth --> Profile[AuthController@profile/updateProfile]
-        Auth --> Password[AuthController@resetPassword]
-        Login --> UserDB[(nguoidung)]
-        Register --> UserDB
-        Verify --> UserDB
-        Profile --> UserDB
-        Auth --> CustomerSession[Session customer]
+        subgraph AuthFlow["Đăng nhập và tài khoản"]
+                Auth --> Login["AuthController@login"]
+                Auth --> Register["AuthController@register"]
+                Auth --> Verify["AuthController@verifyEmail / verifyEmailCode"]
+                Auth --> Profile["AuthController@profile/updateProfile"]
+                Auth --> Password["AuthController@resetPassword"]
+                Login --> UserDB[("nguoidung")]
+                Register --> UserDB
+                Verify --> UserDB
+                Profile --> UserDB
+                Auth --> CustomerSession["Session customer"]
     end
 
-    subgraph AdminFlow[Luồng quản trị]
-        AdminGate --> CheckAdmin{AdminAuth kiểm tra session}
-        CheckAdmin -->|Không hợp lệ| AdminLogin[AdminAuthController@login]
-        CheckAdmin -->|Hợp lệ| Dashboard[AdminController@index]
-        Dashboard --> AdminRoutes[Admin CRUD routes]
-        AdminRoutes --> AdminControllers[Category / Brand / Product / Order / User / Voucher / Banner / Feedback / Chat]
-        AdminControllers --> AdminDB[(Database MySQL)]
-        AdminRoutes --> AdminViews[resources/views/admin]
-        AdminControllers --> Sync[SeederSyncService local/dev]
-        Sync --> Seeders[database/seeders]
+        subgraph AdminFlow["Luồng quản trị"]
+                AdminGate --> CheckAdmin{"AdminAuth kiểm tra session"}
+                CheckAdmin -->|"Không hợp lệ"| AdminLogin["AdminAuthController@login"]
+                CheckAdmin -->|"Hợp lệ"| Dashboard["AdminController@index"]
+                Dashboard --> AdminRoutes["Admin CRUD routes"]
+                AdminRoutes --> AdminControllers["Category / Brand / Product / Order / User / Voucher / Banner / Feedback / Chat"]
+                AdminControllers --> AdminDB[("Database MySQL")]
+                AdminRoutes --> AdminViews["resources/views/admin"]
+                AdminControllers --> Sync["SeederSyncService local/dev"]
+                Sync --> Seeders["database/seeders"]
     end
 
-    Checkout --> Payment{Phương thức thanh toán}
-    Payment -->|COD| CreateOrder[Tạo đơn và lưu trạng thái pending]
-    Payment -->|VNPay| VNPay[PaymentController@vnpay]
-    VNPay --> VNPayReturn[PaymentController@vnpayReturn]
-    VNPayReturn -->|Thành công| Confirm[confirmed + trừ tồn kho + xóa giỏ]
-    VNPayReturn -->|Thất bại| CancelPending[Xóa đơn pending_payment]
+        Checkout --> Payment{"Phương thức thanh toán"}
+        Payment -->|"COD"| CreateOrder["Tạo đơn và lưu trạng thái pending"]
+        Payment -->|"VNPay"| VNPay["PaymentController@vnpay"]
+        VNPay --> VNPayReturn["PaymentController@vnpayReturn"]
+        VNPayReturn -->|"Thành công"| Confirm["confirmed + trừ tồn kho + xóa giỏ"]
+        VNPayReturn -->|"Thất bại"| CancelPending["Xóa đơn pending_payment"]
     CreateOrder --> OrderDB
     Confirm --> OrderDB
 ```
