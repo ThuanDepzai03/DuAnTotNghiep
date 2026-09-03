@@ -204,7 +204,7 @@ class ProductSeeder extends Seeder
         $existingSlugs = Product::pluck('slug')->flip()->toArray();
 
         // Tạo 30 sản phẩm
-        while ($totalProducts < 30) {
+        while ($totalProducts < 30 && $lastSkuNumber < 130) {
             foreach ($baseProducts as $item) {
                 if ($totalProducts >= 30) {
                     break;
@@ -352,6 +352,109 @@ class ProductSeeder extends Seeder
                 $totalProducts++;
                 $skuCounter++;
             }
+        }
+
+        // ============================================================
+        // SẢN PHẨM BỔ SUNG - COMMIT #8
+        // ============================================================
+
+        $sku = 'SP0131';
+
+        // Nếu SP0131 chưa tồn tại thì mới tạo
+        if (!Product::where('sku', $sku)->exists()) {
+
+            $item = [
+                'name' => 'iPhone 13 Chính Hãng VN/A',
+                'brand_id' => 1,
+                'category_id' => 1,
+                'variants' => [
+                    [
+                        'color' => 'Midnight',
+                        'ram' => '4GB',
+                        'storage' => '128GB',
+                        'image' => 'image/iphone13_black.jpg',
+                        'price' => 13990000,
+                    ],
+                    [
+                        'color' => 'Xanh dương',
+                        'ram' => '4GB',
+                        'storage' => '128GB',
+                        'image' => 'image/iphone13_blue.jpg',
+                        'price' => 13990000,
+                    ],
+                    [
+                        'color' => 'Starlight',
+                        'ram' => '4GB',
+                        'storage' => '256GB',
+                        'image' => 'image/iphone13_starlight.jpg',
+                        'price' => 15990000,
+                    ],
+                ],
+            ];
+
+            $slug = Str::slug($item['name']) . '-' . strtolower($sku);
+
+            $product = Product::create([
+                'category_id' => $item['category_id'],
+                'brand_id' => $item['brand_id'],
+                'name' => $item['name'],
+                'slug' => $slug,
+                'sku' => $sku,
+                'description' => $item['name'] .
+                    ' đảm bảo chất lượng, nguyên zin, bảo hành 12 tháng tại Thanh Thảo Mobile.',
+                'thumbnail' => $item['variants'][0]['image'],
+                'status' => 1,
+            ]);
+
+            // Tạo các biến thể
+            foreach ($item['variants'] as $variantIndex => $data) {
+
+                $variantSku = $sku . '-V' . ($variantIndex + 1);
+
+                $variant = ProductVariant::create([
+                    'product_id' => $product->id,
+                    'sku' => $variantSku,
+                    'price' => $data['price'],
+                    'sale_price' => max(0, $data['price'] - 500000),
+                    'stock' => rand(10, 40),
+                    'image' => $data['image'],
+                    'status' => 1,
+                ]);
+
+                // Gắn thuộc tính
+                $attachData = [];
+
+                if (
+                    isset($data['color']) &&
+                    isset($colors[$data['color']])
+                ) {
+                    $attachData[] = $colors[$data['color']];
+                }
+
+                if (
+                    isset($data['ram']) &&
+                    isset($rams[$data['ram']])
+                ) {
+                    $attachData[] = $rams[$data['ram']];
+                }
+
+                if (
+                    isset($data['storage']) &&
+                    isset($storages[$data['storage']])
+                ) {
+                    $attachData[] = $storages[$data['storage']];
+                }
+
+                if (!empty($attachData)) {
+                    $variant->attributeValues()->sync(
+                        array_unique($attachData)
+                    );
+                }
+            }
+
+            echo "Đã tạo sản phẩm #131 - {$item['name']} - {$sku}\n";
+        } else {
+            echo "SP0131 đã tồn tại, không tạo lại.\n";
         }
     }
 }
