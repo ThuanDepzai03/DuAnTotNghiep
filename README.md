@@ -572,33 +572,179 @@ config/                   Cấu hình Laravel
 storage/                  Log, cache và file runtime
 ```
 
-## 8. Quy trình mua hàng
+## 8. Luồng hoạt động toàn hệ thống
 
-```text
-Trang chủ / Cửa hàng
-        ↓
-Chi tiết sản phẩm
-        ↓
-Giỏ hàng
-        ↓
-Checkout
-        ↓
-Địa chỉ giao hàng và voucher
-        ↓
-COD hoặc VNPay
-        ↓
-Tạo đơn hàng
-        ↓
-Theo dõi đơn hàng
+Sơ đồ dưới đây mô tả luồng chạy thực tế của website từ request của người dùng, qua route, middleware, controller, database và Blade view.
+
+```mermaid
+flowchart TD
+    Browser[Trình duyệt người dùng] --> Web[Laravel web routes]
+    Web --> Public{Nhánh truy cập}
+
+    Public --> Client[Client]
+    Public --> Auth[Auth]
+    Public --> AdminGate[Admin middleware]
+
+    subgraph ClientFlow[Luồng khách hàng]
+        Client --> Home[HomeController@index]
+        Client --> Shop[Client\\ProductController@index]
+        Client --> Detail[Client\\ProductController@show]
+        Client --> Cart[Client\\CartController]
+        Client --> Checkout[Client\\CheckoutController]
+        Client --> Content[HomeController: about/news/contact/vouchers]
+
+        Home --> HomeView[client/home.blade.php]
+        Shop --> ShopView[client/shop.blade.php]
+        Detail --> DetailView[client/detail.blade.php]
+        Cart --> CartSession[Session cart.guest hoặc cart.{customer_id}]
+        Checkout --> OrderDB[(orders + order_items)]
+        Detail --> ProductDB[(products + variants + attributes)]
+        Shop --> ProductDB
+        Home --> ProductDB
+        Checkout --> VoucherDB[(vouchers)]
+    end
+
+    subgraph AuthFlow[Đăng nhập và tài khoản]
+        Auth --> Login[AuthController@login]
+        Auth --> Register[AuthController@register]
+        Auth --> Verify[AuthController@verifyEmail / verifyEmailCode]
+        Auth --> Profile[AuthController@profile/updateProfile]
+        Auth --> Password[AuthController@resetPassword]
+        Login --> UserDB[(nguoidung)]
+        Register --> UserDB
+        Verify --> UserDB
+        Profile --> UserDB
+        Auth --> CustomerSession[Session customer]
+    end
+
+    subgraph AdminFlow[Luồng quản trị]
+        AdminGate --> CheckAdmin{AdminAuth kiểm tra session}
+        CheckAdmin -->|Không hợp lệ| AdminLogin[AdminAuthController@login]
+        CheckAdmin -->|Hợp lệ| Dashboard[AdminController@index]
+        Dashboard --> AdminRoutes[Admin CRUD routes]
+        AdminRoutes --> AdminControllers[Category / Brand / Product / Order / User / Voucher / Banner / Feedback / Chat]
+        AdminControllers --> AdminDB[(Database MySQL)]
+        AdminRoutes --> AdminViews[resources/views/admin]
+        AdminControllers --> Sync[SeederSyncService local/dev]
+        Sync --> Seeders[database/seeders]
+    end
+
+    Checkout --> Payment{Phương thức thanh toán}
+    Payment -->|COD| CreateOrder[Tạo đơn và lưu trạng thái pending]
+    Payment -->|VNPay| VNPay[PaymentController@vnpay]
+    VNPay --> VNPayReturn[PaymentController@vnpayReturn]
+    VNPayReturn -->|Thành công| Confirm[confirmed + trừ tồn kho + xóa giỏ]
+    VNPayReturn -->|Thất bại| CancelPending[Xóa đơn pending_payment]
+    CreateOrder --> OrderDB
+    Confirm --> OrderDB
 ```
 
-Địa chỉ sử dụng API v2 với cấu trúc:
+### 8.1. Request đi vào Laravel
 
-```text
-Tỉnh / Thành phố → Phường / Xã → Địa chỉ chi tiết
+1. Trình duyệt gửi request đến một route trong `routes/web.php`.
+2. Laravel chạy middleware của route, sau đó gọi controller tương ứng.
+3. Controller đọc hoặc ghi dữ liệu qua Eloquent Model, Query Builder và session.
+4. Controller trả về Blade view trong `resources/views/`, redirect hoặc JSON tùy loại request.
+5. Trình duyệt tải CSS/JavaScript trong `public/` để hoàn thiện giao diện và tương tác.
+
+### 8.2. Luồng trang khách hàng
+
+- `GET /` gọi `HomeController@index`, lấy banner, danh mục, thương hiệu, sản phẩm và voucher rồi render `client/home.blade.php`.
+- `GET /shop` gọi `Client\ProductController@index`, lọc sản phẩm đang hoạt động theo nhóm, danh mục, thương hiệu, từ khóa, giá và thuộc tính biến thể; kết quả được phân trang tại `client/shop.blade.php`.
+- `GET /detail/{id}` gọi `Client\ProductController@show`, eager-load sản phẩm, biến thể, thuộc tính, ảnh và đánh giá; JavaScript trên Blade chọn tổ hợp variant và cập nhật giá/tồn kho.
+- `POST /cart/add` gọi `Client\CartController@add`, kiểm tra sản phẩm, variant và tồn kho rồi lưu vào session `cart.guest` hoặc `cart.{customer_id}`.
+- `GET /cart`, `POST /cart/update` và `POST /cart/remove` đọc/cập nhật session giỏ hàng và tính lại tổng tiền.
+
+### 8.3. Luồng đăng ký và đăng nhập
+
+- Tài khoản khách hàng được lưu trong bảng `nguoidung`, không sử dụng bảng `users` mặc định.
+- `POST /register` kiểm tra họ tên, username, email, mật khẩu, số điện thoại và địa chỉ; tài khoản khách có `role = 0`.
+- Nếu bật xác thực email, mã/link được xử lý qua `verifyEmail` hoặc `verifyEmailCode`. Sau khi thành công, hệ thống tạo session `customer`.
+- `POST /login` kiểm tra username/email và mật khẩu trong `nguoidung`, sau đó đưa thông tin tài khoản vào session.
+- Tài khoản có `role = 1` được chuyển đến admin; tài khoản có `role = 0` tiếp tục ở luồng khách hàng.
+- Đổi mật khẩu cập nhật cột `pass` trong `nguoidung` thông qua token lưu tại `password_reset_tokens`.
+
+### 8.4. Luồng checkout và tạo đơn
+
+1. `GET /checkout` yêu cầu khách đã đăng nhập và giỏ hàng không rỗng.
+2. `CheckoutController@index` đọc thông tin khách, giỏ hàng, voucher và tính tiền hàng.
+3. Route `GET /checkout/address-options` gọi backend Laravel; backend gọi API địa chỉ bên ngoài rồi trả dữ liệu tỉnh/thành phố và phường/xã.
+4. Hệ thống kiểm tra voucher, phí vận chuyển, giảm giá và tổng thanh toán cuối cùng.
+5. `POST /checkout/submit` tạo bản ghi `orders` và các dòng `order_items` cho phương thức COD.
+6. Với VNPay, `PaymentController@vnpay` tạo URL thanh toán và VNPay gọi `vnpayReturn` khi hoàn tất.
+7. Nếu VNPay thành công, đơn chuyển sang `confirmed`, tồn kho bị trừ và giỏ hàng được xóa; nếu thất bại, đơn `pending_payment` bị xóa.
+
+Đơn hàng lưu snapshot người nhận tại thời điểm đặt hàng trong `orders`. Sản phẩm được liên kết qua `order_items.product_variant_id`, do đó việc khách thay đổi thông tin cá nhân sau này không làm thay đổi thông tin đơn cũ.
+
+### 8.5. Luồng đơn hàng và tương tác
+
+- Admin cập nhật trạng thái đơn qua `PUT /admin/orders/{id}/status` theo các chuyển trạng thái được cho phép.
+- Khách xem lịch sử/chi tiết đơn qua `/account/orders/{id}` và theo dõi đơn qua `/orders/tracking`.
+- Đánh giá sản phẩm lưu trong `reviews`; sản phẩm yêu thích được xử lý qua `WishlistController`.
+- Chat khách hàng/admin dùng các route `/chat/*`, lưu hội thoại trong `conversations` và tin nhắn trong `messages`.
+- Lượt xem được ghi trong `product_clicks` và dùng để xếp hạng sản phẩm nổi bật trên Shop.
+
+### 8.6. Luồng quản trị
+
+- Các route `/admin/*` nằm trong middleware `web` và alias `admin`.
+- `AdminAuth` kiểm tra session `admin` hoặc session `customer` có `role = 1`; nếu không hợp lệ, request chuyển đến `/admin/login`.
+- Sau khi xác thực, admin truy cập dashboard và các nhóm CRUD danh mục, thương hiệu, sản phẩm, biến thể, banner, voucher, người dùng, đơn hàng, feedback và chat.
+- Controller admin ghi database rồi trả về view trong `resources/views/admin/`.
+- `SeederSyncService` đồng bộ dữ liệu từ database về seeder khi môi trường local/dev, giúp tái tạo dữ liệu mẫu trên máy khác.
+
+### 8.7. Quan hệ dữ liệu chính
+
+```mermaid
+erDiagram
+        CATEGORIES ||--o{ CATEGORIES : "parent_id"
+        CATEGORIES ||--o{ PRODUCTS : "category_id"
+        BRANDS ||--o{ PRODUCTS : "brand_id"
+        PRODUCTS ||--o{ PRODUCT_VARIANTS : "product_id"
+        PRODUCT_VARIANTS ||--o{ ORDER_ITEMS : "product_variant_id"
+        ORDERS ||--o{ ORDER_ITEMS : "order_id"
+        PRODUCTS ||--o{ PRODUCT_CLICKS : "product_id"
+
+        NGUOIDUNG {
+                bigint id PK
+                string name
+                string user
+                string email
+                string tel
+                string address
+                int role
+        }
+        PRODUCTS {
+                bigint id PK
+                bigint category_id FK
+                bigint brand_id FK
+                string name
+                string sku
+                boolean status
+        }
+        PRODUCT_VARIANTS {
+                bigint id PK
+                bigint product_id FK
+                decimal price
+                decimal sale_price
+                int stock
+        }
+        ORDERS {
+                bigint id PK
+                string customer_name
+                string phone
+                string email
+                decimal total_price
+                string payment_method
+                string status
+        }
+        ORDER_ITEMS {
+                bigint id PK
+                bigint order_id FK
+                bigint product_variant_id FK
+                int quantity
+                decimal price
+        }
 ```
-
-Frontend chỉ gọi route Laravel `/checkout/address-options`; backend Laravel gọi API địa chỉ bên ngoài để tránh phụ thuộc CORS.
 
 ## 9. Một số route quan trọng
 
