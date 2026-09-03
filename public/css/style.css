@@ -2530,7 +2530,15 @@ textarea.input {
 .shop-page .featured-product-card { display: flex; min-width: 0; min-height: 330px; flex-direction: column; overflow: hidden; border: 1px solid #eeeeee; border-radius: 12px; background: #fff; transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease; }
 .shop-page .featured-product-card:hover { border-color: rgba(209, 0, 36, .25); box-shadow: 0 12px 25px rgba(43, 45, 66, .09); transform: translateY(-5px); }
 .shop-page .featured-product-image { display: block; height: 205px; padding: 22px; position: relative; background: #fafafa; text-align: center; }
-.shop-page .featured-product-image img { transition: transform .3s ease; }
+.shop-page .featured-product-image img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    transition: transform .3s ease;
+}
 .shop-page .featured-product-card:hover .featured-product-image img { transform: scale(1.05); }
 .shop-page .featured-badge { top: 13px; left: 13px; border-radius: 5px; background: #d10024; font-size: 10px; letter-spacing: .04em; }
 .shop-page .featured-product-body { flex: 1; padding: 17px 17px 19px; }
