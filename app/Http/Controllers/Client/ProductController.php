@@ -6,10 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
-use App\Models\ProductClick;
 use Illuminate\Http\Request;
 use App\Models\Attribute;
 use App\Models\Review;
+use App\Models\ProductClick;
 
 class ProductController extends Controller
 {
@@ -58,12 +58,36 @@ class ProductController extends Controller
     public function index(Request $request)
 {
     $categories = Category::where('status', 1)
+        ->whereNull('parent_id')
+        ->with(['children' => fn ($query) => $query->where('status', 1)
+            ->with(['children' => fn ($childQuery) => $childQuery->where('status', 1)->orderBy('name')])
+            ->orderBy('name')])
         ->orderBy('name')
         ->get();
 
+    $phoneCategory = Category::where('slug', 'dien-thoai')->first();
+    $accessoryCategory = Category::where('slug', 'phu-kien')->first();
+    $phoneCategoryIds = $this->categoryTreeIds($phoneCategory);
+    $accessoryCategoryIds = $this->categoryTreeIds($accessoryCategory);
+    $selectedGroup = $request->input('group');
+    $groupCategoryIds = match ($selectedGroup) {
+        'phone' => $phoneCategoryIds,
+        'accessories' => $accessoryCategoryIds,
+        default => [],
+    };
+
     $brands = Brand::where('status', 1)
+        ->whereHas('products', function ($query) use ($groupCategoryIds) {
+            $query->where('status', 1);
+
+            if ($groupCategoryIds) {
+                $query->whereIn('category_id', $groupCategoryIds);
+            }
+        })
         ->orderBy('name')
         ->get();
+
+    $accessoryCategories = $accessoryCategory?->children ?? collect();
 
     // Lấy các cấu hình có trong database
     $attributes = Attribute::with('values')
@@ -105,6 +129,10 @@ class ProductController extends Controller
     $query = Product::with(['category', 'brand', 'variants'])
         ->where('status', 1);
 
+    if ($groupCategoryIds) {
+        $query->whereIn('category_id', $groupCategoryIds);
+    }
+
     // Tìm kiếm tên sản phẩm
     if ($request->filled('keyword')) {
         $keyword = trim($request->keyword);
@@ -114,7 +142,8 @@ class ProductController extends Controller
 
     // Lọc danh mục
     if ($request->filled('category_id')) {
-        $query->where('category_id', $request->category_id);
+        $category = Category::find($request->integer('category_id'));
+        $query->whereIn('category_id', $this->categoryTreeIds($category));
     }
 
     // Lọc thương hiệu
@@ -189,14 +218,43 @@ class ProductController extends Controller
         });
     }
 
+    $isAllProducts = ! $selectedGroup
+        && ! $request->filled('category_id')
+        && ! $request->filled('brand_id')
+        && ! $request->filled('keyword')
+        && $minPrice === null
+        && $maxPrice === null
+        && empty($selectedColors)
+        && empty($selectedRams)
+        && empty($selectedStorages);
+    $featuredProducts = collect();
+
+    if ($isAllProducts) {
+        $featuredProducts = Product::with(['category', 'brand', 'variants'])
+            ->where('status', 1)
+            ->orderByDesc(ProductClick::selectRaw('COUNT(DISTINCT customer_id)')
+                ->whereColumn('product_id', 'products.id'))
+            ->latest()
+            ->take(8)
+            ->get();
+
+        $query->whereNotIn('id', $featuredProducts->pluck('id'));
+    }
+
     $products = $query
+        ->orderByDesc(ProductClick::selectRaw('COUNT(DISTINCT customer_id)')
+            ->whereColumn('product_id', 'products.id'))
         ->latest()
         ->paginate(12)
         ->withQueryString();
 
     return view('client.shop', compact(
         'products',
+        'featuredProducts',
         'categories',
+        'phoneCategory',
+        'accessoryCategory',
+        'accessoryCategories',
         'brands',
         'colors',
         'rams',
@@ -206,6 +264,24 @@ class ProductController extends Controller
         'selectedStorages'
     ));
 }
+
+    protected function categoryTreeIds(?Category $category): array
+    {
+        if (! $category) {
+            return [];
+        }
+
+        $categoryIds = collect([$category->id]);
+        $parentIds = collect([$category->id]);
+
+        while ($parentIds->isNotEmpty()) {
+            $childIds = Category::whereIn('parent_id', $parentIds)->pluck('id');
+            $categoryIds = $categoryIds->merge($childIds);
+            $parentIds = $childIds;
+        }
+
+        return $categoryIds->unique()->values()->all();
+    }
 
    public function show($id)
 {

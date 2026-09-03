@@ -45,6 +45,16 @@
                             @enderror
                         </div>
 
+                        <div class="mb-3">
+                            <label class="form-label">Danh mục cha</label>
+                            <select name="parent_id" class="form-select">
+                                <option value="">Danh mục cấp cao nhất</option>
+                                @foreach($parentCategories as $parent)
+                                    <option value="{{ $parent->id }}" @selected(old('parent_id') == $parent->id)>{{ $parent->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
                         <div class="mb-4">
                             <label class="form-label">Trạng thái <span class="text-danger">*</span></label>
 
