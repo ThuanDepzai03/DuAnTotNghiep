@@ -10,9 +10,9 @@ class AttributeSeeder extends Seeder
 {
     public function run(): void
     {
-        $color = Attribute::create([
+        $color = Attribute::updateOrCreate([
             'name' => 'Màu sắc',
-        ]);
+        ], []);
 
         foreach ([
             'Đen',
@@ -31,32 +31,32 @@ class AttributeSeeder extends Seeder
             'Navy',
             'Mint',
         ] as $item) {
-            AttributeValue::create([
+            AttributeValue::updateOrCreate([
                 'attribute_id' => $color->id,
                 'value' => $item,
-            ]);
+            ], []);
         }
 
-        $ram = Attribute::create([
+        $ram = Attribute::updateOrCreate([
             'name' => 'RAM',
-        ]);
+        ], []);
 
         foreach (['4GB', '6GB', '8GB', '12GB', '16GB'] as $item) {
-            AttributeValue::create([
+            AttributeValue::updateOrCreate([
                 'attribute_id' => $ram->id,
                 'value' => $item,
-            ]);
+            ], []);
         }
 
-        $storage = Attribute::create([
+        $storage = Attribute::updateOrCreate([
             'name' => 'Bộ nhớ',
-        ]);
+        ], []);
 
         foreach (['64GB', '128GB', '256GB', '512GB', '1TB'] as $item) {
-            AttributeValue::create([
+            AttributeValue::updateOrCreate([
                 'attribute_id' => $storage->id,
                 'value' => $item,
-            ]);
+            ], []);
         }
     }
 }

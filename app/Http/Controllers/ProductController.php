@@ -60,7 +60,9 @@ class ProductController extends Controller
 
         $attributes = Attribute::with('values')
             ->orderBy('id')
-            ->get();
+            ->get()
+            ->unique('name')
+            ->values();
 
         return view('admin.products.form', compact(
             'categories',
@@ -173,7 +175,9 @@ class ProductController extends Controller
 
         $attributes = Attribute::with('values')
             ->orderBy('id')
-            ->get();
+            ->get()
+            ->unique('name')
+            ->values();
 
         $selectedAttributeValueIds = $firstVariant
             ? $firstVariant->attributeValues()
