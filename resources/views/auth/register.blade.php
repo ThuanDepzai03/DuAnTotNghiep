@@ -68,6 +68,12 @@
                     @endif
                     <button class="btn btn-primary w-100 mt-4">Đăng ký</button>
                 </form>
+                <div class="d-flex align-items-center gap-2 my-3 text-muted">
+                    <hr class="flex-grow-1"><span>hoặc</span><hr class="flex-grow-1">
+                </div>
+                <a href="{{ route('google.redirect') }}" class="btn btn-outline-dark w-100">
+                    <strong class="me-2">G</strong> Đăng ký bằng Google
+                </a>
 
                 <script>
                     const registerCityMap = @json($wardOptions ?? []);

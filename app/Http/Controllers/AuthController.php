@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
+use Laravel\Socialite\Facades\Socialite;
 use App\Models\Order;
 class AuthController extends Controller
 {
@@ -48,6 +49,96 @@ class AuthController extends Controller
     public function showLogin()
     {
         return redirect()->route('home', ['auth' => 'login']);
+    }
+
+    public function redirectToGoogle()
+    {
+        return Socialite::driver('google')->redirect();
+    }
+
+    public function handleGoogleCallback(Request $request)
+    {
+        try {
+            $googleUser = Socialite::driver('google')->user();
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return redirect()->route('login')->withErrors([
+                'user' => 'Không thể đăng nhập bằng Google. Vui lòng thử lại.',
+            ]);
+        }
+
+        $email = strtolower(trim((string) $googleUser->getEmail()));
+        $googleId = (string) $googleUser->getId();
+
+        if ($email === '' || $googleId === '') {
+            return redirect()->route('login')->withErrors([
+                'user' => 'Tài khoản Google không cung cấp đủ thông tin cần thiết.',
+            ]);
+        }
+
+        $hasGoogleId = Schema::hasColumn('nguoidung', 'google_id');
+        $customer = $hasGoogleId
+            ? DB::table('nguoidung')->where('google_id', $googleId)->first()
+            : null;
+        $customer ??= DB::table('nguoidung')->where('email', $email)->first();
+
+        $name = trim((string) ($googleUser->getName() ?: $googleUser->getNickname() ?: 'Khách hàng Google'));
+
+        if (!$customer) {
+            $data = [
+                'name' => $name,
+                'user' => 'google_' . Str::lower(Str::random(16)),
+                'email' => $email,
+                'pass' => Hash::make(Str::random(40)),
+                'role' => 0,
+            ];
+
+            if ($hasGoogleId) {
+                $data['google_id'] = $googleId;
+            }
+            if (Schema::hasColumn('nguoidung', 'email_verified_at')) {
+                $data['email_verified_at'] = now();
+            }
+            if (Schema::hasColumn('nguoidung', 'created_at')) {
+                $data['created_at'] = now();
+                $data['updated_at'] = now();
+            }
+
+            $customerId = DB::table('nguoidung')->insertGetId($data);
+            $customer = DB::table('nguoidung')->where('id', $customerId)->first();
+        } elseif ($hasGoogleId && empty($customer->google_id)) {
+            $linkData = ['google_id' => $googleId];
+            if (Schema::hasColumn('nguoidung', 'email_verified_at')) {
+                $linkData['email_verified_at'] = now();
+            }
+            if (Schema::hasColumn('nguoidung', 'updated_at')) {
+                $linkData['updated_at'] = now();
+            }
+            DB::table('nguoidung')->where('id', $customer->id)->update($linkData);
+            $customer = DB::table('nguoidung')->where('id', $customer->id)->first();
+        }
+
+        if (isset($customer->status) && (int) $customer->status !== 1) {
+            return redirect()->route('login')->withErrors([
+                'user' => 'Tài khoản của bạn hiện đang bị khóa.',
+            ]);
+        }
+
+        $request->session()->regenerate();
+        session(['customer' => [
+            'id' => $customer->id,
+            'name' => $customer->name ?? $customer->user,
+            'user' => $customer->user,
+            'email' => $customer->email,
+            'address' => $customer->address ?? null,
+            'tel' => $customer->tel ?? null,
+            'role' => (int) ($customer->role ?? 0),
+        ]]);
+
+        $this->migrateGuestCartToCustomer();
+
+        return redirect()->intended(route('home'));
     }
 
     public function login(Request $request)
