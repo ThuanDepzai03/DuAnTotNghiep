@@ -116,6 +116,28 @@ npm install
 npm run build
 ```
 
+### Đăng nhập bằng Google
+
+Cài đặt Google OAuth trong Google Cloud Console, thêm redirect URI:
+
+```text
+http://127.0.0.1:8000/auth/google/callback
+```
+
+Sau đó thêm thông tin ứng dụng vào `.env`:
+
+```env
+GOOGLE_CLIENT_ID=your-client-id
+GOOGLE_CLIENT_SECRET=your-client-secret
+GOOGLE_REDIRECT_URI=http://127.0.0.1:8000/auth/google/callback
+```
+
+Chạy migration trước khi dùng tính năng:
+
+```bash
+php artisan migrate
+```
+
 Lệnh `db:seed` tạo sản phẩm, tài khoản mẫu, voucher và đánh giá/bình luận mẫu. Nếu muốn làm lại toàn bộ database trong môi trường phát triển, dùng `php artisan migrate:fresh --seed`.
 
 ## Dữ liệu Admin và Seeder
