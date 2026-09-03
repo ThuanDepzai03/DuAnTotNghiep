@@ -1961,9 +1961,9 @@ class ProductSeeder extends Seeder
             [
                 'data' => array (
   'category_id' => 1,
-  'brand_id' => 2,
+  'brand_id' => 9,
   'name' => 'Samsung Galaxy Z Flip5 ZA/A',
-  'slug' => 'samsung-galaxy-z-flip5-zaa-48',
+  'slug' => 'samsung-galaxy-z-flip5-zaa',
   'sku' => 'SP0048',
   'description' => 'Samsung Galaxy Z Flip5 ZA/A đảm bảo chất lượng, nguyên zin, bảo hành 12 tháng tại Thanh Thảo Mobile.',
   'thumbnail' => 'image/samsung_zflip5_mint.jpg',
