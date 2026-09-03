@@ -641,14 +641,24 @@ flowchart TD
         subgraph AuthFlow["Đăng nhập và tài khoản"]
                 Auth --> Login["AuthController@login"]
                 Auth --> Register["AuthController@register"]
+                Auth --> GoogleRedirect["/auth/google/redirect"]
+                GoogleRedirect --> Google["Google OAuth"]
+                Google --> GoogleCallback["/auth/google/callback"]
                 Auth --> Verify["AuthController@verifyEmail / verifyEmailCode"]
                 Auth --> Profile["AuthController@profile/updateProfile"]
                 Auth --> Password["AuthController@resetPassword"]
                 Login --> UserDB[("nguoidung")]
                 Register --> UserDB
+                GoogleCallback --> GoogleUser{"Tìm theo google_id/email"}
+                GoogleUser -->|"Chưa có"| CreateGoogleUser["Tạo nguoidung status = 1"]
+                GoogleUser -->|"Đã có"| LinkGoogle["Liên kết google_id"]
+                CreateGoogleUser --> UserDB
+                LinkGoogle --> UserDB
                 Verify --> UserDB
                 Profile --> UserDB
                 Auth --> CustomerSession["Session customer"]
+                GoogleCallback --> CustomerSession
+                CustomerSession --> HomeAfterLogin["Redirect /"]
     end
 
         subgraph AdminFlow["Luồng quản trị"]
@@ -695,8 +705,37 @@ flowchart TD
 - `POST /register` kiểm tra họ tên, username, email, mật khẩu, số điện thoại và địa chỉ; tài khoản khách có `role = 0`.
 - Nếu bật xác thực email, mã/link được xử lý qua `verifyEmail` hoặc `verifyEmailCode`. Sau khi thành công, hệ thống tạo session `customer`.
 - `POST /login` kiểm tra username/email và mật khẩu trong `nguoidung`, sau đó đưa thông tin tài khoản vào session.
+- Đăng nhập Google đi theo luồng `GET /auth/google/redirect` -> Google -> `GET /auth/google/callback`. Callback tìm tài khoản theo `google_id` hoặc email; nếu chưa có thì tạo tài khoản khách hàng `role = 0`, `status = 1` và đánh dấu email đã xác thực.
+- Sau khi đăng nhập Google thành công, callback ghi `session('customer')` rồi redirect về `/`. Header và modal xác định trạng thái đăng nhập bằng session này, không dùng `Auth::check()` cho khách hàng.
 - Tài khoản có `role = 1` được chuyển đến admin; tài khoản có `role = 0` tiếp tục ở luồng khách hàng.
 - Đổi mật khẩu cập nhật cột `pass` trong `nguoidung` thông qua token lưu tại `password_reset_tokens`.
+
+```mermaid
+sequenceDiagram
+        actor Customer as Khách hàng
+        participant Browser as Trình duyệt
+        participant Laravel as Laravel
+        participant Google as Google OAuth
+        participant DB as MySQL nguoidung
+
+        Customer->>Browser: Chọn Đăng nhập bằng Google
+        Browser->>Laravel: GET /auth/google/redirect
+        Laravel->>Browser: Redirect đến Google
+        Browser->>Google: Xác nhận quyền truy cập
+        Google->>Laravel: GET /auth/google/callback?code=...
+        Laravel->>Google: Đổi code lấy thông tin tài khoản
+        Google-->>Laravel: google_id, email, tên và ảnh hồ sơ
+        Laravel->>DB: Tìm theo google_id hoặc email
+        alt Chưa có tài khoản
+                Laravel->>DB: Tạo nguoidung role=0, status=1
+        else Đã có tài khoản
+                Laravel->>DB: Liên kết google_id nếu còn thiếu
+        end
+        Laravel->>Laravel: Ghi session customer
+        Laravel-->>Browser: Redirect /
+        Browser->>Laravel: GET /
+        Laravel-->>Browser: Header tài khoản, không mở modal login
+```
 
 ### 8.4. Luồng checkout và tạo đơn
 
