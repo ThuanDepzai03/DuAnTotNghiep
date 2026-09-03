@@ -92,14 +92,23 @@
                     @foreach ($featuredProducts as $product)
                         @php
                             $variant = $product->variants->where('status', 1)->sortBy(fn ($item) => $item->sale_price ?? $item->price)->first();
-                            $image = $product->thumbnail ?: 'img/product01.png';
-                            $image = ltrim(str_replace('\\', '/', $image), '/');
-                            $image = preg_match('#^https?://#', $image) ? $image : asset(str_starts_with($image, 'image/') || str_starts_with($image, 'img/') ? $image : 'image/' . $image);
+                            $image = ltrim(str_replace('\\', '/', (string) $product->thumbnail), '/');
+
+                            if ($image === '') {
+                                $imageSrc = asset('img/product01.png');
+                            } elseif (preg_match('#^https?://#i', $image)) {
+                                $imageSrc = $image;
+                            } else {
+                                $image = preg_replace('#^public/#i', '', $image);
+                                $imageSrc = preg_match('#^(image/|img/|admin/|storage/)#i', $image)
+                                    ? asset($image)
+                                    : asset('image/' . $image);
+                            }
                         @endphp
                         <article class="featured-product-card">
                             <a href="{{ route('product.detail', ['id' => $product->id]) }}" class="featured-product-image">
                                 <span class="featured-badge">Nổi bật</span>
-                                <img src="{{ $image }}" alt="{{ $product->name }}" onerror="this.onerror=null;this.src='{{ asset('img/product01.png') }}';">
+                                <img src="{{ $imageSrc }}" alt="{{ $product->name }}" onerror="this.onerror=null;this.src='{{ asset('img/product01.png') }}';">
                             </a>
                             <div class="featured-product-body">
                                 <span class="featured-product-category">{{ $product->category?->name ?? 'Sản phẩm' }}</span>
