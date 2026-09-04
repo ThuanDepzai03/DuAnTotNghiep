@@ -39,6 +39,25 @@
                         </div>
                     @endif
 
+                    <form method="GET" action="{{ route('admin.brands.index') }}" class="row g-3 align-items-end mb-4">
+                        <div class="col-md-5">
+                            <label for="brand-filter-category" class="form-label">Theo danh mục sản phẩm</label>
+                            <select id="brand-filter-category" name="category_id" class="form-select">
+                                <option value="">Tất cả danh mục</option>
+                                @foreach($categories as $category)
+                                    <option value="{{ $category->id }}" @selected((string) request('category_id') === (string) $category->id)>{{ $category->name }}</option>
+                                    @foreach($category->children as $child)
+                                        <option value="{{ $child->id }}" @selected((string) request('category_id') === (string) $child->id)>— {{ $child->name }}</option>
+                                    @endforeach
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex gap-2">
+                            <button type="submit" class="btn btn-primary"><i class="bi bi-funnel me-1"></i>Lọc</button>
+                            <a href="{{ route('admin.brands.index') }}" class="btn btn-light-secondary">Xóa lọc</a>
+                        </div>
+                    </form>
+
                     <div class="table-responsive">
                         <table class="table table-hover align-middle">
                             <thead>

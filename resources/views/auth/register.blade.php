@@ -20,6 +20,10 @@
                 <form method="POST" action="{{ route('register.post') }}">
                     @csrf
                     <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label">Họ và tên</label>
+                            <input type="text" name="name" class="form-control" value="{{ old('name') }}" required>
+                        </div>
                         <div class="col-md-6">
                             <label class="form-label">Tên đăng nhập</label>
                             <input type="text" name="user" class="form-control" value="{{ old('user') }}" required>
@@ -64,6 +68,12 @@
                     @endif
                     <button class="btn btn-primary w-100 mt-4">Đăng ký</button>
                 </form>
+                <div class="d-flex align-items-center gap-2 my-3 text-muted">
+                    <hr class="flex-grow-1"><span>hoặc</span><hr class="flex-grow-1">
+                </div>
+                <a href="{{ route('google.redirect') }}" class="btn btn-outline-dark w-100">
+                    <strong class="me-2">G</strong> Đăng ký bằng Google
+                </a>
 
                 <script>
                     const registerCityMap = @json($wardOptions ?? []);

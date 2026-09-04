@@ -1676,6 +1676,54 @@ document.addEventListener('DOMContentLoaded', function () {
     const productForm =
         document.getElementById('product-form');
 
+    const thumbnailInput =
+        document.getElementById('thumbnail-input');
+
+    const thumbnailPreview =
+        document.getElementById('thumbnail-preview');
+
+    if (thumbnailInput && thumbnailPreview) {
+        thumbnailInput.addEventListener('change', function () {
+            const file = this.files && this.files[0];
+
+            if (!file) {
+                return;
+            }
+
+            if (thumbnailPreview.dataset.objectUrl) {
+                URL.revokeObjectURL(thumbnailPreview.dataset.objectUrl);
+            }
+
+            const objectUrl = URL.createObjectURL(file);
+            thumbnailPreview.dataset.objectUrl = objectUrl;
+            thumbnailPreview.src = objectUrl;
+        });
+    }
+
+    const variantImageInput =
+        document.getElementById('variant-image-input');
+
+    const variantImagePreview =
+        document.getElementById('variant-preview');
+
+    if (variantImageInput && variantImagePreview) {
+        variantImageInput.addEventListener('change', function () {
+            const file = this.files && this.files[0];
+
+            if (!file) {
+                return;
+            }
+
+            if (variantImagePreview.dataset.objectUrl) {
+                URL.revokeObjectURL(variantImagePreview.dataset.objectUrl);
+            }
+
+            const objectUrl = URL.createObjectURL(file);
+            variantImagePreview.dataset.objectUrl = objectUrl;
+            variantImagePreview.src = objectUrl;
+        });
+    }
+
 
 
     /*

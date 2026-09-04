@@ -33,7 +33,8 @@
 - [Dữ liệu Admin và Seeder](#dữ-liệu-admin-và-seeder)
 - [Cập nhật dự án giữ nguyên database](#cập-nhật-phiên-bản-mới-nhưng-giữ-nguyên-database)
 - [Chức năng chính](#4-chức-năng-chính)
-- [Kiến trúc và quy trình](#7-kiến-trúc-thư-mục)
+- [Luồng hoạt động toàn hệ thống](#8-luồng-hoạt-động-toàn-hệ-thống)
+- [Kiến trúc thư mục](#7-kiến-trúc-thư-mục)
 
 </details>
 
@@ -114,6 +115,39 @@ php artisan db:seed
 npm install
 npm run build
 ```
+
+### Đăng nhập bằng Google
+
+Trong Google Cloud Console, cấu hình OAuth Client loại **Web application** như sau.
+
+Authorized JavaScript origins:
+
+```text
+http://127.0.0.1:8000
+```
+
+Authorized redirect URIs:
+
+```text
+http://127.0.0.1:8000/auth/google/callback
+```
+
+Sau đó thêm thông tin ứng dụng vào `.env`:
+
+```env
+GOOGLE_CLIENT_ID=your-client-id
+GOOGLE_CLIENT_SECRET=your-client-secret
+GOOGLE_REDIRECT_URI=http://127.0.0.1:8000/auth/google/callback
+```
+
+Khi chạy local, phải truy cập website bằng đúng host `http://127.0.0.1:8000`, không trộn với `http://localhost`. Sau khi thay đổi `.env` hoặc cấu hình OAuth, chạy:
+
+```bash
+php artisan migrate
+php artisan optimize:clear
+```
+
+Nếu PHP trên Windows báo `cURL error 60`, kiểm tra `curl.cainfo` và `openssl.cafile` trong `php.ini` trỏ tới file CA hợp lệ, sau đó khởi động lại Apache/WAMP hoặc tiến trình `php artisan serve`.
 
 Lệnh `db:seed` tạo sản phẩm, tài khoản mẫu, voucher và đánh giá/bình luận mẫu. Nếu muốn làm lại toàn bộ database trong môi trường phát triển, dùng `php artisan migrate:fresh --seed`.
 
@@ -261,66 +295,66 @@ Các mốc thời gian dưới đây được tổng hợp theo lịch sử phá
 
 | STT | Tên công việc | Bắt đầu | Kết thúc | Nhân sự | Tiến độ |
 |---:|---|---|---|---|---:|
-| 1 | Khảo sát và đánh giá dự án | 30/06/2026 | 30/06/2026 | Thuan, cả nhóm | 100% |
-| 2 | Xác định yêu cầu nghiệp vụ và bài toán | 30/06/2026 | 01/07/2026 | Thuan, cả nhóm | 100% |
-| 3 | Phân tích luồng xử lý chức năng | 30/06/2026 | 02/07/2026 | Thuan | 100% |
-| 4 | Thiết kế và chuẩn hóa cơ sở dữ liệu | 01/07/2026 | 03/07/2026 | Thuandepzai03, Sown11, Thuan | 100% |
-| 5 | Vẽ sơ đồ ERD | 01/07/2026 | 03/07/2026 | Thuan, Thuandepzai03 | 100% |
-| 6 | Thiết kế Use Case | 01/07/2026 | 03/07/2026 | Thuan, cả nhóm | 100% |
-| 7 | Thiết kế Activity Diagram | 02/07/2026 | 04/07/2026 | Thuan, cả nhóm | 100% |
-| 8 | Viết tài liệu và README dự án | 02/07/2026 | 24/08/2026 | Thuan, cả nhóm | 100% |
-| 9 | Xây dựng base Laravel và cấu hình môi trường | 30/06/2026 | 02/07/2026 | Thuandepzai03, Thuan | 100% |
-| 10 | Thiết kế layout, header, footer và responsive | 02/07/2026 | 15/08/2026 | Thuandepzai03, Sown11, Thuan | 100% |
-| 11 | Xây dựng trang chủ | 02/07/2026 | 24/08/2026 | Sown11, Thuan | 100% |
-| 12 | Đăng ký, đăng nhập và đăng xuất khách hàng | 02/07/2026 | 03/07/2026 | Thuandepzai03, hieu, Thuan | 100% |
-| 13 | Phân quyền khách hàng và quản trị viên | 03/07/2026 | 04/07/2026 | hieu, Sown11, Thuan | 100% |
-| 14 | Xác thực email bằng mã/link | 23/08/2026 | 24/08/2026 | Thuan | 100% |
-| 15 | Quản lý thông tin cá nhân | 03/07/2026 | 23/08/2026 | hieu, Thuan | 100% |
-| 16 | Đổi mật khẩu và bảo mật tài khoản | 23/08/2026 | 24/08/2026 | Thuan | 100% |
-| 17 | Danh sách sản phẩm theo danh mục | 02/07/2026 | 04/07/2026 | Sown11, Thuan | 100% |
-| 18 | Tìm kiếm và lọc sản phẩm | 02/07/2026 | 04/07/2026 | Sown11, Thuan | 100% |
-| 19 | Trang chi tiết sản phẩm | 02/07/2026 | 04/07/2026 | Sown11, Thuan | 100% |
-| 20 | Quản lý thuộc tính và giá trị thuộc tính | 03/07/2026 | 13/08/2026 | Sown11, Thuan | 100% |
-| 21 | Chọn biến thể sản phẩm | 03/07/2026 | 13/08/2026 | Sown11, Thuan | 100% |
-| 22 | Thêm sản phẩm vào giỏ hàng | 02/07/2026 | 04/07/2026 | Thuandepzai03, Thuan | 100% |
-| 23 | Cập nhật số lượng và tổng tiền giỏ hàng | 13/08/2026 | 15/08/2026 | Thuandepzai03, Thuan | 100% |
-| 24 | Xóa sản phẩm khỏi giỏ hàng | 13/08/2026 | 15/08/2026 | Thuandepzai03, Thuan | 100% |
-| 25 | Danh sách sản phẩm yêu thích | 23/08/2026 | 24/08/2026 | Thuan | 100% |
-| 26 | Trang tạo đơn hàng và checkout | 02/07/2026 | 24/08/2026 | hieu, Thuan | 100% |
-| 27 | Nhập địa chỉ tỉnh/thành phố và phường/xã | 24/08/2026 | 24/08/2026 | Thuan | 100% |
-| 28 | Tính phí vận chuyển theo địa chỉ | 15/08/2026 | 24/08/2026 | hieu, Thuan | 100% |
-| 29 | Voucher giảm theo phần trăm hoặc số tiền | 13/08/2026 | 24/08/2026 | tun, Thuan | 100% |
-| 30 | Voucher miễn phí vận chuyển và flash voucher | 13/08/2026 | 24/08/2026 | tun, Thuan | 100% |
-| 31 | Thanh toán khi nhận hàng COD | 15/08/2026 | 16/08/2026 | hieu, Thuan | 100% |
-| 32 | Thanh toán VNPay sandbox | 03/07/2026 | 16/08/2026 | hieu, Thuan | 100% |
-| 33 | Xử lý kết quả thanh toán và trạng thái đơn | 03/07/2026 | 16/08/2026 | hieu, Thuan | 100% |
-| 34 | Trang liên hệ và gửi liên hệ | 23/08/2026 | 24/08/2026 | Thuan | 100% |
-| 35 | Trang giới thiệu và tin tức | 02/07/2026 | 04/07/2026 | Sown11, Thuan | 100% |
-| 36 | Theo dõi, xem chi tiết và hủy đơn | 03/07/2026 | 04/07/2026 | hieu, Thuan | 100% |
-| 37 | Chat hỗ trợ khách hàng | 12/08/2026 | 24/08/2026 | duckiet863, Thuan | 100% |
-| 38 | Dashboard quản trị | 03/07/2026 | 04/07/2026 | Sown11, hieu | 100% |
-| 39 | Quản lý sản phẩm và mã biến thể | 03/07/2026 | 13/08/2026 | Sown11, Thuan | 100% |
-| 40 | Quản lý danh mục sản phẩm | 03/07/2026 | 04/07/2026 | Sown11 | 100% |
-| 41 | Quản lý thương hiệu | 03/07/2026 | 04/07/2026 | Sown11, Thuan | 100% |
-| 42 | Quản lý hình ảnh sản phẩm | 03/07/2026 | 04/07/2026 | Sown11, Thuan | 100% |
-| 43 | Quản lý banner và sự kiện hiển thị | 03/07/2026 | 21/08/2026 | Sown11, Thuan | 100% |
-| 44 | Quản lý đơn hàng và cập nhật trạng thái | 03/07/2026 | 04/07/2026 | hieu, Sown11 | 100% |
-| 45 | Thống kê doanh thu | 03/07/2026 | 04/07/2026 | hieu, Sown11 | 100% |
-| 46 | Quản lý tài khoản người dùng | 03/07/2026 | 04/07/2026 | Sown11, hieu | 100% |
-| 47 | Quản lý voucher và sự kiện giảm giá | 13/08/2026 | 21/08/2026 | tun, Thuan | 100% |
-| 48 | Quản lý liên hệ và phản hồi | 23/08/2026 | 24/08/2026 | Thuan | 100% |
-| 49 | Quản lý đánh giá và trả lời bình luận | 23/08/2026 | 24/08/2026 | Thuan | 100% |
-| 50 | Quản lý hội thoại và tin nhắn admin | 12/08/2026 | 24/08/2026 | duckiet863, Thuan | 100% |
-| 51 | Kiểm thử chức năng và sửa lỗi tích hợp | 02/07/2026 | 24/08/2026 | Thuan, cả nhóm | 100% |
-| 52 | Nghiệm thu, chuẩn bị demo và hoàn thiện tài liệu | 20/08/2026 | 24/08/2026 | Thuan, cả nhóm | 100% |
+| 1 | Khảo sát và đánh giá dự án | 30/06/2026 | 30/06/2026 | Bùi Minh Thuận, cả nhóm | 100% |
+| 2 | Xác định yêu cầu nghiệp vụ và bài toán | 30/06/2026 | 01/07/2026 | Bùi Minh Thuận, cả nhóm | 100% |
+| 3 | Phân tích luồng xử lý chức năng | 30/06/2026 | 02/07/2026 | Bùi Minh Thuận | 100% |
+| 4 | Thiết kế và chuẩn hóa cơ sở dữ liệu | 01/07/2026 | 03/07/2026 | Bùi Minh Thuận, Bùi Quang Sơn | 100% |
+| 5 | Vẽ sơ đồ ERD | 01/07/2026 | 03/07/2026 | Bùi Minh Thuận | 100% |
+| 6 | Thiết kế Use Case | 01/07/2026 | 03/07/2026 | Bùi Minh Thuận, cả nhóm | 100% |
+| 7 | Thiết kế Activity Diagram | 02/07/2026 | 04/07/2026 | Bùi Minh Thuận, cả nhóm | 100% |
+| 8 | Viết tài liệu và README dự án | 02/07/2026 | 24/08/2026 | Bùi Minh Thuận, cả nhóm | 100% |
+| 9 | Xây dựng base Laravel và cấu hình môi trường | 30/06/2026 | 02/07/2026 | Bùi Minh Thuận | 100% |
+| 10 | Thiết kế layout, header, footer và responsive | 02/07/2026 | 15/08/2026 | Bùi Minh Thuận, Bùi Quang Sơn | 100% |
+| 11 | Xây dựng trang chủ | 02/07/2026 | 24/08/2026 | Bùi Quang Sơn, Bùi Minh Thuận | 100% |
+| 12 | Đăng ký, đăng nhập và đăng xuất khách hàng | 02/07/2026 | 03/07/2026 | Bùi Minh Thuận, Đỗ Trung Hiếu | 100% |
+| 13 | Phân quyền khách hàng và quản trị viên | 03/07/2026 | 04/07/2026 | Đỗ Trung Hiếu, Bùi Quang Sơn, Bùi Minh Thuận | 100% |
+| 14 | Xác thực email bằng mã/link | 23/08/2026 | 24/08/2026 | Bùi Minh Thuận | 100% |
+| 15 | Quản lý thông tin cá nhân | 03/07/2026 | 23/08/2026 | Đỗ Trung Hiếu, Bùi Minh Thuận | 100% |
+| 16 | Đổi mật khẩu và bảo mật tài khoản | 23/08/2026 | 24/08/2026 | Bùi Minh Thuận | 100% |
+| 17 | Danh sách sản phẩm theo danh mục | 02/07/2026 | 04/07/2026 | Bùi Quang Sơn, Bùi Minh Thuận | 100% |
+| 18 | Tìm kiếm và lọc sản phẩm | 02/07/2026 | 04/07/2026 | Bùi Quang Sơn, Bùi Minh Thuận | 100% |
+| 19 | Trang chi tiết sản phẩm | 02/07/2026 | 04/07/2026 | Bùi Quang Sơn, Bùi Minh Thuận | 100% |
+| 20 | Quản lý thuộc tính và giá trị thuộc tính | 03/07/2026 | 13/08/2026 | Bùi Quang Sơn, Bùi Minh Thuận | 100% |
+| 21 | Chọn biến thể sản phẩm | 03/07/2026 | 13/08/2026 | Bùi Quang Sơn, Bùi Minh Thuận | 100% |
+| 22 | Thêm sản phẩm vào giỏ hàng | 02/07/2026 | 04/07/2026 | Bùi Minh Thuận | 100% |
+| 23 | Cập nhật số lượng và tổng tiền giỏ hàng | 13/08/2026 | 15/08/2026 | Bùi Minh Thuận | 100% |
+| 24 | Xóa sản phẩm khỏi giỏ hàng | 13/08/2026 | 15/08/2026 | Bùi Minh Thuận | 100% |
+| 25 | Danh sách sản phẩm yêu thích | 23/08/2026 | 24/08/2026 | Bùi Minh Thuận | 100% |
+| 26 | Trang tạo đơn hàng và checkout | 02/07/2026 | 24/08/2026 | Đỗ Trung Hiếu, Bùi Minh Thuận | 100% |
+| 27 | Nhập địa chỉ tỉnh/thành phố và phường/xã | 24/08/2026 | 24/08/2026 | Bùi Minh Thuận | 100% |
+| 28 | Tính phí vận chuyển theo địa chỉ | 15/08/2026 | 24/08/2026 | Đỗ Trung Hiếu, Bùi Minh Thuận | 100% |
+| 29 | Voucher giảm theo phần trăm hoặc số tiền | 13/08/2026 | 24/08/2026 | Nguyễn Văn Trung, Bùi Minh Thuận | 100% |
+| 30 | Voucher miễn phí vận chuyển và flash voucher | 13/08/2026 | 24/08/2026 | Nguyễn Văn Trung, Bùi Minh Thuận | 100% |
+| 31 | Thanh toán khi nhận hàng COD | 15/08/2026 | 16/08/2026 | Đỗ Trung Hiếu, Bùi Minh Thuận | 100% |
+| 32 | Thanh toán VNPay sandbox | 03/07/2026 | 16/08/2026 | Đỗ Trung Hiếu, Bùi Minh Thuận | 100% |
+| 33 | Xử lý kết quả thanh toán và trạng thái đơn | 03/07/2026 | 16/08/2026 | Đỗ Trung Hiếu, Bùi Minh Thuận | 100% |
+| 34 | Trang liên hệ và gửi liên hệ | 23/08/2026 | 24/08/2026 | Bùi Minh Thuận | 100% |
+| 35 | Trang giới thiệu và tin tức | 02/07/2026 | 04/07/2026 | Bùi Quang Sơn, Bùi Minh Thuận | 100% |
+| 36 | Theo dõi, xem chi tiết và hủy đơn | 03/07/2026 | 04/07/2026 | Đỗ Trung Hiếu, Bùi Minh Thuận | 100% |
+| 37 | Chat hỗ trợ khách hàng | 12/08/2026 | 24/08/2026 | Lưu Đức Kiệt, Bùi Minh Thuận | 100% |
+| 38 | Dashboard quản trị | 03/07/2026 | 04/07/2026 | Bùi Quang Sơn, Đỗ Trung Hiếu | 100% |
+| 39 | Quản lý sản phẩm và mã biến thể | 03/07/2026 | 13/08/2026 | Bùi Quang Sơn, Bùi Minh Thuận | 100% |
+| 40 | Quản lý danh mục sản phẩm | 03/07/2026 | 04/07/2026 | Bùi Quang Sơn | 100% |
+| 41 | Quản lý thương hiệu | 03/07/2026 | 04/07/2026 | Bùi Quang Sơn, Bùi Minh Thuận | 100% |
+| 42 | Quản lý hình ảnh sản phẩm | 03/07/2026 | 04/07/2026 | Bùi Quang Sơn, Bùi Minh Thuận | 100% |
+| 43 | Quản lý banner và sự kiện hiển thị | 03/07/2026 | 21/08/2026 | Bùi Quang Sơn, Bùi Minh Thuận | 100% |
+| 44 | Quản lý đơn hàng và cập nhật trạng thái | 03/07/2026 | 04/07/2026 | Đỗ Trung Hiếu, Bùi Quang Sơn | 100% |
+| 45 | Thống kê doanh thu | 03/07/2026 | 04/07/2026 | Đỗ Trung Hiếu, Bùi Quang Sơn | 100% |
+| 46 | Quản lý tài khoản người dùng | 03/07/2026 | 04/07/2026 | Bùi Quang Sơn, Đỗ Trung Hiếu | 100% |
+| 47 | Quản lý voucher và sự kiện giảm giá | 13/08/2026 | 21/08/2026 | Nguyễn Văn Trung, Bùi Minh Thuận | 100% |
+| 48 | Quản lý liên hệ và phản hồi | 23/08/2026 | 24/08/2026 | Bùi Minh Thuận | 100% |
+| 49 | Quản lý đánh giá và trả lời bình luận | 23/08/2026 | 24/08/2026 | Bùi Minh Thuận | 100% |
+| 50 | Quản lý hội thoại và tin nhắn admin | 12/08/2026 | 24/08/2026 | Lưu Đức Kiệt, Bùi Minh Thuận | 100% |
+| 51 | Kiểm thử chức năng và sửa lỗi tích hợp | 02/07/2026 | 24/08/2026 | Bùi Minh Thuận, cả nhóm | 100% |
+| 52 | Nghiệm thu, chuẩn bị demo và hoàn thiện tài liệu | 20/08/2026 | 24/08/2026 | Bùi Minh Thuận, cả nhóm | 100% |
 
 ## 6. Phân tích công việc của các thành viên
 
-Phần phân công dưới đây được tổng hợp từ lịch sử Git và cấu trúc mã nguồn. Các bí danh `thuanvillager243-dev` và `thuandz` cùng dùng email `thuanvillager243@gmail.com`, được gộp thành một thành viên là **Thuan**.
+Phần phân công dưới đây được đối chiếu từ lịch sử Git và cấu trúc mã nguồn. Các identity `Thuận`, `Thuandepzai03`, `thuanvillager243-dev` và `thuandz` được quy về **Bùi Minh Thuận** theo tên/email/nhánh trong repository. Các vai trò được mô tả theo nhóm file và nội dung commit; số commit chi tiết nằm ở mục [Tác giả và dấu vết Git](#15-tác-giả-và-dấu-vết-git).
 
 ## Cụm Use Case - Customer
 
-Sơ đồ dưới đây mô tả các chức năng phía khách hàng mà Thuan đã trực tiếp phát triển, tích hợp hoặc sửa lỗi trong dự án.
+Sơ đồ dưới đây mô tả các chức năng phía khách hàng mà Bùi Minh Thuận đã trực tiếp phát triển, tích hợp hoặc sửa lỗi trong dự án.
 
 ```mermaid
 flowchart LR
@@ -427,7 +461,7 @@ flowchart LR
 | Tương tác | Đánh giá, feedback, chat | Customer gửi nhận xét và trao đổi với cửa hàng |
 | Nội dung | Xem tin tức và giới thiệu | Customer tiếp cận thông tin của cửa hàng |
 
-### Thành viên 1 - Thuan - Trưởng nhóm và thành viên tích hợp chính
+### Thành viên 1 - Bùi Minh Thuận - Trưởng nhóm và tích hợp chính
 
 **Nhiệm vụ đã thực hiện:**
 
@@ -454,7 +488,7 @@ flowchart LR
 
 **Phần phối hợp:** rà soát chức năng của cả ba thành viên còn lại, thống nhất tên trường dữ liệu, route và quy trình xử lý lỗi; trực tiếp sửa và tích hợp những phần chưa chạy đúng trong code của các thành viên khác.
 
-### Thành viên 2 - Backend và cơ sở dữ liệu
+### Thành viên 2 - Đỗ Trung Hiếu - Backend và cơ sở dữ liệu
 
 **Nhiệm vụ đã thực hiện:**
 
@@ -481,7 +515,7 @@ flowchart LR
 
 **Sản phẩm bàn giao:** database chạy được bằng migration, API/route nghiệp vụ, dữ liệu mẫu và các chức năng backend có thể tích hợp với giao diện.
 
-### Thành viên 3 - Frontend và trải nghiệm người dùng
+### Thành viên 3 - Bùi Quang Sơn - Frontend và trải nghiệm người dùng
 
 **Nhiệm vụ đã thực hiện:**
 
@@ -507,7 +541,7 @@ flowchart LR
 
 **Sản phẩm bàn giao:** giao diện hoàn chỉnh, form checkout sử dụng được, thông báo lỗi dễ hiểu và trải nghiệm mua hàng nhất quán.
 
-### Thành viên 4 - Quản trị, kiểm thử và tài liệu
+### Thành viên 4 - Lưu Đức Kiệt - Quản trị, kiểm thử và tài liệu
 
 **Nhiệm vụ đã thực hiện:**
 
@@ -538,13 +572,13 @@ flowchart LR
 
 | Hạng mục | Thành viên chính | Thành viên phối hợp |
 |---|---|---|
-| Phân tích yêu cầu và quy trình | Thành viên 1 | Cả nhóm |
-| Database và nghiệp vụ backend | Thành viên 2 | Thành viên 1, 4 |
-| Giao diện khách hàng | Thành viên 3 | Thành viên 1, 2 |
-| Checkout và địa chỉ giao hàng | Thành viên 2, 3 | Thành viên 4 |
-| Khu vực quản trị | Thành viên 4 | Thành viên 2, 1 |
-| Kiểm thử và nghiệm thu | Thành viên 4 | Cả nhóm |
-| Báo cáo và thuyết trình | Thành viên 1 | Cả nhóm |
+| Phân tích yêu cầu và quy trình | Bùi Minh Thuận | Cả nhóm |
+| Database và nghiệp vụ backend | Đỗ Trung Hiếu | Bùi Minh Thuận, Lưu Đức Kiệt |
+| Giao diện khách hàng | Bùi Quang Sơn | Bùi Minh Thuận, Đỗ Trung Hiếu |
+| Checkout và địa chỉ giao hàng | Đỗ Trung Hiếu, Bùi Quang Sơn | Lưu Đức Kiệt |
+| Khu vực quản trị | Lưu Đức Kiệt | Đỗ Trung Hiếu, Bùi Minh Thuận |
+| Kiểm thử và nghiệm thu | Lưu Đức Kiệt | Cả nhóm |
+| Báo cáo và thuyết trình | Bùi Minh Thuận | Cả nhóm |
 
 ### Trách nhiệm chung
 
@@ -572,33 +606,218 @@ config/                   Cấu hình Laravel
 storage/                  Log, cache và file runtime
 ```
 
-## 8. Quy trình mua hàng
+## 8. Luồng hoạt động toàn hệ thống
 
-```text
-Trang chủ / Cửa hàng
-        ↓
-Chi tiết sản phẩm
-        ↓
-Giỏ hàng
-        ↓
-Checkout
-        ↓
-Địa chỉ giao hàng và voucher
-        ↓
-COD hoặc VNPay
-        ↓
-Tạo đơn hàng
-        ↓
-Theo dõi đơn hàng
+Sơ đồ dưới đây mô tả luồng chạy thực tế của website từ request của người dùng, qua route, middleware, controller, database và Blade view.
+
+```mermaid
+flowchart TD
+        Browser["Trình duyệt người dùng"] --> Web["Laravel web routes"]
+        Web --> PublicEntry{"Nhánh truy cập"}
+
+        PublicEntry --> Client["Client"]
+        PublicEntry --> Auth["Auth"]
+        PublicEntry --> AdminGate["Admin middleware"]
+
+        subgraph ClientFlow["Luồng khách hàng"]
+                Client --> Home["HomeController@index"]
+                Client --> Shop["Client\\ProductController@index"]
+                Client --> Detail["Client\\ProductController@show"]
+                Client --> Cart["Client\\CartController"]
+                Client --> Checkout["Client\\CheckoutController"]
+                Client --> Content["HomeController: about/news/contact/vouchers"]
+
+                Home --> HomeView["client/home.blade.php"]
+                Shop --> ShopView["client/shop.blade.php"]
+                Detail --> DetailView["client/detail.blade.php"]
+                Cart --> CartSession["Session cart.guest hoặc cart.{customer_id}"]
+                Checkout --> OrderDB[("orders + order_items")]
+                Detail --> ProductDB[("products + variants + attributes")]
+        Shop --> ProductDB
+        Home --> ProductDB
+        Checkout --> VoucherDB[(vouchers)]
+    end
+
+        subgraph AuthFlow["Đăng nhập và tài khoản"]
+                Auth --> Login["AuthController@login"]
+                Auth --> Register["AuthController@register"]
+                Auth --> GoogleRedirect["/auth/google/redirect"]
+                GoogleRedirect --> Google["Google OAuth"]
+                Google --> GoogleCallback["/auth/google/callback"]
+                Auth --> Verify["AuthController@verifyEmail / verifyEmailCode"]
+                Auth --> Profile["AuthController@profile/updateProfile"]
+                Auth --> Password["AuthController@resetPassword"]
+                Login --> UserDB[("nguoidung")]
+                Register --> UserDB
+                GoogleCallback --> GoogleUser{"Tìm theo google_id/email"}
+                GoogleUser -->|"Chưa có"| CreateGoogleUser["Tạo nguoidung status = 1"]
+                GoogleUser -->|"Đã có"| LinkGoogle["Liên kết google_id"]
+                CreateGoogleUser --> UserDB
+                LinkGoogle --> UserDB
+                Verify --> UserDB
+                Profile --> UserDB
+                Auth --> CustomerSession["Session customer"]
+                GoogleCallback --> CustomerSession
+                CustomerSession --> HomeAfterLogin["Redirect /"]
+    end
+
+        subgraph AdminFlow["Luồng quản trị"]
+                AdminGate --> CheckAdmin{"AdminAuth kiểm tra session"}
+                CheckAdmin -->|"Không hợp lệ"| AdminLogin["AdminAuthController@login"]
+                CheckAdmin -->|"Hợp lệ"| Dashboard["AdminController@index"]
+                Dashboard --> AdminRoutes["Admin CRUD routes"]
+                AdminRoutes --> AdminControllers["Category / Brand / Product / Order / User / Voucher / Banner / Feedback / Chat"]
+                AdminControllers --> AdminDB[("Database MySQL")]
+                AdminRoutes --> AdminViews["resources/views/admin"]
+                AdminControllers --> Sync["SeederSyncService local/dev"]
+                Sync --> Seeders["database/seeders"]
+    end
+
+        Checkout --> Payment{"Phương thức thanh toán"}
+        Payment -->|"COD"| CreateOrder["Tạo đơn và lưu trạng thái pending"]
+        Payment -->|"VNPay"| VNPay["PaymentController@vnpay"]
+        VNPay --> VNPayReturn["PaymentController@vnpayReturn"]
+        VNPayReturn -->|"Thành công"| Confirm["confirmed + trừ tồn kho + xóa giỏ"]
+        VNPayReturn -->|"Thất bại"| CancelPending["Xóa đơn pending_payment"]
+    CreateOrder --> OrderDB
+    Confirm --> OrderDB
 ```
 
-Địa chỉ sử dụng API v2 với cấu trúc:
+### 8.1. Request đi vào Laravel
 
-```text
-Tỉnh / Thành phố → Phường / Xã → Địa chỉ chi tiết
+1. Trình duyệt gửi request đến một route trong `routes/web.php`.
+2. Laravel chạy middleware của route, sau đó gọi controller tương ứng.
+3. Controller đọc hoặc ghi dữ liệu qua Eloquent Model, Query Builder và session.
+4. Controller trả về Blade view trong `resources/views/`, redirect hoặc JSON tùy loại request.
+5. Trình duyệt tải CSS/JavaScript trong `public/` để hoàn thiện giao diện và tương tác.
+
+### 8.2. Luồng trang khách hàng
+
+- `GET /` gọi `HomeController@index`, lấy banner, danh mục, thương hiệu, sản phẩm và voucher rồi render `client/home.blade.php`.
+- `GET /shop` gọi `Client\ProductController@index`, lọc sản phẩm đang hoạt động theo nhóm, danh mục, thương hiệu, từ khóa, giá và thuộc tính biến thể; kết quả được phân trang tại `client/shop.blade.php`.
+- `GET /detail/{id}` gọi `Client\ProductController@show`, eager-load sản phẩm, biến thể, thuộc tính, ảnh và đánh giá; JavaScript trên Blade chọn tổ hợp variant và cập nhật giá/tồn kho.
+- `POST /cart/add` gọi `Client\CartController@add`, kiểm tra sản phẩm, variant và tồn kho rồi lưu vào session `cart.guest` hoặc `cart.{customer_id}`.
+- `GET /cart`, `POST /cart/update` và `POST /cart/remove` đọc/cập nhật session giỏ hàng và tính lại tổng tiền.
+
+### 8.3. Luồng đăng ký và đăng nhập
+
+- Tài khoản khách hàng được lưu trong bảng `nguoidung`, không sử dụng bảng `users` mặc định.
+- `POST /register` kiểm tra họ tên, username, email, mật khẩu, số điện thoại và địa chỉ; tài khoản khách có `role = 0`.
+- Nếu bật xác thực email, mã/link được xử lý qua `verifyEmail` hoặc `verifyEmailCode`. Sau khi thành công, hệ thống tạo session `customer`.
+- `POST /login` kiểm tra username/email và mật khẩu trong `nguoidung`, sau đó đưa thông tin tài khoản vào session.
+- Đăng nhập Google đi theo luồng `GET /auth/google/redirect` -> Google -> `GET /auth/google/callback`. Callback tìm tài khoản theo `google_id` hoặc email; nếu chưa có thì tạo tài khoản khách hàng `role = 0`, `status = 1` và đánh dấu email đã xác thực.
+- Sau khi đăng nhập Google thành công, callback ghi `session('customer')` rồi redirect về `/`. Header và modal xác định trạng thái đăng nhập bằng session này, không dùng `Auth::check()` cho khách hàng.
+- Tài khoản có `role = 1` được chuyển đến admin; tài khoản có `role = 0` tiếp tục ở luồng khách hàng.
+- Đổi mật khẩu cập nhật cột `pass` trong `nguoidung` thông qua token lưu tại `password_reset_tokens`.
+
+```mermaid
+sequenceDiagram
+        actor Customer as Khách hàng
+        participant Browser as Trình duyệt
+        participant Laravel as Laravel
+        participant Google as Google OAuth
+        participant DB as MySQL nguoidung
+
+        Customer->>Browser: Chọn Đăng nhập bằng Google
+        Browser->>Laravel: GET /auth/google/redirect
+        Laravel->>Browser: Redirect đến Google
+        Browser->>Google: Xác nhận quyền truy cập
+        Google->>Laravel: GET /auth/google/callback?code=...
+        Laravel->>Google: Đổi code lấy thông tin tài khoản
+        Google-->>Laravel: google_id, email, tên và ảnh hồ sơ
+        Laravel->>DB: Tìm theo google_id hoặc email
+        alt Chưa có tài khoản
+                Laravel->>DB: Tạo nguoidung role=0, status=1
+        else Đã có tài khoản
+                Laravel->>DB: Liên kết google_id nếu còn thiếu
+        end
+        Laravel->>Laravel: Ghi session customer
+        Laravel-->>Browser: Redirect /
+        Browser->>Laravel: GET /
+        Laravel-->>Browser: Header tài khoản, không mở modal login
 ```
 
-Frontend chỉ gọi route Laravel `/checkout/address-options`; backend Laravel gọi API địa chỉ bên ngoài để tránh phụ thuộc CORS.
+### 8.4. Luồng checkout và tạo đơn
+
+1. `GET /checkout` yêu cầu khách đã đăng nhập và giỏ hàng không rỗng.
+2. `CheckoutController@index` đọc thông tin khách, giỏ hàng, voucher và tính tiền hàng.
+3. Route `GET /checkout/address-options` gọi backend Laravel; backend gọi API địa chỉ bên ngoài rồi trả dữ liệu tỉnh/thành phố và phường/xã.
+4. Hệ thống kiểm tra voucher, phí vận chuyển, giảm giá và tổng thanh toán cuối cùng.
+5. `POST /checkout/submit` tạo bản ghi `orders` và các dòng `order_items` cho phương thức COD.
+6. Với VNPay, `PaymentController@vnpay` tạo URL thanh toán và VNPay gọi `vnpayReturn` khi hoàn tất.
+7. Nếu VNPay thành công, đơn chuyển sang `confirmed`, tồn kho bị trừ và giỏ hàng được xóa; nếu thất bại, đơn `pending_payment` bị xóa.
+
+Đơn hàng lưu snapshot người nhận tại thời điểm đặt hàng trong `orders`. Sản phẩm được liên kết qua `order_items.product_variant_id`, do đó việc khách thay đổi thông tin cá nhân sau này không làm thay đổi thông tin đơn cũ.
+
+### 8.5. Luồng đơn hàng và tương tác
+
+- Admin cập nhật trạng thái đơn qua `PUT /admin/orders/{id}/status` theo các chuyển trạng thái được cho phép.
+- Khách xem lịch sử/chi tiết đơn qua `/account/orders/{id}` và theo dõi đơn qua `/orders/tracking`.
+- Đánh giá sản phẩm lưu trong `reviews`; sản phẩm yêu thích được xử lý qua `WishlistController`.
+- Chat khách hàng/admin dùng các route `/chat/*`, lưu hội thoại trong `conversations` và tin nhắn trong `messages`.
+- Lượt xem được ghi trong `product_clicks` và dùng để xếp hạng sản phẩm nổi bật trên Shop.
+
+### 8.6. Luồng quản trị
+
+- Các route `/admin/*` nằm trong middleware `web` và alias `admin`.
+- `AdminAuth` kiểm tra session `admin` hoặc session `customer` có `role = 1`; nếu không hợp lệ, request chuyển đến `/admin/login`.
+- Sau khi xác thực, admin truy cập dashboard và các nhóm CRUD danh mục, thương hiệu, sản phẩm, biến thể, banner, voucher, người dùng, đơn hàng, feedback và chat.
+- Controller admin ghi database rồi trả về view trong `resources/views/admin/`.
+- `SeederSyncService` đồng bộ dữ liệu từ database về seeder khi môi trường local/dev, giúp tái tạo dữ liệu mẫu trên máy khác.
+
+### 8.7. Quan hệ dữ liệu chính
+
+```mermaid
+erDiagram
+        CATEGORIES ||--o{ CATEGORIES : "parent_id"
+        CATEGORIES ||--o{ PRODUCTS : "category_id"
+        BRANDS ||--o{ PRODUCTS : "brand_id"
+        PRODUCTS ||--o{ PRODUCT_VARIANTS : "product_id"
+        PRODUCT_VARIANTS ||--o{ ORDER_ITEMS : "product_variant_id"
+        ORDERS ||--o{ ORDER_ITEMS : "order_id"
+        PRODUCTS ||--o{ PRODUCT_CLICKS : "product_id"
+
+        NGUOIDUNG {
+                bigint id PK
+                string name
+                string user
+                string email
+                string tel
+                string address
+                int role
+        }
+        PRODUCTS {
+                bigint id PK
+                bigint category_id FK
+                bigint brand_id FK
+                string name
+                string sku
+                boolean status
+        }
+        PRODUCT_VARIANTS {
+                bigint id PK
+                bigint product_id FK
+                decimal price
+                decimal sale_price
+                int stock
+        }
+        ORDERS {
+                bigint id PK
+                string customer_name
+                string phone
+                string email
+                decimal total_price
+                string payment_method
+                string status
+        }
+        ORDER_ITEMS {
+                bigint id PK
+                bigint order_id FK
+                bigint product_variant_id FK
+                int quantity
+                decimal price
+        }
+```
 
 ## 9. Một số route quan trọng
 
@@ -705,8 +924,51 @@ Checklist kiểm thử chính:
 - Thêm dashboard biểu đồ doanh thu theo thời gian.
 - Bổ sung Docker hoặc tài liệu triển khai máy chủ.
 
-## 15. Tác giả
+## 15. Tác giả và dấu vết Git
 
-Đồ án tốt nghiệp - nhóm phát triển AE Phoenic Store.
+Đồ án tốt nghiệp - nhóm phát triển AE Phoenic Store. Bảng dưới đây dùng tên thành viên trong hồ sơ dự án và đối chiếu với author/email thực tế trong lịch sử Git.
 
-Cập nhật tên, mã sinh viên, lớp và nhiệm vụ thực tế của các thành viên trước khi nộp báo cáo.
+> **Cách đọc số liệu:** số commit là số lượng Git ghi nhận theo từng identity, có thể bao gồm commit merge. Đây là số liệu kiểm chứng hoạt động trong repository, không phải tỷ lệ phần trăm đóng góp.
+
+| Thành viên thực tế | Identity trong Git | Commit ghi nhận | Khu vực thay đổi nổi bật |
+|---|---|---:|---|
+| **Bùi Minh Thuận** `PP03513` - Trưởng nhóm | `Thuận`, `Thuandepzai03`, `thuanvillager243-dev`, `thuandz` | **168** | Tích hợp hệ thống, checkout, xác thực, địa chỉ, README, giao diện và migration |
+| **Đỗ Trung Hiếu** `PP03417` | `hieu` | **30** | Nghiệp vụ đơn hàng, checkout, thanh toán và controller backend |
+| **Lưu Đức Kiệt** `PP03363` | `duckiet863` | **43** | Banner, đánh giá, admin view, migration và kiểm thử |
+| **Bùi Quang Sơn** `PP03356` | `Sown11` | **23** | Sản phẩm, thương hiệu, seeder, migration và giao diện |
+| **Nguyễn Văn Trung** `PP03493` | `tun` | **36** | Seeder, dữ liệu sản phẩm, controller và giao diện |
+
+### Quy đổi identity
+
+- `Thuận` và `Thuandepzai03` dùng email GitHub/author khác nhau nhưng cùng thuộc nhóm identity của Bùi Minh Thuận trong lịch sử repository.
+- `thuanvillager243-dev` và `thuandz` cùng dùng email `thuanvillager243@gmail.com`, được gộp vào Bùi Minh Thuận.
+- `hieu`, `duckiet863`, `Sown11` và `tun` được đối chiếu lần lượt với Đỗ Trung Hiếu, Lưu Đức Kiệt, Bùi Quang Sơn và Nguyễn Văn Trung theo email, tên nhánh và nội dung file/commit.
+- Identity `tuanvt18 <daotuan092006@gmail.com>` có 4 commit trong Git nhưng README hiện không có hồ sơ thành viên tương ứng để đối chiếu chắc chắn; không gán identity này vào tên khác.
+
+### Cập nhật commit gần đây
+
+Các commit gần đây liên quan đến đăng nhập Google được ghi nhận dưới identity `Thuandepzai03 <thuanvillager24@gmail.com>`:
+
+| Commit | Nội dung | Thành viên |
+|---|---|---|
+| `4914882` | Hoàn thành chức năng đăng ký, đăng nhập bằng Google | Bùi Minh Thuận |
+| `91cb483` | Thêm đăng nhập bằng Google | Bùi Minh Thuận |
+| `b9a5a4a` | Cập nhật README | Bùi Minh Thuận |
+
+Số lượng commit trong bảng trên được lấy trực tiếp bằng `git log --all` và gộp theo identity đã đối chiếu. Không tạo commit giả dưới tên hoặc email của thành viên khác.
+
+### Phân công theo dữ liệu commit
+
+- **Bùi Minh Thuận:** có phạm vi thay đổi rộng ở `app/Http`, `resources/views`, `routes`, `database/migrations` và README; phù hợp vai trò trưởng nhóm, tích hợp và hoàn thiện luồng chung.
+- **Đỗ Trung Hiếu:** các commit tập trung vào controller, model, migration và luồng đơn hàng/thanh toán; phù hợp vai trò backend và cơ sở dữ liệu.
+- **Lưu Đức Kiệt:** các commit nổi bật ở banner, đánh giá, admin view và các thay đổi hỗ trợ quản trị; phù hợp vai trò quản trị và kiểm thử.
+- **Bùi Quang Sơn:** các commit tập trung vào sản phẩm, thương hiệu, seeder, migration và view; phù hợp vai trò phát triển sản phẩm/giao diện.
+- **Nguyễn Văn Trung:** các commit tập trung vào seeder, dữ liệu sản phẩm, controller và giao diện; phối hợp phát triển dữ liệu và chức năng khách hàng.
+
+**Danh sách thành viên:**
+
+- Bùi Minh Thuận - `PP03513` - LEADER
+- Đỗ Trung Hiếu - `PP03417`
+- Lưu Đức Kiệt - `PP03363`
+- Bùi Quang Sơn - `PP03356`
+- Nguyễn Văn Trung - `PP03493`

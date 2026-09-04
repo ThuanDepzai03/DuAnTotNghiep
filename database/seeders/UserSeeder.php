@@ -10,6 +10,7 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         $users = [            array (
+      'name' => 'Khách hàng mẫu',
   'user' => 'customer',
   'pass' => '$2y$12$mJCTLFIWrD6BuZhIcxS6M.Q0fFvsTzV0DjWTu2OMoYUSnSCiOWWKa',
   'email' => 'user@gmail.com',

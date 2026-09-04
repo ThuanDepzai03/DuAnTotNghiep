@@ -23,7 +23,9 @@ class ProductVariantController extends Controller
 
         $attributes = Attribute::with('values')
             ->orderBy('id')
-            ->get();
+            ->get()
+            ->unique('name')
+            ->values();
 
         $editingVariant = null;
 

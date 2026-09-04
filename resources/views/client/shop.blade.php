@@ -1,10 +1,45 @@
 @extends('layouts.master')
 
 @section('content')
-<div class="section">
+<div class="section shop-page">
     <div class="container">
-        <div class="brand-strip">
-            @foreach ($brands as $brand)
+        @php
+            $activeGroup = request('group');
+            $activeTitle = match ($activeGroup) {
+                'phone' => 'Điện thoại',
+                'accessories' => 'Phụ kiện',
+                default => 'Tất cả sản phẩm',
+            };
+        @endphp
+
+        <section class="shop-heading" aria-label="Điều hướng cửa hàng">
+            <span class="shop-eyebrow"><i class="fa fa-shopping-bag"></i> AE Phoenix Store</span>
+            <h1>Cửa hàng</h1>
+            <p>Khám phá {{ strtolower($activeTitle) }} chính hãng, giá tốt và luôn được cập nhật.</p>
+            <nav class="shop-main-tabs" aria-label="Nhóm sản phẩm">
+                <a href="{{ route('shop') }}" class="{{ ! $activeGroup ? 'is-active' : '' }}">Tất cả sản phẩm</a>
+                <a href="{{ route('shop', ['group' => 'phone']) }}" class="{{ $activeGroup === 'phone' ? 'is-active' : '' }}">Điện thoại</a>
+                <a href="{{ route('shop', ['group' => 'accessories']) }}" class="{{ $activeGroup === 'accessories' ? 'is-active' : '' }}">Phụ kiện</a>
+            </nav>
+        </section>
+
+        @if ($activeGroup)
+            <section class="shop-discovery-panel">
+                <div class="shop-section-heading">
+                    <div>
+                        <span class="shop-section-kicker">Thương hiệu</span>
+                        <h2>{{ $activeTitle }}</h2>
+                    </div>
+                    <span class="shop-result-note">{{ $brands->count() }} thương hiệu đang có sản phẩm</span>
+                </div>
+
+                <div class="brand-strip">
+                    <a href="{{ route('shop', ['group' => $activeGroup]) }}" class="brand-item {{ !request('brand_id') ? 'is-active' : '' }}" title="Tất cả thương hiệu">
+                        <img src="{{ asset('img/logo.png') }}" alt="Tất cả thương hiệu">
+                        <span class="brand-item__name">Tất cả</span>
+                    </a>
+
+                    @foreach ($brands as $brand)
                 @php
                     $brandLogo = $brand->logo
                         ? (str_starts_with($brand->logo, 'http')
@@ -13,11 +48,90 @@
                         : asset('img/logo.png');
                 @endphp
 
-                <a href="{{ route('shop', ['brand_id' => $brand->id]) }}" class="brand-item" title="{{ $brand->name }}">
-                    <img src="{{ $brandLogo }}" alt="{{ $brand->name }}" onerror="this.onerror=null;this.src='{{ asset('img/logo.png') }}';">
-                    <span class="brand-item__name">{{ $brand->name }}</span>
-                </a>
-            @endforeach
+                        <a href="{{ route('shop', ['group' => $activeGroup, 'brand_id' => $brand->id]) }}" class="brand-item {{ (string) request('brand_id') === (string) $brand->id ? 'is-active' : '' }}" title="{{ $brand->name }}">
+                            <img src="{{ $brandLogo }}" alt="{{ $brand->name }}" onerror="this.onerror=null;this.src='{{ asset('img/logo.png') }}';">
+                            <span class="brand-item__name">{{ $brand->name }}</span>
+                        </a>
+                    @endforeach
+                </div>
+            </section>
+        @endif
+
+        @if ($activeGroup === 'accessories' && $accessoryCategories->isNotEmpty())
+            <section class="shop-category-panel">
+                <div class="shop-section-heading">
+                    <div>
+                        <span class="shop-section-kicker">Danh mục phụ kiện</span>
+                        <h2>Mua theo nhu cầu</h2>
+                    </div>
+                </div>
+                <div class="accessory-category-list">
+                    @foreach ($accessoryCategories as $category)
+                        <a href="{{ route('shop', ['group' => 'accessories', 'category_id' => $category->id]) }}" class="accessory-category {{ (string) request('category_id') === (string) $category->id ? 'is-active' : '' }}">
+                            <i class="fa {{ str_contains($category->slug, 'tai-nghe') ? 'fa-headphones' : (str_contains($category->slug, 'dong-ho') ? 'fa-clock-o' : (str_contains($category->slug, 'sac') ? 'fa-bolt' : (str_contains($category->slug, 'cuong') ? 'fa-shield' : 'fa-mobile')) ) }}"></i>
+                            <span>{{ $category->name }}</span>
+                            @if ($category->children->isNotEmpty())
+                                <small>{{ $category->children->pluck('name')->join(', ') }}</small>
+                            @endif
+                        </a>
+                    @endforeach
+                </div>
+            </section>
+        @endif
+
+        @if ($featuredProducts->isNotEmpty())
+            <section class="featured-products-panel">
+                <div class="shop-section-heading">
+                    <div>
+                        <span class="shop-section-kicker">Được yêu thích nhiều nhất</span>
+                        <h2>Sản phẩm nổi bật</h2>
+                    </div>
+                    <span class="shop-result-note">Xếp hạng theo lượt xem</span>
+                </div>
+                <div class="featured-product-grid">
+                    @foreach ($featuredProducts as $product)
+                        @php
+                            $variant = $product->variants->where('status', 1)->sortBy(fn ($item) => $item->sale_price ?? $item->price)->first();
+                            $image = ltrim(str_replace('\\', '/', (string) $product->thumbnail), '/');
+
+                            if ($image === '') {
+                                $imageSrc = asset('img/product01.png');
+                            } elseif (preg_match('#^https?://#i', $image)) {
+                                $imageSrc = $image;
+                            } else {
+                                $image = preg_replace('#^public/#i', '', $image);
+                                $imageSrc = preg_match('#^(image/|img/|admin/|storage/)#i', $image)
+                                    ? asset($image)
+                                    : asset('image/' . $image);
+                            }
+                        @endphp
+                        <article class="featured-product-card">
+                            <a href="{{ route('product.detail', ['id' => $product->id]) }}" class="featured-product-image">
+                                <span class="featured-badge">Nổi bật</span>
+                                <img src="{{ $imageSrc }}" alt="{{ $product->name }}" onerror="this.onerror=null;this.src='{{ asset('img/product01.png') }}';">
+                            </a>
+                            <div class="featured-product-body">
+                                <span class="featured-product-category">{{ $product->category?->name ?? 'Sản phẩm' }}</span>
+                                <h3><a href="{{ route('product.detail', ['id' => $product->id]) }}">{{ $product->name }}</a></h3>
+                                @if ($variant)
+                                    <strong>{{ number_format($variant->sale_price ?? $variant->price, 0, ',', '.') }} ₫</strong>
+                                    @if ($variant->sale_price)
+                                        <del>{{ number_format($variant->price, 0, ',', '.') }} ₫</del>
+                                    @endif
+                                @endif
+                            </div>
+                        </article>
+                    @endforeach
+                </div>
+            </section>
+        @endif
+
+        <div class="shop-products-heading">
+            <div>
+                <span class="shop-section-kicker">{{ $activeTitle }}</span>
+                <h2>{{ $activeGroup === 'accessories' ? 'Sản phẩm phụ kiện' : ($activeGroup === 'phone' ? 'Sản phẩm điện thoại' : 'Tất cả sản phẩm') }}</h2>
+            </div>
+            <span class="shop-result-note">{{ $products->total() }} sản phẩm</span>
         </div>
 
         <div class="row">
@@ -97,6 +211,20 @@
                                         <span></span> {{ $category->name }}
                                     </label>
                                 </div>
+                                @foreach ($category->children as $child)
+                                    <div class="input-radio" style="margin-top: 5px; padding-left: 18px;">
+                                        <input
+                                            type="radio"
+                                            name="category_id"
+                                            id="category-{{ $child->id }}"
+                                            value="{{ $child->id }}"
+                                            {{ (string) request('category_id') === (string) $child->id ? 'checked' : '' }}
+                                        >
+                                        <label for="category-{{ $child->id }}">
+                                            <span></span> {{ $child->name }}
+                                        </label>
+                                    </div>
+                                @endforeach
                             @endforeach
                         </div>
                     </div>
@@ -224,29 +352,26 @@
                                 ? $cheapestVariant->price
                                 : null;
 
-                            $imgPath = $product->thumbnail ?? 'img/product01.png';
-                            $imgPath = ltrim(str_replace('\\', '/', $imgPath), '/');
+                            $imgPath = ltrim(str_replace('\\', '/', (string) $product->thumbnail), '/');
 
-                            if (preg_match('#^https?://#', $imgPath)) {
+                            if ($imgPath === '') {
+                                $imgSrc = asset('img/product01.png');
+                            } elseif (preg_match('#^https?://#i', $imgPath)) {
                                 $imgSrc = $imgPath;
-                            } elseif (str_starts_with($imgPath, 'public/')) {
-                                $imgSrc = asset(substr($imgPath, 7));
-                            } elseif (
-                                str_starts_with($imgPath, 'img/') ||
-                                str_starts_with($imgPath, 'image/') ||
-                                str_starts_with($imgPath, 'admin/') ||
-                                str_starts_with($imgPath, 'products/') ||
-                                str_starts_with($imgPath, 'storage/')
-                            ) {
-                                $imgSrc = asset($imgPath);
                             } else {
-                                $imgSrc = asset('image/' . $imgPath);
+                                $imgPath = preg_replace('#^public/#i', '', $imgPath);
+
+                                if (preg_match('#^(image/|img/|admin/|storage/)#i', $imgPath)) {
+                                    $imgSrc = asset($imgPath);
+                                } else {
+                                    $imgSrc = asset('image/' . $imgPath);
+                                }
                             }
                         @endphp
 
-                        <div class="col-md-4 col-sm-6 product-column">
-                            <div class="product">
-                                <div class="product-img">
+                        <div class="product-item-wrapper product-column">
+                            <div class="product-card-custom">
+                                <div class="product-card-thumb">
                                     <a href="{{ route('product.detail', ['id' => $product->id]) }}">
                                         <img
                                             src="{{ $imgSrc }}"
@@ -255,33 +380,31 @@
                                         >
                                     </a>
 
-                                    <div class="product-label">
-                                        <span class="new">MỚI</span>
-                                    </div>
+                                    <span class="badge-new">MỚI</span>
                                 </div>
 
-                                <div class="product-body">
-                                    <p class="product-category">
+                                <div class="product-card-info">
+                                    <span class="cat-label">
                                         {{ $product->category?->name ?? 'Danh mục' }}
-                                    </p>
+                                    </span>
 
-                                    <h3 class="product-name">
+                                    <h4 class="prod-title">
                                         <a href="{{ route('product.detail', ['id' => $product->id]) }}">
                                             {{ $product->name }}
                                         </a>
-                                    </h3>
+                                    </h4>
 
-                                    <h4 class="product-price">
-                                        {{ number_format($displayPrice, 0, ',', '.') }} ₫
+                                    <div class="prod-price-box">
+                                        <span class="main-price">{{ number_format($displayPrice, 0, ',', '.') }} ₫</span>
 
                                         @if ($oldPrice)
-                                            <del class="product-old-price">
+                                            <del class="old-price">
                                                 {{ number_format($oldPrice, 0, ',', '.') }} ₫
                                             </del>
                                         @endif
-                                    </h4>
+                                    </div>
 
-                                    <div class="product-rating">
+                                    <div class="prod-rating">
                                         <i class="fa fa-star"></i>
                                         <i class="fa fa-star"></i>
                                         <i class="fa fa-star"></i>
@@ -289,17 +412,18 @@
                                         <i class="fa fa-star"></i>
                                     </div>
 
-                                    <div class="product-btns">
-                                        <button type="button" class="add-to-wishlist">
+                                    <div class="prod-actions">
+                                        <button type="button" class="btn-icon" title="Yêu thích">
                                             <i class="fa fa-heart-o"></i>
                                         </button>
 
-                                        <button type="button" class="add-to-compare">
+                                        <button type="button" class="btn-icon" title="So sánh">
                                             <i class="fa fa-exchange"></i>
                                         </button>
 
                                         <a
-                                            class="quick-view"
+                                            class="btn-icon"
+                                            title="Xem nhanh"
                                             href="{{ route('product.detail', ['id' => $product->id]) }}"
                                         >
                                             <i class="fa fa-eye"></i>
@@ -307,7 +431,7 @@
                                     </div>
                                 </div>
 
-                                <div class="add-to-cart">
+                                <div class="product-card-bottom">
                                     @if ($cheapestVariant && ($cheapestVariant->stock ?? 1) > 0)
                                         <form action="{{ route('cart.add') }}" method="POST">
                                             @csrf
@@ -316,14 +440,14 @@
                                                 name="product_variant_id"
                                                 value="{{ $cheapestVariant->id }}"
                                             >
-                                            <button type="submit" class="add-to-cart-btn">
+                                            <button type="submit" class="btn-add-cart">
                                                 <i class="fa fa-shopping-cart"></i> Thêm vào giỏ
                                             </button>
                                         </form>
                                     @else
                                         <a
                                             href="{{ route('product.detail', ['id' => $product->id]) }}"
-                                            class="add-to-cart-btn"
+                                            class="btn-add-cart btn-view-detail"
                                         >
                                             <i class="fa fa-eye"></i> Xem chi tiết
                                         </a>
@@ -385,236 +509,4 @@
     </div>
 </div>
 
-<style>
-    .input-radio {
-        display: flex;
-        align-items: center;
-        margin-bottom: 8px;
-        cursor: pointer;
-    }
-
-    .input-radio input {
-        margin-right: 10px;
-        width: 16px;
-        height: 16px;
-    }
-
-    .input-radio label {
-        font-weight: 500;
-        cursor: pointer;
-        margin: 0;
-    }
-
-    .config-filter-group {
-        margin-top: 20px;
-        padding-top: 5px;
-        border-top: 1px solid #eeeeee;
-    }
-
-    .config-filter-item {
-        margin-bottom: 18px;
-    }
-
-    .config-filter-item > strong {
-        display: block;
-        margin-bottom: 9px;
-        color: #2b2d42;
-        font-size: 14px;
-    }
-
-    .config-options {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        max-height: 125px;
-        overflow-y: auto;
-        padding-right: 4px;
-    }
-
-    .config-option {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        margin: 0;
-        padding: 6px 9px;
-        border: 1px solid #e5e5e5;
-        border-radius: 4px;
-        background: #fff;
-        color: #555;
-        font-size: 13px;
-        cursor: pointer;
-        transition: 0.2s ease;
-    }
-
-    .config-option:hover {
-        border-color: #d10024;
-        color: #d10024;
-    }
-
-    .config-option input {
-        width: 14px;
-        height: 14px;
-        margin: 0;
-        accent-color: #d10024;
-        cursor: pointer;
-    }
-
-    .config-option:has(input:checked) {
-        border-color: #d10024;
-        background: #fff1f3;
-        color: #d10024;
-        font-weight: 600;
-    }
-
-    /* ===== Đồng bộ Product Grid & Card từ Trang chủ ===== */
-    .product-grid {
-        display: flex;
-        flex-wrap: wrap;
-    }
-
-    .product-grid .product-column {
-        display: flex;
-        margin-bottom: 30px;
-    }
-
-    .product-grid .product {
-        width: 100%;
-        min-height: 100%;
-        display: flex;
-        flex-direction: column;
-        border: 1px solid #e7e7e7;
-        background: #fff;
-        border-radius: 6px;
-        overflow: hidden;
-        transition: all 0.3s ease;
-    }
-
-    .product-grid .product:hover {
-        box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-        border-color: #d10024;
-    }
-
-    .product-grid .product-img {
-        height: 240px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 16px;
-        overflow: hidden;
-        position: relative;
-    }
-
-    .product-grid .product-img img {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-    }
-
-    .product-grid .product-body {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        text-align: center;
-        padding: 12px 15px 16px;
-    }
-
-    .product-grid .product-category {
-        min-height: 20px;
-        margin: 0 0 8px;
-        text-transform: uppercase;
-        font-size: 11px;
-        color: #8d99ae;
-        font-weight: 600;
-    }
-
-    .product-grid .product-name {
-        min-height: 44px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 0 10px;
-        font-size: 14px;
-        font-weight: 700;
-    }
-
-    .product-grid .product-price {
-        min-height: 28px;
-        margin: 0 0 12px;
-        color: #d10024;
-        font-size: 16px;
-        font-weight: 700;
-    }
-
-    .product-grid .product-old-price {
-        font-size: 70%;
-        font-weight: 400;
-        color: #8d99ae;
-        margin-left: 5px;
-    }
-
-    .product-grid .product-rating {
-        margin-top: auto;
-        padding-top: 5px;
-        color: #d10024;
-        font-size: 11px;
-    }
-
-    .product-grid .product-btns {
-        margin-top: 10px;
-        padding-top: 10px;
-        border-top: 1px solid #eeeeee;
-    }
-
-    .product-grid .product-btns button,
-    .product-grid .quick-view {
-        background: transparent;
-        border: none;
-        color: #8d99ae;
-        padding: 0 6px;
-        transition: 0.2s;
-    }
-
-    .product-grid .product-btns button:hover,
-    .product-grid .quick-view:hover {
-        color: #d10024;
-    }
-
-    .product-grid .add-to-cart {
-        position: static;
-        transform: none;
-        padding: 0 15px 15px;
-        margin-top: auto;
-        background: transparent;
-    }
-
-    .product-grid .product:hover .add-to-cart {
-        transform: none;
-    }
-
-    .product-grid .add-to-cart form {
-        margin: 0;
-    }
-
-    .product-grid .add-to-cart-btn {
-        display: block;
-        width: 100%;
-        border: none;
-        background: #d10024;
-        color: #fff;
-        padding: 8px 12px;
-        border-radius: 20px;
-        font-weight: 700;
-        font-size: 12px;
-        text-transform: uppercase;
-        text-align: center;
-        transition: 0.2s;
-    }
-
-    .product-grid .add-to-cart-btn:hover {
-        background: #1e1f29;
-        color: #fff;
-    }
-</style>
 @endsection
-<!-- ádsdaas -->
-      <!-- ádsdaas -->
