@@ -19,6 +19,10 @@
                         @method('PUT')
                         <div class="row g-3">
                             <div class="col-md-6">
+                                <label class="form-label">Họ và tên</label>
+                                <input type="text" name="name" class="form-control" value="{{ old('name', $user->name ?: $user->user) }}" required>
+                            </div>
+                            <div class="col-md-6">
                                 <label class="form-label">Tài khoản</label>
                                 <input type="text" name="user" class="form-control" value="{{ $user->user }}" required>
                             </div>

@@ -11,6 +11,7 @@ use App\Models\Product;
 use App\Models\Voucher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class HomeController extends Controller
 {
@@ -19,6 +20,11 @@ class HomeController extends Controller
      */
     public function index(Request $request)
     {
+        Log::info('HOME SESSION CHECK', [
+            'session_id' => $request->session()->getId(),
+            'customer' => $request->session()->get('customer'),
+        ]);
+
         /*
         |--------------------------------------------------------------------------
         | BANNER

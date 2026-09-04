@@ -16,7 +16,10 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                            <h4 class="card-title mb-0">Danh sách tài khoản</h4>
+                            <h4 class="card-title mb-0">
+                                Danh sách tài khoản
+                                <span class="badge bg-light-primary text-primary ms-2">{{ $users->count() }}</span>
+                            </h4>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -24,6 +27,7 @@
                             <thead>
                                 <tr>
                                     <th>ID</th>
+                                    <th>Họ và tên</th>
                                     <th>Tài khoản</th>
                                     <th>Email</th>
                                     <th>Số điện thoại</th>
@@ -34,22 +38,15 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($users as $user)
+                                @forelse($users as $user)
                                 <tr>
                                     <td>#{{ $user->id }}</td>
+                                    <td><strong>{{ $user->name ?: $user->user }}</strong></td>
                                     <td>{{ $user->user }}</td>
-                                    <td>{{ $user->email }}</td>
+                                    <td>{{ $user->email ?: 'Chưa cập nhật' }}</td>
                                     <td>{{ $user->tel ?: 'Chưa cập nhật' }}</td>
                                     <td style="min-width: 240px;">
-                                        @php
-                                            $addressParts = array_filter([
-                                                $user->address_detail ?? null,
-                                                $user->address ?? null,
-                                                $user->ward ?? null,
-                                                $user->city ?? null,
-                                            ]);
-                                        @endphp
-                                        {{ $addressParts ? implode(', ', $addressParts) : 'Chưa cập nhật' }}
+                                        {{ $user->address ?: 'Chưa cập nhật' }}
                                     </td>
                                     <td>
                                         <span class="badge {{ $user->role == 1 ? 'bg-primary' : 'bg-secondary' }}">
@@ -68,7 +65,11 @@
                                         </div>
                                     </td>
                                 </tr>
-                                @endforeach
+                                @empty
+                                <tr>
+                                    <td colspan="9" class="text-center py-5">Chưa có tài khoản trong cơ sở dữ liệu.</td>
+                                </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>

@@ -32,6 +32,12 @@
                     @endif
                     <button class="btn btn-primary w-100">Đăng nhập</button>
                 </form>
+                <div class="d-flex align-items-center gap-2 my-3 text-muted">
+                    <hr class="flex-grow-1"><span>hoặc</span><hr class="flex-grow-1">
+                </div>
+                <a href="{{ route('google.redirect') }}" class="btn btn-outline-dark w-100">
+                    <strong class="me-2">G</strong> Đăng nhập bằng Google
+                </a>
                 <div class="mt-3 text-center">
                     <a href="{{ route('password.request') }}">Quên mật khẩu?</a>
                 </div>

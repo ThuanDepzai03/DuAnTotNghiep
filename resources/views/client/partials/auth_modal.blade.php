@@ -35,12 +35,21 @@
 
                 <div id="login-message" class="auth-form__message" aria-live="polite"></div>
                 <button type="submit" class="auth-form__submit">Đăng nhập</button>
+                <div class="auth-google-divider"><span>hoặc</span></div>
+                <a href="{{ route('google.redirect') }}" class="auth-google-button">
+                    <strong>G</strong> Đăng nhập bằng Google
+                </a>
             </form>
         </div>
 
         <div class="auth-modal__panel" data-auth-panel="register">
             <form id="client-register-form" class="auth-form" novalidate>
                 @csrf
+                <div class="auth-form__group">
+                    <label for="register-name">Họ và tên</label>
+                    <input id="register-name" type="text" name="name" placeholder="Họ và tên của bạn" required>
+                    <small class="auth-form__error" data-error-for="name"></small>
+                </div>
                 <div class="auth-form__group">
                     <label for="register-user">Tên đăng nhập</label>
                     <input id="register-user" type="text" name="user" placeholder="Tên đăng nhập" required>
@@ -67,6 +76,10 @@
 
                 <div id="register-message" class="auth-form__message" aria-live="polite"></div>
                 <button type="submit" class="auth-form__submit">Tạo tài khoản</button>
+                <div class="auth-google-divider"><span>hoặc</span></div>
+                <a href="{{ route('google.redirect') }}" class="auth-google-button">
+                    <strong>G</strong> Đăng ký bằng Google
+                </a>
             </form>
         </div>
     </div>
@@ -158,6 +171,48 @@
 
     .auth-modal__panel.is-active {
         display: block;
+    }
+
+    .auth-google-divider {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 16px 0 12px;
+        color: #6b7280;
+        font-size: 13px;
+    }
+
+    .auth-google-divider::before,
+    .auth-google-divider::after {
+        content: '';
+        height: 1px;
+        flex: 1;
+        background: #e5e7eb;
+    }
+
+    .auth-google-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        padding: 11px 16px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        background: #fff;
+        color: #1f2937;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .auth-google-button:hover {
+        background: #f9fafb;
+        color: #111827;
+    }
+
+    .auth-google-button strong {
+        color: #4285f4;
+        font-size: 18px;
     }
 
     .auth-form {
@@ -320,8 +375,9 @@
             });
         });
 
+        const customerIsAuthenticated = @json((bool) session('customer'));
         const requestedTab = new URLSearchParams(window.location.search).get('auth');
-        if (requestedTab === 'login' || requestedTab === 'register') {
+        if (!customerIsAuthenticated && (requestedTab === 'login' || requestedTab === 'register')) {
             setTab(requestedTab);
             openModal();
         }

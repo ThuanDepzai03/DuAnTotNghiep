@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Brand;
+use App\Models\Category;
 use App\Services\SeederSyncService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -11,14 +12,28 @@ use Illuminate\Validation\Rule;
 
 class BrandController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $brands = Brand::query()
+            ->when($request->filled('category_id'), function ($query) use ($request) {
+                $category = Category::with('children')->find($request->integer('category_id'));
+                $categoryIds = collect([$category?->id])
+                    ->merge($category?->children->pluck('id') ?? [])
+                    ->filter();
+
+                $query->whereHas('products', fn ($productQuery) => $productQuery->whereIn('category_id', $categoryIds));
+            })
             ->orderByDesc('status')
             ->orderBy('name')
             ->get();
 
-        return view('admin.brands.index', compact('brands'));
+        $categories = Category::where('status', 1)
+            ->whereNull('parent_id')
+            ->with(['children' => fn ($query) => $query->where('status', 1)->orderBy('name')])
+            ->orderBy('name')
+            ->get();
+
+        return view('admin.brands.index', compact('brands', 'categories'));
     }
 
     public function create()
