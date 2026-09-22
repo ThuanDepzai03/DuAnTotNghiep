@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ProductImei;
 use App\Models\WarrantyClaim;
 use Illuminate\Http\Request;
+use App\Models\ServiceReason;
 
 class WarrantyController extends Controller
 {
@@ -14,7 +15,8 @@ class WarrantyController extends Controller
         if ($request->filled('imei')) {
             $imei = ProductImei::with('variant.product')->where('imei', trim($request->imei))->first();
         }
-        return view('warranty.lookup', compact('imei'));
+        $reasons = ServiceReason::for('warranty')->get();
+        return view('warranty.lookup', compact('imei', 'reasons'));
     }
 
     public function store(Request $request)
@@ -23,6 +25,7 @@ class WarrantyController extends Controller
         $data = $request->validate([
             'imei' => ['required', 'string', 'max:30'],
             'issue_description' => ['required', 'string', 'max:3000'],
+            'reason_id' => ['nullable', 'exists:service_reasons,id'],
         ]);
         $customer = session('customer');
         $email = strtolower(trim((string) ($customer['email'] ?? '')));
@@ -51,6 +54,7 @@ class WarrantyController extends Controller
             'product_imei_id' => $imei->id,
             'order_id' => $order?->id,
             'user_id' => session('customer.id'),
+            'reason_id' => $data['reason_id'] ?? null,
             'issue_description' => $data['issue_description'],
         ]);
         $imei->update(['status' => 'warranty']);

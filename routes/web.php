@@ -203,8 +203,10 @@ Route::middleware(['web', 'admin'])
         Route::put('/inventory/imeis/{imei}', [ProductImeiController::class, 'update'])->name('inventory.imeis.update');
         Route::get('/returns', [ServiceController::class, 'returns'])->name('returns.index');
         Route::put('/returns/{returnRequest}', [ServiceController::class, 'updateReturn'])->name('returns.update');
+        Route::post('/returns/{returnRequest}/to-warranty', [ServiceController::class, 'convertReturnToWarranty'])->name('returns.to-warranty');
         Route::get('/warranties', [ServiceController::class, 'warranties'])->name('warranties.index');
         Route::put('/warranties/{warrantyClaim}', [ServiceController::class, 'updateWarranty'])->name('warranties.update');
+        Route::post('/warranties/{warrantyClaim}/to-return', [ServiceController::class, 'convertWarrantyToReturn'])->name('warranties.to-return');
 
         Route::post('/products/upload-description-image', [AdminProductController::class, 'uploadDescriptionImage'])
             ->name('products.upload-description-image');

@@ -16,7 +16,7 @@
                 @csrf
                 <div class="mb-3"><label class="form-label">Sản phẩm cần trả</label><select name="order_item_id" class="form-select" required>@foreach($order->items as $item)<option value="{{ $item->id }}">{{ $item->variant->product->name ?? 'Sản phẩm' }} · SL {{ $item->quantity }} · {{ number_format($item->price, 0, ',', '.') }}₫</option>@endforeach</select></div>
                 <div class="mb-3"><label class="form-label">IMEI thiết bị (nếu có)</label><select name="product_imei_id" class="form-select"><option value="">Không áp dụng</option>@foreach($order->items as $item)@foreach($item->imeis as $imei)<option value="{{ $imei->id }}">{{ $imei->imei }}</option>@endforeach @endforeach</select></div>
-                <div class="mb-3"><label class="form-label">Lý do trả hàng <span class="text-danger">*</span></label><input name="reason" value="{{ old('reason') }}" class="form-control" maxlength="255" required placeholder="Ví dụ: Sản phẩm lỗi, giao sai sản phẩm..."></div>
+                <div class="mb-3"><label class="form-label">Lý do trả hàng <span class="text-danger">*</span></label><select name="reason_id" id="return-reason" class="form-select mb-2"><option value="">Chọn lý do</option>@foreach($reasons as $reason)<option value="{{ $reason->id }}" data-condition="{{ $reason->condition_text }}">{{ $reason->name }}</option>@endforeach</select><div id="return-condition" class="small text-muted mb-2"></div><input name="reason" value="{{ old('reason') }}" class="form-control" maxlength="255" required placeholder="Hoặc nhập lý do khác"></div>
                 <div class="mb-3"><label class="form-label">Mô tả thêm</label><textarea name="description" rows="4" maxlength="2000" class="form-control" placeholder="Mô tả tình trạng sản phẩm hoặc yêu cầu hoàn tiền">{{ old('description') }}</textarea></div>
                 <button class="btn btn-primary" type="submit">Gửi yêu cầu trả hàng</button>
             </form>
@@ -24,3 +24,4 @@
     </div>
 </div>
 @endsection
+@push('scripts')<script>document.getElementById('return-reason')?.addEventListener('change',function(){document.getElementById('return-condition').textContent=this.selectedOptions[0]?.dataset.condition||'';});</script>@endpush

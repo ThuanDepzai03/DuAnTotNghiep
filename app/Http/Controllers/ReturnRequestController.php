@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\ReturnRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use App\Models\ServiceReason;
 
 class ReturnRequestController extends Controller
 {
@@ -14,7 +15,8 @@ class ReturnRequestController extends Controller
         $this->authorizeOrder($order);
         abort_unless($this->isEligible($order), 422, $this->eligibilityMessage($order));
         $order->load('items.variant.product', 'items.imeis');
-        return view('client.orders.return-create', compact('order'));
+        $reasons = ServiceReason::for('return')->get();
+        return view('client.orders.return-create', compact('order', 'reasons'));
     }
 
     public function tracking(Order $order)
@@ -31,6 +33,7 @@ class ReturnRequestController extends Controller
         abort_unless($this->isEligible($order), 422, $this->eligibilityMessage($order));
         $data = $request->validate([
             'reason' => ['required', 'string', 'max:255'],
+            'reason_id' => ['nullable', 'exists:service_reasons,id'],
             'description' => ['nullable', 'string', 'max:2000'],
             'order_item_id' => ['required', 'exists:order_items,id'],
             'product_imei_id' => ['nullable', 'exists:product_imeis,id'],
@@ -45,6 +48,7 @@ class ReturnRequestController extends Controller
             'order_id' => $order->id,
             'user_id' => session('customer.id'),
             'reason' => $data['reason'],
+            'reason_id' => $data['reason_id'] ?? null,
             'description' => $data['description'] ?? null,
             'refund_amount' => 0,
         ])->items()->create([
