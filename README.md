@@ -701,6 +701,7 @@ flowchart TD
 
 ### 8.3. Luồng đăng ký và đăng nhập
 
+<<<<<<< HEAD
 - Tài khoản khách hàng được lưu trong bảng `users`.
 - `POST /register` kiểm tra họ tên, username, email, mật khẩu, số điện thoại và địa chỉ; tài khoản khách có `role = 0`.
 - Nếu bật xác thực email, mã/link được xử lý qua `verifyEmail` hoặc `verifyEmailCode`. Sau khi thành công, hệ thống tạo session `customer`.
@@ -709,6 +710,16 @@ flowchart TD
 - Sau khi đăng nhập Google thành công, callback ghi `session('customer')` rồi redirect về `/`. Header và modal xác định trạng thái đăng nhập bằng session này, không dùng `Auth::check()` cho khách hàng.
 - Tài khoản có `role = 1` được chuyển đến admin; tài khoản có `role = 0` tiếp tục ở luồng khách hàng.
 - Đổi mật khẩu cập nhật cột `pass` trong `users` thông qua token lưu tại `password_reset_tokens`.
+=======
+- Tài khoản khách hàng được lưu trong bảng `nguoidung`, không sử dụng bảng `users` mặc định.
+- `POST /register` kiểm tra họ tên, username, email, mật khẩu, số điện thoại và địa chỉ; tài khoản khách có `role = 0`.
+- Nếu bật xác thực email, mã/link được xử lý qua `verifyEmail` hoặc `verifyEmailCode`. Sau khi thành công, hệ thống tạo session `customer`.
+- `POST /login` kiểm tra username/email và mật khẩu trong `nguoidung`, sau đó đưa thông tin tài khoản vào session.
+- Đăng nhập Google đi theo luồng `GET /auth/google/redirect` -> Google -> `GET /auth/google/callback`. Callback tìm tài khoản theo `google_id` hoặc email; nếu chưa có thì tạo tài khoản khách hàng `role = 0`, `status = 1` và đánh dấu email đã xác thực.
+- Sau khi đăng nhập Google thành công, callback ghi `session('customer')` rồi redirect về `/`. Header và modal xác định trạng thái đăng nhập bằng session này, không dùng `Auth::check()` cho khách hàng.
+- Tài khoản có `role = 1` được chuyển đến admin; tài khoản có `role = 0` tiếp tục ở luồng khách hàng.
+- Đổi mật khẩu cập nhật cột `pass` trong `nguoidung` thông qua token lưu tại `password_reset_tokens`.
+>>>>>>> d67f1ad (Initial commit)
 
 ```mermaid
 sequenceDiagram

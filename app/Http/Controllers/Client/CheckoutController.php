@@ -191,7 +191,7 @@ class CheckoutController extends Controller
         // ==============================
 
         $customer = session('customer');
-        $customerRecord = DB::table('users')->where('id', $customer['id'] ?? 0)->first();
+        $customerRecord = DB::table('nguoidung')->where('id', $customer['id'] ?? 0)->first();
         $customerValue = function (string $recordField, string $sessionField, string $fallback = '') use ($customerRecord, $customer): string {
             $recordValue = $customerRecord->{$recordField} ?? null;
             if (is_string($recordValue) && trim($recordValue) !== '') {
@@ -733,7 +733,7 @@ class CheckoutController extends Controller
                 ];
 
                 foreach (['city', 'ward', 'address_detail'] as $field) {
-                    if (Schema::hasColumn('users', $field)) {
+                    if (Schema::hasColumn('nguoidung', $field)) {
                         $customerData[$field] = trim($request->{$field});
                     }
                 }
@@ -746,7 +746,7 @@ class CheckoutController extends Controller
                     $customerData['updated_at'] = now();
                 }
 
-                    DB::table('users')
+                DB::table('nguoidung')
                     ->where('id', $customerId)
                     ->update($customerData);
 
@@ -756,10 +756,8 @@ class CheckoutController extends Controller
                     session()->put('customer.address_detail', trim($request->address_detail));
             }
 
-            if ($request->payment_method === 'cod') {
-                $shippingVoucher?->increment('used_quantity');
-                $orderVoucher?->increment('used_quantity');
-            }
+            $shippingVoucher?->increment('used_quantity');
+            $orderVoucher?->increment('used_quantity');
 
             DB::commit();
         } catch (\Exception $e) {
@@ -775,6 +773,12 @@ class CheckoutController extends Controller
         }
 
 
+        // ==============================
+        // XÓA GIỎ HÀNG
+        // ==============================
+
+        $this->clearCartItems();
+
         // Xóa voucher khỏi session
         session()->forget('voucher');
 
@@ -784,7 +788,6 @@ class CheckoutController extends Controller
         // ==============================
 
         if ($request->payment_method === 'cod') {
-            $this->clearCartItems();
 
             return redirect()
                 ->route('checkout.success');

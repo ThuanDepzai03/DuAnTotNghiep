@@ -23,6 +23,11 @@
             'class' => 'bg-success',
             'icon' => 'bi-check2-circle',
         ],
+        'refunded' => [
+            'text' => 'Đã hoàn tiền',
+            'class' => 'bg-dark',
+            'icon' => 'bi-cash-coin',
+        ],
         'cancelled' => [
             'text' => 'Đã hủy',
             'class' => 'bg-danger',
@@ -105,6 +110,20 @@
                 </div>
             </div>
         </div>
+
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <div class="rounded-circle bg-dark bg-opacity-25 text-dark p-3">
+                        <i class="bi bi-cash-coin fs-4"></i>
+                    </div>
+                    <div>
+                        <small class="text-muted d-block">Đã hoàn tiền</small>
+                        <h4 class="mb-0">{{ $refundedCount }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
     </section>
 <form method="GET" action="{{ route('admin.orders.index') }}" class="mb-3 row g-2">
     <div class="col-md-3">
@@ -114,6 +133,7 @@
             <option value="confirmed" {{ request('status') == 'confirmed' ? 'selected' : '' }}>Đã xác nhận</option>
             <option value="shipping" {{ request('status') == 'shipping' ? 'selected' : '' }}>Đang giao hàng</option>
             <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Đã hoàn thành</option>
+            <option value="refunded" {{ request('status') == 'refunded' ? 'selected' : '' }}>Đã hoàn tiền</option>
             <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Đã hủy</option>
         </select>
     </div>
@@ -186,6 +206,22 @@
                                             'class' => 'bg-secondary',
                                             'icon' => 'bi-question-circle',
                                         ];
+
+                                        if ($order->refund_status === 'approved' && $order->status === 'completed') {
+                                            $status = [
+                                                'text' => 'Đã hoàn tiền',
+                                                'class' => 'bg-dark',
+                                                'icon' => 'bi-cash-coin',
+                                            ];
+                                        }
+
+                                        if ($order->refund_status === 'rejected' && $order->status === 'completed') {
+                                            $status = [
+                                                'text' => 'Hoàn thành',
+                                                'class' => 'bg-success',
+                                                'icon' => 'bi-check2-circle',
+                                            ];
+                                        }
 
                                         $paymentText = match ($order->payment_method) {
                                             'cod' => 'Thanh toán khi nhận hàng',
