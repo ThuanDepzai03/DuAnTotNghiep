@@ -11,6 +11,10 @@
             : []
     );
 
+    $customAttributeValues = $isEditing
+        ? $editingVariant->attributeEntries->keyBy('attribute_id')
+        : collect();
+
     $makeImageUrl = function ($path) {
         $path = ltrim(str_replace('\\', '/', $path ?? ''), '/');
 
@@ -105,23 +109,28 @@
                                     {{ $attribute->name }}
                                 </label>
 
-                                <select
-                                    name="attribute_value_ids[{{ $attribute->id }}]"
-                                    class="form-select"
-                                >
-                                    <option value="">
-                                        -- Không chọn {{ $attribute->name }} --
-                                    </option>
-
-                                    @foreach($attribute->values as $value)
-                                        <option
-                                            value="{{ $value->id }}"
-                                            {{ in_array($value->id, $selectedAttributeValueIds) ? 'selected' : '' }}
-                                        >
-                                            {{ $value->value }}
-                                        </option>
-                                    @endforeach
-                                </select>
+                                @if($attribute->input_type === 'select')
+                                    <select name="attribute_value_ids[{{ $attribute->id }}]" class="form-select">
+                                        <option value="">-- Không chọn {{ $attribute->name }} --</option>
+                                        @foreach($attribute->values as $value)
+                                            <option value="{{ $value->id }}" {{ in_array($value->id, $selectedAttributeValueIds) ? 'selected' : '' }}>
+                                                {{ $value->value }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                @elseif($attribute->input_type === 'boolean')
+                                    <select name="attribute_custom_values[{{ $attribute->id }}]" class="form-select">
+                                        <option value="">-- Chọn --</option>
+                                        <option value="Có" @selected(old('attribute_custom_values.' . $attribute->id, $customAttributeValues->get($attribute->id)?->custom_value) === 'Có')>Có</option>
+                                        <option value="Không" @selected(old('attribute_custom_values.' . $attribute->id, $customAttributeValues->get($attribute->id)?->custom_value) === 'Không')>Không</option>
+                                    </select>
+                                @else
+                                    <input type="{{ $attribute->input_type === 'number' ? 'number' : 'text' }}"
+                                        name="attribute_custom_values[{{ $attribute->id }}]"
+                                        value="{{ old('attribute_custom_values.' . $attribute->id, $customAttributeValues->get($attribute->id)?->custom_value) }}"
+                                        class="form-control"
+                                        placeholder="Nhập {{ strtolower($attribute->name) }}">
+                                @endif
                             </div>
                         @endforeach
 
@@ -252,6 +261,7 @@
                                     <th>SKU / Cấu hình</th>
                                     <th>Giá</th>
                                     <th>Tồn</th>
+                                    <th>IMEI</th>
                                     <th>Trạng thái</th>
                                     <th>Thao tác</th>
                                 </tr>
@@ -302,6 +312,19 @@
                                         <td>{{ $variant->stock }}</td>
 
                                         <td>
+                                            @php
+                                                $imeiCounts = $variant->imeis->groupBy('status')->map->count();
+                                            @endphp
+                                            <a href="{{ route('admin.inventory.imeis.index', ['q' => $variant->sku]) }}">
+                                                {{ $variant->imeis->count() }} máy
+                                            </a>
+                                            <small class="d-block text-muted">
+                                                Kho: {{ $imeiCounts->get('in_stock', 0) }} |
+                                                Đã bán: {{ $imeiCounts->get('sold', 0) }}
+                                            </small>
+                                        </td>
+
+                                        <td>
                                             @if($variant->status)
                                                 <span class="badge bg-success">Hoạt động</span>
                                             @else
@@ -311,6 +334,13 @@
 
                                         <td>
                                             <div class="d-flex gap-1">
+                                                <a
+                                                    href="{{ route('admin.inventory.imeis.index', ['variant_id' => $variant->id]) }}"
+                                                    class="btn btn-sm btn-outline-success"
+                                                    title="Thêm IMEI cho biến thể này"
+                                                >
+                                                    IMEI
+                                                </a>
                                                 <a
                                                     href="{{ route('admin.products.variants.index', [
                                                         'product' => $product->id,
@@ -341,7 +371,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="text-center py-4">
+                                        <td colspan="7" class="text-center py-4">
                                             Chưa có biến thể nào.
                                         </td>
                                     </tr>

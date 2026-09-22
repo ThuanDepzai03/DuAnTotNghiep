@@ -45,8 +45,16 @@ abstract class Controller
             foreach ($guestCart as $variantId => $item) {
                 if (isset($mergedCart[$variantId])) {
                     $mergedCart[$variantId]['quantity'] += $item['quantity'] ?? 0;
+                    $mergedCart[$variantId]['quantity'] = min(
+                        $mergedCart[$variantId]['quantity'],
+                        $mergedCart[$variantId]['stock'] ?? PHP_INT_MAX
+                    );
                 } else {
-                    $mergedCart[$variantId] = $item;
+                    $stock = (int) ($item['stock'] ?? 0);
+                    if ($stock > 0) {
+                        $item['quantity'] = min((int) ($item['quantity'] ?? 0), $stock);
+                        $mergedCart[$variantId] = $item;
+                    }
                 }
             }
 

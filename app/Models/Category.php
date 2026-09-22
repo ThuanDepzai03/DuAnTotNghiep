@@ -31,4 +31,11 @@ class Category extends Model
     {
         return $this->hasMany(Category::class, 'parent_id');
     }
+
+    public function attributes()
+    {
+        return $this->belongsToMany(Attribute::class, 'category_attributes')
+            ->withPivot('is_required')
+            ->orderBy('sort_order');
+    }
 }

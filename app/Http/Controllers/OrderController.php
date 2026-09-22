@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\ProductVariant;
 use App\Models\Voucher;
+use App\Services\InventoryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -17,10 +18,10 @@ class OrderController extends Controller
         // Get total counts for statistics (before pagination)
         $baseQuery = Order::whereNotIn('status', ['pending_payment']);
         $totalOrders = $baseQuery->count();
-        $pendingCount = $baseQuery->where('status', 'pending')->count();
-        $confirmedCount = $baseQuery->where('status', 'confirmed')->count();
-        $shippingCount = $baseQuery->where('status', 'shipping')->count();
-        $completedCount = $baseQuery->where('status', 'completed')->count();
+        $pendingCount = (clone $baseQuery)->where('status', 'pending')->count();
+        $confirmedCount = (clone $baseQuery)->where('status', 'confirmed')->count();
+        $shippingCount = (clone $baseQuery)->where('status', 'shipping')->count();
+        $completedCount = (clone $baseQuery)->where('status', 'completed')->count();
 
         $query = Order::withCount('items');
 
@@ -55,6 +56,7 @@ class OrderController extends Controller
         $order = Order::with([
             'items.variant.product',
             'items.variant.attributeValues.attribute',
+            'items.imeis',
         ])->findOrFail($id);
 
         return view('admin.orders.show', compact('order'));
@@ -76,7 +78,7 @@ class OrderController extends Controller
 
         // Define allowed status transitions (only forward, no reverting)
         $allowedTransitions = [
-            'pending' => ['confirmed', 'shipping', 'completed', 'cancelled'],
+            'pending' => ['confirmed', 'cancelled'],
             'pending_payment' => ['pending', 'cancelled'], // VNPay waiting for payment
             'confirmed' => ['shipping', 'completed', 'cancelled'],
             'shipping' => ['completed', 'cancelled'],
@@ -96,9 +98,15 @@ class OrderController extends Controller
 
         // Deduct stock when admin confirms the order (status: pending -> confirmed)
         if ($currentStatus === 'pending' && $newStatus === 'confirmed') {
-            foreach ($order->items as $item) {
-                $item->variant()->decrement('stock', $item->quantity);
-            }
+            app(InventoryService::class)->markOrderSold($order);
+        }
+
+        if ($currentStatus === 'pending_payment' && $newStatus === 'cancelled') {
+            app(InventoryService::class)->releaseOrder($order);
+        }
+
+        if (in_array($currentStatus, ['confirmed', 'shipping'], true) && $newStatus === 'cancelled') {
+            app(InventoryService::class)->restoreSoldOrder($order);
         }
 
         if ($newStatus === 'cancelled' && $order->payment_method === 'cod') {
@@ -141,7 +149,7 @@ class OrderController extends Controller
 
         $orders = $ordersQuery->orderByDesc('created_at')->get();
 
-        $totalRevenue = $orders->sum(fn ($order) => $order->final_price ?: $order->total_price);
+        $totalRevenue = $orders->sum(fn ($order) => $order->final_price ?? $order->total_price);
         $totalOrders = $orders->count();
 
         $bestSellingProducts = OrderItem::selectRaw('product_variant_id, SUM(quantity) as total_sold')

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Client;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Voucher;
+use App\Services\InventoryService;
 use Illuminate\Http\Request;
 
 class PaymentController extends Controller
@@ -15,8 +16,8 @@ class PaymentController extends Controller
         abort_unless($customer, 403);
         abort_unless($order->status === 'pending_payment' && $order->payment_method === 'vnpay', 404);
 
-        $ownsOrder = ($customer['email'] ?? null) === $order->email
-            || ($customer['tel'] ?? null) === $order->phone;
+        $ownsOrder = (filled($customer['email'] ?? null) && filled($order->email) && strtolower($customer['email']) === strtolower($order->email))
+            || (filled($customer['tel'] ?? null) && filled($order->phone) && (string) $customer['tel'] === (string) $order->phone);
         abort_unless($ownsOrder, 403);
 
         $vnpUrl = config('vnpay.url');
@@ -25,7 +26,7 @@ class PaymentController extends Controller
         $vnpHashSecret = config('vnpay.hash_secret');
 
         $vnpTxnRef = $order->id . '_' . time();
-        $vnpAmount = (int) round(($order->final_price ?: $order->total_price) * 100);
+        $vnpAmount = (int) round(($order->final_price ?? $order->total_price) * 100);
 
         $inputData = [
         "vnp_Version" => "2.1.0",
@@ -91,7 +92,7 @@ class PaymentController extends Controller
 
             $order = ctype_digit($orderId) ? Order::find((int) $orderId) : null;
             $expectedAmount = $order
-                ? (int) round(($order->final_price ?: $order->total_price) * 100)
+                ? (int) round(($order->final_price ?? $order->total_price) * 100)
                 : null;
             $validReference = $order && preg_match('/^' . preg_quote((string) $order->id, '/') . '_\d+$/', $txnRef);
             $validAmount = $order && (int) $request->vnp_Amount === $expectedAmount;
@@ -114,10 +115,7 @@ class PaymentController extends Controller
                         'paid_at' => now(),
                     ]);
 
-                    // Deduct stock when VNPay payment is confirmed
-                    foreach ($order->items as $item) {
-                        $item->variant()->decrement('stock', $item->quantity);
-                    }
+                    app(InventoryService::class)->markOrderSold($order);
 
                     $voucherCodes = array_filter(array_map('trim', explode(',', (string) $order->voucher_code)));
                     if ($voucherCodes !== []) {
@@ -132,6 +130,7 @@ class PaymentController extends Controller
 
         // Preserve the order for audit and allow the customer to see the failure.
         if ($order && $order->status === 'pending_payment') {
+            app(InventoryService::class)->releaseOrder($order);
             $order->update(['status' => 'cancelled']);
         }
 

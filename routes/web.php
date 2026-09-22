@@ -24,6 +24,11 @@ use App\Http\Controllers\ProductController as AdminProductController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ReturnRequestController;
+use App\Http\Controllers\WarrantyController;
+use App\Http\Controllers\AttributeController;
+use App\Http\Controllers\Admin\ProductImeiController;
+use App\Http\Controllers\Admin\ServiceController;
 // ================= CLIENT =================
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -52,10 +57,6 @@ Route::get('/flash-voucher', [HomeController::class, 'flashVoucher'])->name('fla
 
 // API Search Products
 Route::get('/api/search-suggestion', [HomeController::class, 'searchSuggestion'])->name('api.search.suggestion');
-
-Route::get('/checkout/momo', function () {
-    return view('checkout_qr');
-})->name('checkout.momo');
 
 Route::get('/checkout/success', function () {
     return view('success');
@@ -125,6 +126,12 @@ Route::post('/orders/tracking/{id}/reviews', [App\Http\Controllers\Client\OrderT
 
 Route::put('/account/orders/{id}/cancel', [AuthController::class, 'cancelOrder'])
     ->name('account.order.cancel');
+Route::get('/account/orders/{order}/return', [ReturnRequestController::class, 'create'])
+    ->name('account.order.return');
+Route::post('/account/orders/{order}/return', [ReturnRequestController::class, 'store'])
+    ->name('account.order.return.store');
+Route::get('/warranty', [WarrantyController::class, 'lookup'])->name('warranty.lookup');
+Route::post('/warranty', [WarrantyController::class, 'store'])->name('warranty.store');
     Route::get('/so-sanh', [CompareController::class, 'index'])->name('compare.index');
 Route::post('/api/ai-compare', [CompareController::class, 'compareWithAi'])->name('compare.ai');
 
@@ -138,6 +145,7 @@ Route::middleware(['web', 'admin'])
         Route::get('/', [AdminController::class, 'index'])->name('dashboard');
 
         Route::resource('categories', CategoryController::class);
+        Route::resource('attributes', AttributeController::class)->only(['index', 'store', 'update', 'destroy']);
 
         Route::get(
             '/products/{product}/variants',
@@ -170,6 +178,14 @@ Route::middleware(['web', 'admin'])
         Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
         Route::get('/orders/{id}', [OrderController::class, 'show'])->name('orders.show');
         Route::put('/orders/{id}/status', [OrderController::class, 'updateStatus'])->name('orders.updateStatus');
+        Route::get('/inventory/imeis', [ProductImeiController::class, 'index'])->name('inventory.imeis.index');
+        Route::get('/inventory/imeis/lookup', [ProductImeiController::class, 'lookup'])->name('inventory.imeis.lookup');
+        Route::post('/inventory/imeis', [ProductImeiController::class, 'store'])->name('inventory.imeis.store');
+        Route::put('/inventory/imeis/{imei}', [ProductImeiController::class, 'update'])->name('inventory.imeis.update');
+        Route::get('/returns', [ServiceController::class, 'returns'])->name('returns.index');
+        Route::put('/returns/{returnRequest}', [ServiceController::class, 'updateReturn'])->name('returns.update');
+        Route::get('/warranties', [ServiceController::class, 'warranties'])->name('warranties.index');
+        Route::put('/warranties/{warrantyClaim}', [ServiceController::class, 'updateWarranty'])->name('warranties.update');
 
         Route::post('/products/upload-description-image', [AdminProductController::class, 'uploadDescriptionImage'])
             ->name('products.upload-description-image');

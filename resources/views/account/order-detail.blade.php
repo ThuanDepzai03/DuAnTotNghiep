@@ -351,7 +351,7 @@
         <div class="text-end mt-4">
             <div class="text-muted">Tổng thanh toán</div>
             <h3 class="text-danger">
-                {{ number_format($order->final_price ?: $order->total_price, 0, ',', '.') }} ₫
+                {{ number_format($order->final_price ?? $order->total_price, 0, ',', '.') }} ₫
             </h3>
         </div>
 
@@ -369,6 +369,11 @@
                     Hủy đơn hàng
                 </button>
             </form>
+        @endif
+        @if(in_array($order->status, ['confirmed', 'shipping', 'completed'], true))
+            <div class="mt-3 text-end">
+                <a href="{{ route('account.order.return', $order) }}" class="btn btn-outline-warning">Yêu cầu trả hàng</a>
+            </div>
         @endif
     </div>
 </div>

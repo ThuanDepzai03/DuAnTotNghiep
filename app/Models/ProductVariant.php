@@ -31,8 +31,18 @@ class ProductVariant extends Model
         );
     }
 
+    public function attributeEntries()
+    {
+        return $this->hasMany(VariantAttributeValue::class);
+    }
+
     public function orderItems()
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function imeis()
+    {
+        return $this->hasMany(ProductImei::class);
     }
 }

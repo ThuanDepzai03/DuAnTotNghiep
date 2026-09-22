@@ -104,7 +104,9 @@ class CartController extends Controller
         $cart = $this->getCartItems();
         $variantIds = array_keys($request->quantities);
 
-        $variants = ProductVariant::whereIn('id', $variantIds)
+        $variants = ProductVariant::with('product')->whereIn('id', $variantIds)
+            ->where('status', 1)
+            ->whereHas('product', fn ($query) => $query->where('status', 1))
             ->get()
             ->keyBy('id');
 

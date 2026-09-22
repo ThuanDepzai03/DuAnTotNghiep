@@ -747,8 +747,8 @@
 
                             <i class="bi bi-info-circle me-1"></i>
 
-                            Mỗi sản phẩm cần ít nhất một biến thể
-                            để có giá bán và số lượng tồn kho.
+                            Lưu sản phẩm trước, sau đó vào danh sách biến thể và bấm
+                            <strong>IMEI</strong> để nhập từng máy điện thoại.
 
                         </div>
 
@@ -780,40 +780,22 @@
                                     </label>
 
 
-                                    <select
-                                        name="attribute_value_ids[]"
-                                        class="form-select"
-                                    >
-
-                                        <option value="">
-
-                                            -- Chọn
-                                            {{ $attribute->name }}
-                                            --
-
-                                        </option>
-
-
-                                        @foreach($attribute->values as $value)
-
-                                            <option
-                                                value="{{ $value->id }}"
-                                                {{ in_array(
-                                                    $value->id,
-                                                    $selectedAttributeValueIds
-                                                )
-                                                    ? 'selected'
-                                                    : ''
-                                                }}
-                                            >
-
-                                                {{ $value->value }}
-
-                                            </option>
-
-                                        @endforeach
-
-                                    </select>
+                                    @if($attribute->input_type === 'select')
+                                        <select name="attribute_value_ids[{{ $attribute->id }}]" class="form-select">
+                                            <option value="">-- Chọn {{ $attribute->name }} --</option>
+                                            @foreach($attribute->values as $value)
+                                                <option value="{{ $value->id }}" @selected(in_array($value->id, $selectedAttributeValueIds))>{{ $value->value }}</option>
+                                            @endforeach
+                                        </select>
+                                    @elseif($attribute->input_type === 'boolean')
+                                        <select name="attribute_custom_values[{{ $attribute->id }}]" class="form-select">
+                                            <option value="">-- Chọn --</option>
+                                            <option value="Có" @selected(old('attribute_custom_values.' . $attribute->id, $selectedCustomAttributeValues[$attribute->id] ?? '') === 'Có')>Có</option>
+                                            <option value="Không" @selected(old('attribute_custom_values.' . $attribute->id, $selectedCustomAttributeValues[$attribute->id] ?? '') === 'Không')>Không</option>
+                                        </select>
+                                    @else
+                                        <input type="{{ $attribute->input_type === 'number' ? 'number' : 'text' }}" name="attribute_custom_values[{{ $attribute->id }}]" value="{{ old('attribute_custom_values.' . $attribute->id, $selectedCustomAttributeValues[$attribute->id] ?? '') }}" class="form-control" placeholder="Nhập {{ strtolower($attribute->name) }}">
+                                    @endif
 
                                 </div>
 
@@ -861,6 +843,16 @@
 
                             </div>
 
+                        </div>
+
+                        <div class="col-12 mb-3">
+                            @if($isEdit && $firstVariant)
+                                <a href="{{ route('admin.inventory.imeis.index', ['variant_id' => $firstVariant->id]) }}" class="btn btn-outline-success">
+                                    <i class="bi bi-upc-scan me-1"></i> Quản lý IMEI của biến thể này
+                                </a>
+                            @else
+                                <div class="alert alert-light-primary mb-0">Lưu sản phẩm trước, sau đó quản lý IMEI theo từng biến thể.</div>
+                            @endif
                         </div>
 
 

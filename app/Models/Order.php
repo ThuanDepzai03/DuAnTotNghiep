@@ -14,7 +14,6 @@ class Order extends Model
         'address_detail',
         'city',
         'ward',
-        'voucher_id',
         'voucher_code',
         'discount_amount',
         'shipping_fee',
@@ -32,5 +31,15 @@ class Order extends Model
     public function items()
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function returnRequests()
+    {
+        return $this->hasMany(ReturnRequest::class);
+    }
+
+    public function warrantyClaims()
+    {
+        return $this->hasMany(WarrantyClaim::class);
     }
 }

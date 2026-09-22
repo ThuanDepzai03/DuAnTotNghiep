@@ -15,6 +15,8 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 use App\Models\Order;
+use App\Services\InventoryService;
+use App\Models\Voucher;
 class AuthController extends Controller
 {
     protected function cityList(): array
@@ -186,21 +188,6 @@ class AuthController extends Controller
         })
         ->first();
 
-    if (($admin && $password === '123123123') || ($loginValue === 'admin' && $password === '123123123')) {
-        $request->session()->regenerate();
-
-        session([
-            'customer' => [
-                'id' => $admin?->id ?? 1,
-                'user' => $admin?->name ?? 'admin',
-                'email' => $admin?->email ?? 'admin@example.com',
-                'role' => 1,
-            ],
-        ]);
-
-        return redirect()->route('admin.dashboard');
-    }
-
     /*
     |--------------------------------------------------------------------------
     | 2. Đăng nhập Khách hàng
@@ -216,10 +203,7 @@ class AuthController extends Controller
 
     $customer = $customerQuery->first();
 
-    $passwordMatches = $customer && (
-        Hash::check($password, $customer->pass)
-        || hash_equals((string) $customer->pass, $password)
-    );
+    $passwordMatches = $customer && Hash::check($password, (string) $customer->pass);
 
     if (!$passwordMatches) {
         $errorMessage = 'Tài khoản, email hoặc mật khẩu không đúng.';
@@ -245,12 +229,6 @@ class AuthController extends Controller
         return back()->withErrors([
             'user' => 'Vui lòng xác thực email trước khi đăng nhập.',
         ]);
-    }
-
-    if (!Hash::check($password, $customer->pass)) {
-        DB::table('users')
-            ->where('id', $customer->id)
-            ->update(['pass' => Hash::make($password)]);
     }
 
     // Nếu tài khoản bị khóa thì không được đăng nhập.
@@ -319,7 +297,7 @@ class AuthController extends Controller
 
     public function logout()
     {
-        session()->forget('customer');
+        session()->forget(['customer', 'admin']);
         return redirect()->route('login');
     }
 
@@ -702,10 +680,22 @@ class AuthController extends Controller
         }
 
         $orders = DB::table('orders')
-    ->where('phone', $user->tel)
-    ->orWhere('email', $user->email)
-    ->orderByDesc('id')
-    ->get();
+            ->where(function ($query) use ($user) {
+                $hasCondition = false;
+                if (filled($user->tel)) {
+                    $query->where('phone', $user->tel);
+                    $hasCondition = true;
+                }
+                if (filled($user->email)) {
+                    $hasCondition ? $query->orWhere('email', $user->email) : $query->where('email', $user->email);
+                    $hasCondition = true;
+                }
+                if (! $hasCondition) {
+                    $query->whereRaw('1 = 0');
+                }
+            })
+            ->orderByDesc('id')
+            ->get();
 
         return view('account.profile', compact('user', 'orders'));
     }
@@ -791,8 +781,7 @@ class AuthController extends Controller
 
         $user = DB::table('users')->where('id', $customer['id'])->first();
 
-        if (!$user || (!Hash::check($data['current_password'], $user->pass)
-            && !hash_equals((string) $user->pass, $data['current_password']))) {
+        if (!$user || !Hash::check($data['current_password'], (string) $user->pass)) {
             return back()->withErrors([
                 'current_password' => 'Mật khẩu hiện tại không đúng.',
             ]);
@@ -821,11 +810,7 @@ class AuthController extends Controller
 $customerPhone = $customer['tel'] ?? null;
 $customerEmail = $customer['email'] ?? null;
 
-if (
-    $order->phone != $customerPhone
-    &&
-    $order->email != $customerEmail
-) {
+if (! $this->ownsOrder($order, $customer)) {
     abort(403);
 }
 
@@ -844,17 +829,13 @@ public function cancelOrder($id)
 
     $order = Order::findOrFail($id);
 
-    if (
-        $order->phone != $customer['tel']
-        &&
-        $order->email != $customer['email']
-    ) {
+    if (! $this->ownsOrder($order, $customer)) {
 
         abort(403);
 
     }
 
-    if ($order->status != 'pending') {
+    if (!in_array($order->status, ['pending', 'pending_payment'], true)) {
 
         return back()
             ->with('error',
@@ -862,12 +843,25 @@ public function cancelOrder($id)
 
     }
 
-    $order->update([
-        'status'=>'cancelled'
-    ]);
+    if ($order->status === 'pending_payment') {
+        app(InventoryService::class)->releaseOrder($order);
+    }
+    if ($order->payment_method === 'cod') {
+        $codes = array_filter(array_map('trim', explode(',', (string) $order->voucher_code)));
+        Voucher::whereIn('code', $codes)->where('used_quantity', '>', 0)->decrement('used_quantity');
+    }
+    $order->update(['status' => 'cancelled']);
 
     return back()
         ->with('success',
             'Đã hủy đơn hàng thành công.');
+}
+
+private function ownsOrder(Order $order, array $customer): bool
+{
+    $email = strtolower(trim((string) ($customer['email'] ?? '')));
+    $phone = trim((string) ($customer['tel'] ?? ''));
+    return ($email !== '' && $order->email !== null && strtolower((string) $order->email) === $email)
+        || ($phone !== '' && $order->phone !== null && (string) $order->phone === $phone);
 }
 }

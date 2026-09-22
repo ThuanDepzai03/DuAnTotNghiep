@@ -29,7 +29,7 @@
                                     <span class="label" style="padding: 6px 12px; border-radius: 999px; color: #fff; background: #d10024; font-size: 12px; font-weight: 600; text-transform: capitalize;">
                                         {{ $order->status }}
                                     </span>
-                                    <span style="font-size: 14px; color: #374151; font-weight: 700;">Tổng: {{ number_format($order->final_price ?: $order->total_price, 0, ',', '.') }}₫</span>
+                                    <span style="font-size: 14px; color: #374151; font-weight: 700;">Tổng: {{ number_format($order->final_price ?? $order->total_price, 0, ',', '.') }}₫</span>
                                 </div>
                             </div>
 

@@ -6,6 +6,7 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Models\VariantAttributeValue;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -59,15 +60,18 @@ class ProductController extends Controller
             ->get();
 
         $attributes = Attribute::with('values')
-            ->orderBy('id')
+            ->where('is_active', true)
+            ->orderBy('sort_order')
             ->get()
             ->unique('name')
             ->values();
+        $selectedCustomAttributeValues = [];
 
         return view('admin.products.form', compact(
             'categories',
             'brands',
-            'attributes'
+            'attributes',
+            'selectedCustomAttributeValues'
         ));
     }
 
@@ -78,6 +82,8 @@ class ProductController extends Controller
             'brand_id' => ['nullable', 'exists:brands,id'],
             'attribute_value_ids' => ['nullable', 'array'],
             'attribute_value_ids.*' => ['nullable', 'integer', 'exists:attribute_values,id'],
+            'attribute_custom_values' => ['nullable', 'array'],
+            'attribute_custom_values.*' => ['nullable', 'string', 'max:255'],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'thumbnail' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
@@ -99,6 +105,7 @@ class ProductController extends Controller
             'sale_price.lte' => 'Giá khuyến mãi phải nhỏ hơn hoặc bằng giá gốc.',
             'stock.required' => 'Vui lòng nhập số lượng tồn kho.',
         ]);
+        $customAttributeValues = $request->input('attribute_custom_values', []);
         $attributeValueIds = collect($data['attribute_value_ids'] ?? [])
             ->filter()
             ->map(fn ($id) => (int) $id)
@@ -106,7 +113,7 @@ class ProductController extends Controller
             ->values()
             ->all();
 
-       DB::transaction(function () use ($request, $data, $attributeValueIds) {
+    DB::transaction(function () use ($request, $data, $attributeValueIds, $customAttributeValues) {
             $thumbnailPath = null;
             $variantImagePath = null;
 
@@ -145,6 +152,8 @@ class ProductController extends Controller
                 'status' => (int) $data['status'],
             ]);
             $variant->attributeValues()->sync($attributeValueIds);
+            $this->saveAttributeEntries($variant, $attributeValueIds, $customAttributeValues);
+
         });
 
         \App\Services\SeederSyncService::syncProducts();
@@ -173,11 +182,13 @@ class ProductController extends Controller
 
         $firstVariant = $product->variants->first();
 
-        $attributes = Attribute::with('values')
-            ->orderBy('id')
-            ->get()
-            ->unique('name')
-            ->values();
+        $attributes = $product->category?->attributes()->with('values')->where('is_active', true)->get() ?? collect();
+        if ($attributes->isEmpty()) {
+            $attributes = Attribute::with('values')->where('is_active', true)->orderBy('sort_order')->get();
+        }
+        $selectedCustomAttributeValues = $firstVariant
+            ? $firstVariant->attributeEntries->whereNotNull('custom_value')->pluck('custom_value', 'attribute_id')->all()
+            : [];
 
         $selectedAttributeValueIds = $firstVariant
             ? $firstVariant->attributeValues()
@@ -191,13 +202,14 @@ class ProductController extends Controller
             'brands',
             'firstVariant',
             'attributes',
-            'selectedAttributeValueIds'
+            'selectedAttributeValueIds',
+            'selectedCustomAttributeValues'
         ));
     }
 
     public function update(Request $request, Product $product)
     {
-        $firstVariant = $product->variants()->first();
+        $firstVariant = ProductVariant::where('product_id', $product->id)->first();
 
         $data = $request->validate([
             'category_id' => ['required', 'exists:categories,id'],
@@ -205,6 +217,8 @@ class ProductController extends Controller
 
             'attribute_value_ids' => ['nullable', 'array'],
             'attribute_value_ids.*' => ['nullable', 'integer', 'exists:attribute_values,id'],
+            'attribute_custom_values' => ['nullable', 'array'],
+            'attribute_custom_values.*' => ['nullable', 'string', 'max:255'],
 
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
@@ -217,6 +231,7 @@ class ProductController extends Controller
             'variant_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ]);
 
+        $customAttributeValues = $request->input('attribute_custom_values', []);
         $attributeValueIds = collect($data['attribute_value_ids'] ?? [])
             ->filter()
             ->map(fn ($id) => (int) $id)
@@ -229,7 +244,8 @@ class ProductController extends Controller
                 $product,
                 $firstVariant,
                 $data,
-                $attributeValueIds) {
+                $attributeValueIds,
+                $customAttributeValues) {
             $thumbnailPath = $product->thumbnail;
             $variantImagePath = $firstVariant?->image;
 
@@ -280,6 +296,7 @@ class ProductController extends Controller
             }
 
             $variant->attributeValues()->sync($attributeValueIds);
+            $this->saveAttributeEntries($variant, $attributeValueIds, $customAttributeValues);
         });
 
         \App\Services\SeederSyncService::syncProducts();
@@ -288,6 +305,33 @@ class ProductController extends Controller
             ->route('admin.products.index')
             ->with('success', 'Cập nhật sản phẩm thành công.');
     }
+
+    private function saveAttributeEntries(ProductVariant $variant, array $attributeValueIds, array $customValues): void
+    {
+        VariantAttributeValue::where('product_variant_id', $variant->id)->delete();
+
+        foreach ($attributeValueIds as $attributeValueId) {
+            $value = \App\Models\AttributeValue::find($attributeValueId);
+            if ($value) {
+                VariantAttributeValue::create([
+                    'product_variant_id' => $variant->id,
+                    'attribute_id' => $value->attribute_id,
+                    'attribute_value_id' => $value->id,
+                ]);
+            }
+        }
+
+        foreach ($customValues as $attributeId => $customValue) {
+            if (trim((string) $customValue) !== '') {
+                VariantAttributeValue::create([
+                    'product_variant_id' => $variant->id,
+                    'attribute_id' => (int) $attributeId,
+                    'custom_value' => trim($customValue),
+                ]);
+            }
+        }
+    }
+
 
     // Ẩn sản phẩm, không xóa dữ liệu
     public function destroy(Product $product)

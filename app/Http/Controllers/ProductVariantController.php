@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Attribute;
 use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Models\VariantAttributeValue;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
@@ -19,13 +20,15 @@ class ProductVariantController extends Controller
             'category',
             'brand',
             'variants.attributeValues.attribute',
+            'variants.attributeEntries.attribute',
+            'variants.imeis',
         ]);
 
-        $attributes = Attribute::with('values')
-            ->orderBy('id')
-            ->get()
-            ->unique('name')
-            ->values();
+        $attributes = $product->category?->attributes()->with('values')->where('is_active', true)->get()
+            ?? collect();
+        if ($attributes->isEmpty()) {
+            $attributes = Attribute::with('values')->where('is_active', true)->orderBy('sort_order')->get();
+        }
 
         $editingVariant = null;
 
@@ -70,7 +73,7 @@ class ProductVariantController extends Controller
                 'status' => (int) $data['status'],
             ]);
 
-            $variant->attributeValues()->sync($attributeValueIds);
+            $this->saveAttributeEntries($variant, $data, $attributeValueIds);
         });
 
         \App\Services\SeederSyncService::syncProducts();
@@ -88,6 +91,11 @@ class ProductVariantController extends Controller
         abort_if($variant->product_id !== $product->id, 404);
 
         $data = $this->validateVariant($request, $variant);
+
+        if ($variant->imeis()->exists()) {
+            $imeiStock = $variant->imeis()->where('status', 'in_stock')->count();
+            abort_if((int) $data['stock'] !== $imeiStock, 422, 'Tồn kho phải khớp với số IMEI đang ở trong kho.');
+        }
 
         $attributeValueIds = $this->getAttributeValueIds($data);
 
@@ -113,7 +121,7 @@ class ProductVariantController extends Controller
                 'status' => (int) $data['status'],
             ]);
 
-            $variant->attributeValues()->sync($attributeValueIds);
+            $this->saveAttributeEntries($variant, $data, $attributeValueIds);
         });
 
         \App\Services\SeederSyncService::syncProducts();
@@ -126,6 +134,7 @@ class ProductVariantController extends Controller
     public function destroy(Product $product, ProductVariant $variant)
     {
         abort_if($variant->product_id !== $product->id, 404);
+        abort_if($variant->orderItems()->exists(), 422, 'Không thể xóa biến thể đã xuất hiện trong đơn hàng.');
 
         DB::transaction(function () use ($variant) {
             $variant->attributeValues()->detach();
@@ -157,6 +166,8 @@ class ProductVariantController extends Controller
                 'integer',
                 'exists:attribute_values,id',
             ],
+            'attribute_custom_values' => ['nullable', 'array'],
+            'attribute_custom_values.*' => ['nullable', 'string', 'max:255'],
         ], [
             'price.required' => 'Vui lòng nhập giá gốc.',
             'sale_price.lte' => 'Giá khuyến mãi không được lớn hơn giá gốc.',
@@ -172,6 +183,32 @@ class ProductVariantController extends Controller
             ->unique()
             ->values()
             ->all();
+    }
+
+    private function saveAttributeEntries(ProductVariant $variant, array $data, array $attributeValueIds): void
+    {
+        VariantAttributeValue::where('product_variant_id', $variant->id)->delete();
+
+        foreach ($attributeValueIds as $attributeValueId) {
+            $attributeValue = \App\Models\AttributeValue::find($attributeValueId);
+            if ($attributeValue) {
+                VariantAttributeValue::create([
+                    'product_variant_id' => $variant->id,
+                    'attribute_id' => $attributeValue->attribute_id,
+                    'attribute_value_id' => $attributeValue->id,
+                ]);
+            }
+        }
+
+        foreach ($data['attribute_custom_values'] ?? [] as $attributeId => $customValue) {
+            if (trim((string) $customValue) !== '') {
+                VariantAttributeValue::create([
+                    'product_variant_id' => $variant->id,
+                    'attribute_id' => (int) $attributeId,
+                    'custom_value' => trim($customValue),
+                ]);
+            }
+        }
     }
 
     private function generateVariantSku(Product $product, array $attributeValueIds = []): string
