@@ -18,19 +18,19 @@ class AdminController extends Controller
     $stats = [
         'orders' => Order::count(),
         'products' => DB::table('products')->count(),
-        'users' => DB::table('users')->count(),
+        'users' => DB::table('nguoidung')->count(),
     ];
 
     // Hôm nay
     $revenueToday = Order::where('status', 'completed')->whereNotIn('status', ['pending_payment'])
         ->whereDate('created_at', today())
-        ->sum(DB::raw('COALESCE(NULLIF(final_price, 0), total_price)'));
+        ->sum('total_price');
 
     // Tháng này
     $revenueMonth = Order::where('status', 'completed')->whereNotIn('status', ['pending_payment'])
         ->whereMonth('created_at', now()->month)
         ->whereYear('created_at', now()->year)
-        ->sum(DB::raw('COALESCE(NULLIF(final_price, 0), total_price)'));
+        ->sum('total_price');
 
     // Query doanh thu
     $query = Order::where('status', 'completed')->whereNotIn('status', ['pending_payment']);
@@ -43,12 +43,12 @@ class AdminController extends Controller
         $query->whereDate('created_at', '<=', $to);
     }
 
-    $revenueTotal = $query->sum(DB::raw('COALESCE(NULLIF(final_price, 0), total_price)'));
+    $revenueTotal = $query->sum('total_price');
 
     // Biểu đồ 7 ngày gần nhất
     $chart = Order::selectRaw("
             DATE(created_at) as ngay,
-            SUM(COALESCE(NULLIF(final_price, 0), total_price)) as tong
+            SUM(total_price) as tong
         ")
         ->where('status', 'completed')
         ->groupBy(DB::raw("DATE(created_at)"))

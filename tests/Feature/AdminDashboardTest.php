@@ -12,8 +12,13 @@ class AdminDashboardTest extends TestCase
     {
         parent::setUp();
 
+<<<<<<< HEAD
         if (!Schema::hasTable('categories')) {
             Schema::create('categories', function ($table) {
+=======
+        if (!Schema::hasTable('danhmuc')) {
+            Schema::create('danhmuc', function ($table) {
+>>>>>>> d67f1ad (Initial commit)
                 $table->id();
                 $table->string('name');
                 $table->boolean('deleted')->default(false);
@@ -21,8 +26,13 @@ class AdminDashboardTest extends TestCase
             });
         }
 
+<<<<<<< HEAD
         if (!Schema::hasTable('legacy_products')) {
             Schema::create('legacy_products', function ($table) {
+=======
+        if (!Schema::hasTable('sanpham')) {
+            Schema::create('sanpham', function ($table) {
+>>>>>>> d67f1ad (Initial commit)
                 $table->id();
                 $table->string('name');
                 $table->decimal('price', 12, 2)->default(0);
@@ -33,8 +43,13 @@ class AdminDashboardTest extends TestCase
             });
         }
 
+<<<<<<< HEAD
         if (!Schema::hasTable('legacy_orders')) {
             Schema::create('legacy_orders', function ($table) {
+=======
+        if (!Schema::hasTable('hoadon')) {
+            Schema::create('hoadon', function ($table) {
+>>>>>>> d67f1ad (Initial commit)
                 $table->id();
                 $table->string('tenkhachhang')->nullable();
                 $table->string('sdt')->nullable();
@@ -46,8 +61,13 @@ class AdminDashboardTest extends TestCase
             });
         }
 
+<<<<<<< HEAD
         if (!Schema::hasTable('legacy_order_items')) {
             Schema::create('legacy_order_items', function ($table) {
+=======
+        if (!Schema::hasTable('chitiethoadon')) {
+            Schema::create('chitiethoadon', function ($table) {
+>>>>>>> d67f1ad (Initial commit)
                 $table->id();
                 $table->integer('id_hoadon');
                 $table->integer('id_sanpham');
@@ -57,8 +77,13 @@ class AdminDashboardTest extends TestCase
             });
         }
 
+<<<<<<< HEAD
         if (!Schema::hasTable('users')) {
             Schema::create('users', function ($table) {
+=======
+        if (!Schema::hasTable('nguoidung')) {
+            Schema::create('nguoidung', function ($table) {
+>>>>>>> d67f1ad (Initial commit)
                 $table->id();
                 $table->string('user');
                 $table->string('pass');

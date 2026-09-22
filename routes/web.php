@@ -114,6 +114,8 @@ Route::post('/account/password', [AuthController::class, 'updatePassword'])->nam
 
 Route::get('/account/orders/{id}', [AuthController::class, 'orderDetail'])
     ->name('account.order.detail');
+Route::post('/account/orders/{id}/refund', [AuthController::class, 'requestRefund'])
+    ->name('account.order.refund');
 
 Route::get('/orders/tracking', [App\Http\Controllers\Client\OrderTrackingController::class, 'index'])
     ->name('orders.tracking');
@@ -161,6 +163,9 @@ Route::middleware(['web', 'admin'])
 
         Route::post('/categories/{id}/restore', [CategoryController::class, 'restore'])
             ->name('categories.restore');
+
+        Route::post('/orders/{id}/refund', [OrderController::class, 'updateRefundStatus'])
+            ->name('orders.updateRefund');
 
         Route::resource('products', AdminProductController::class);
 

@@ -1044,6 +1044,16 @@ body {
     background: none;
 }
 
+.nav-user-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.nav-user-link i {
+    color: #d10024;
+    font-size: 14px;
+}
 
 .header-action i {
     color: #d10024;

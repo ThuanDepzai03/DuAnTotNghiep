@@ -219,6 +219,13 @@
                                 Admin
                             </a>
                         </li>
+
+                        <li>
+                            <a href="{{ route('account.profile') }}" class="nav-user-link">
+                                <i class="fa fa-user"></i>
+                                <span>Tôi</span>
+                            </a>
+                        </li>
                     @endif
 
                 </ul>

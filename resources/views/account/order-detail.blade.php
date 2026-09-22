@@ -2,6 +2,20 @@
 
 @section('customer-content')
 @php
+    $displayStatus = $order->status;
+    $displayStatusText = 'Hoàn thành';
+    $displayStatusClass = 'success';
+
+    if ($order->refund_status === 'approved') {
+        $displayStatus = 'refunded';
+        $displayStatusText = 'Đã hoàn tiền';
+        $displayStatusClass = 'dark';
+    } elseif ($order->refund_status === 'rejected') {
+        $displayStatus = 'complaint_cancelled';
+        $displayStatusText = 'Khiếu nại đã hủy';
+        $displayStatusClass = 'secondary';
+    }
+
     $steps = [
         'pending' => [
             'label' => 'Đã nhận đơn',
@@ -127,9 +141,15 @@
                 <i class="bi bi-arrow-left"></i> Quay lại
             </a>
 
-            <span class="badge bg-{{ $statusClass[$order->status] ?? 'secondary' }} fs-6 px-3 py-2">
-                {{ $statusText[$order->status] ?? $order->status }}
-            </span>
+            @if($displayStatus === 'complaint_cancelled')
+                <span class="badge bg-secondary fs-6 px-3 py-2">
+                    {{ $displayStatusText }}
+                </span>
+            @else
+                <span class="badge bg-{{ $displayStatusClass }} fs-6 px-3 py-2">
+                    {{ $displayStatusText }}
+                </span>
+            @endif
         </div>
     </div>
 </div>
@@ -146,9 +166,13 @@
     </div>
 @endif
 
-@if($order->status === 'cancelled')
+@if($order->status === 'cancelled' || $displayStatus === 'complaint_cancelled')
     <div class="alert alert-danger">
-        Đơn hàng này đã được hủy.
+        @if($displayStatus === 'complaint_cancelled')
+            Khiếu nại đã hủy.
+        @else
+            Đơn hàng này đã được hủy.
+        @endif
     </div>
 @else
    <div class="card mb-4">
@@ -158,7 +182,7 @@
 
     <div class="card-body">
 
-        @switch($order->status)
+        @switch($displayStatus)
 
             @case('pending')
                 <span class="badge bg-warning fs-6 px-3 py-2">
@@ -181,6 +205,18 @@
             @case('completed')
                 <span class="badge bg-success fs-6 px-3 py-2">
                     ✅ Hoàn thành
+                </span>
+                @break
+
+            @case('refunded')
+                <span class="badge bg-dark fs-6 px-3 py-2">
+                    ✅ Đã hoàn tiền
+                </span>
+                @break
+
+            @case('complaint_cancelled')
+                <span class="badge bg-secondary fs-6 px-3 py-2">
+                    ⚠️ Khiếu nại đã hủy
                 </span>
                 @break
 
@@ -351,7 +387,7 @@
         <div class="text-end mt-4">
             <div class="text-muted">Tổng thanh toán</div>
             <h3 class="text-danger">
-                {{ number_format($order->final_price ?: $order->total_price, 0, ',', '.') }} ₫
+                {{ number_format($order->total_price, 0, ',', '.') }} ₫
             </h3>
         </div>
 
@@ -369,6 +405,59 @@
                     Hủy đơn hàng
                 </button>
             </form>
+        @endif
+
+        @if($order->status === 'completed')
+            <div class="mt-4 border rounded p-3 bg-light">
+                <h6 class="mb-3">Yêu cầu trả hàng / hoàn tiền</h6>
+
+                @if($order->refund_status === 'requested')
+                    <div class="alert alert-warning mb-0">
+                        Yêu cầu của bạn đã được gửi. Chúng tôi đang xử lý.
+                        @if($order->refund_requested_at)
+                            <div class="small mt-1">Thời gian gửi: {{ \Carbon\Carbon::parse($order->refund_requested_at)->format('d/m/Y H:i') }}</div>
+                        @endif
+                    </div>
+                @elseif($order->refund_status === 'approved')
+                    <div class="alert alert-success mb-0">
+                        Yêu cầu của bạn đã được chấp nhận.
+                    </div>
+                @elseif($order->refund_status === 'rejected')
+                    <div class="alert alert-danger mb-0 p-0 overflow-hidden">
+                        <div class="bg-danger text-white px-4 py-4 mb-0">
+                            <div class="fw-bold fs-5">Yêu cầu của bạn đã bị từ chối.</div>
+                        </div>
+
+                        <div class="px-4 py-4">
+                            <div class="mb-3">
+                                <strong>Lý do hủy:</strong> bằng chứng bạn cung cấp chưa hợp lệ.
+                            </div>
+                            <div class="mb-0">
+                                <strong>Cần thêm hỗ trợ?</strong> Bạn có thể liên hệ với bộ phận chăm sóc khách hàng để được hỗ trợ thêm.
+                            </div>
+                        </div>
+                    </div>
+                @else
+                    <form action="{{ route('account.order.refund', $order->id) }}" method="POST">
+                        @csrf
+
+                        <div class="mb-3">
+                            <label for="refund_reason" class="form-label">Lý do trả hàng / hoàn tiền</label>
+                            <textarea
+                                id="refund_reason"
+                                name="refund_reason"
+                                class="form-control"
+                                rows="4"
+                                placeholder="Ví dụ: Sản phẩm không đúng mô tả, giao thiếu hàng, lỗi kỹ thuật..."
+                            ></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-warning text-white">
+                            Gửi yêu cầu trả hàng / hoàn tiền
+                        </button>
+                    </form>
+                @endif
+            </div>
         @endif
     </div>
 </div>

@@ -79,11 +79,11 @@ class AuthController extends Controller
             ]);
         }
 
-        $hasGoogleId = Schema::hasColumn('users', 'google_id');
+        $hasGoogleId = Schema::hasColumn('nguoidung', 'google_id');
         $customer = $hasGoogleId
-            ? DB::table('users')->where('google_id', $googleId)->first()
+            ? DB::table('nguoidung')->where('google_id', $googleId)->first()
             : null;
-        $customer ??= DB::table('users')->where('email', $email)->first();
+        $customer ??= DB::table('nguoidung')->where('email', $email)->first();
 
         $name = trim((string) ($googleUser->getName() ?: $googleUser->getNickname() ?: 'Khách hàng Google'));
 
@@ -99,29 +99,29 @@ class AuthController extends Controller
             if ($hasGoogleId) {
                 $data['google_id'] = $googleId;
             }
-            if (Schema::hasColumn('users', 'status')) {
+            if (Schema::hasColumn('nguoidung', 'status')) {
                 $data['status'] = 1;
             }
-            if (Schema::hasColumn('users', 'email_verified_at')) {
+            if (Schema::hasColumn('nguoidung', 'email_verified_at')) {
                 $data['email_verified_at'] = now();
             }
-            if (Schema::hasColumn('users', 'created_at')) {
+            if (Schema::hasColumn('nguoidung', 'created_at')) {
                 $data['created_at'] = now();
                 $data['updated_at'] = now();
             }
 
-            $customerId = DB::table('users')->insertGetId($data);
-            $customer = DB::table('users')->where('id', $customerId)->first();
+            $customerId = DB::table('nguoidung')->insertGetId($data);
+            $customer = DB::table('nguoidung')->where('id', $customerId)->first();
         } elseif ($hasGoogleId && empty($customer->google_id)) {
             $linkData = ['google_id' => $googleId];
-            if (Schema::hasColumn('users', 'email_verified_at')) {
+            if (Schema::hasColumn('nguoidung', 'email_verified_at')) {
                 $linkData['email_verified_at'] = now();
             }
-            if (Schema::hasColumn('users', 'updated_at')) {
+            if (Schema::hasColumn('nguoidung', 'updated_at')) {
                 $linkData['updated_at'] = now();
             }
-            DB::table('users')->where('id', $customer->id)->update($linkData);
-            $customer = DB::table('users')->where('id', $customer->id)->first();
+            DB::table('nguoidung')->where('id', $customer->id)->update($linkData);
+            $customer = DB::table('nguoidung')->where('id', $customer->id)->first();
         }
 
         if (isset($customer->status) && (int) $customer->status !== 1) {
@@ -207,10 +207,10 @@ class AuthController extends Controller
     |--------------------------------------------------------------------------
     | Có thể dùng tên đăng nhập hoặc email.
     */
-    $customerQuery = DB::table('users')
+    $customerQuery = DB::table('nguoidung')
         ->where('user', $loginValue);
 
-    if (Schema::hasColumn('users', 'email')) {
+    if (Schema::hasColumn('nguoidung', 'email')) {
         $customerQuery->orWhere('email', $loginValue);
     }
 
@@ -239,7 +239,7 @@ class AuthController extends Controller
             ->withInput();
     }
 
-    if (Schema::hasColumn('users', 'email_verified_at')
+    if (Schema::hasColumn('nguoidung', 'email_verified_at')
         && !empty($customer->email)
         && empty($customer->email_verified_at)) {
         return back()->withErrors([
@@ -248,14 +248,14 @@ class AuthController extends Controller
     }
 
     if (!Hash::check($password, $customer->pass)) {
-        DB::table('users')
+        DB::table('nguoidung')
             ->where('id', $customer->id)
             ->update(['pass' => Hash::make($password)]);
     }
 
     // Nếu tài khoản bị khóa thì không được đăng nhập.
     if (
-        Schema::hasColumn('users', 'status') &&
+        Schema::hasColumn('nguoidung', 'status') &&
         isset($customer->status) &&
         (int) $customer->status !== 1
     ) {
@@ -292,7 +292,7 @@ class AuthController extends Controller
 
     $this->migrateGuestCartToCustomer();
 
-    // Nếu tài khoản trong users có role = 1 thì cho vào admin.
+    // Nếu tài khoản trong nguoidung có role = 1 thì cho vào admin.
     if ((int) ($customer->role ?? 0) === 1) {
         if ($request->expectsJson()) {
             return response()->json([
@@ -341,7 +341,7 @@ class AuthController extends Controller
             'tel.required' => 'Vui lòng nhập số điện thoại.',
         ]);
 
-        $user = DB::table('users')
+        $user = DB::table('nguoidung')
             ->where('user', trim($data['user']))
             ->where('email', strtolower(trim($data['email'])))
             ->where('tel', trim($data['tel']))
@@ -430,10 +430,10 @@ class AuthController extends Controller
         }
 
         $userData = ['pass' => Hash::make($data['password'])];
-        if (Schema::hasColumn('users', 'updated_at')) {
+        if (Schema::hasColumn('nguoidung', 'updated_at')) {
             $userData['updated_at'] = now();
         }
-        DB::table('users')->where('email', $data['email'])->update($userData);
+        DB::table('nguoidung')->where('email', $data['email'])->update($userData);
         DB::table('password_reset_tokens')->where('email', $data['email'])->delete();
 
         return redirect()->route('login')->with('success', 'Đổi mật khẩu thành công.');
@@ -478,9 +478,9 @@ class AuthController extends Controller
             'role' => 0,
         ];
 
-        $existingByUser = DB::table('users')->where('user', $request->user)->first();
-        $existingByEmail = DB::table('users')->where('email', $request->email)->first();
-        $verificationEnabled = Schema::hasColumn('users', 'email_verification_token');
+        $existingByUser = DB::table('nguoidung')->where('user', $request->user)->first();
+        $existingByEmail = DB::table('nguoidung')->where('email', $request->email)->first();
+        $verificationEnabled = Schema::hasColumn('nguoidung', 'email_verification_token');
 
         if ($verificationEnabled && (($existingByUser && $existingByUser->email_verified_at)
             || ($existingByEmail && $existingByEmail->email_verified_at))) {
@@ -495,23 +495,23 @@ class AuthController extends Controller
             ]);
         }
 
-        if (Schema::hasColumn('users', 'city')) {
+        if (Schema::hasColumn('nguoidung', 'city')) {
             $data['city'] = $city;
         }
 
-        if (Schema::hasColumn('users', 'district')) {
+        if (Schema::hasColumn('nguoidung', 'district')) {
             $data['district'] = trim((string) $request->district);
         }
 
-        if (Schema::hasColumn('users', 'ward')) {
+        if (Schema::hasColumn('nguoidung', 'ward')) {
             $data['ward'] = $ward;
         }
 
-        if (Schema::hasColumn('users', 'address_detail')) {
+        if (Schema::hasColumn('nguoidung', 'address_detail')) {
             $data['address_detail'] = $addressDetail;
         }
 
-        if (Schema::hasColumn('users', 'created_at') && Schema::hasColumn('users', 'updated_at')) {
+        if (Schema::hasColumn('nguoidung', 'created_at') && Schema::hasColumn('nguoidung', 'updated_at')) {
             $data['created_at'] = now();
             $data['updated_at'] = now();
         }
@@ -526,10 +526,10 @@ class AuthController extends Controller
         $pendingUser = $existingByUser ?: $existingByEmail;
 
         if ($pendingUser) {
-            DB::table('users')->where('id', $pendingUser->id)->update($data);
+            DB::table('nguoidung')->where('id', $pendingUser->id)->update($data);
             $id = $pendingUser->id;
         } else {
-            $id = DB::table('users')->insertGetId($data);
+            $id = DB::table('nguoidung')->insertGetId($data);
         }
 
         if ($verificationEnabled) {
@@ -583,7 +583,7 @@ class AuthController extends Controller
 
     public function verifyEmail(Request $request, $id, $token)
     {
-        $user = DB::table('users')->where('id', $id)->first();
+        $user = DB::table('nguoidung')->where('id', $id)->first();
 
         if (!$user || empty($user->email_verification_token)
             || ($user->email_verification_expires_at
@@ -594,7 +594,7 @@ class AuthController extends Controller
             ]);
         }
 
-        DB::table('users')->where('id', $id)->update([
+        DB::table('nguoidung')->where('id', $id)->update([
             'email_verified_at' => now(),
             'email_verification_token' => null,
             'email_verification_expires_at' => null,
@@ -625,7 +625,7 @@ class AuthController extends Controller
             'code' => ['required', 'digits:6'],
         ]);
 
-        $user = DB::table('users')->where('email', $data['email'])->first();
+        $user = DB::table('nguoidung')->where('email', $data['email'])->first();
 
         if (!$user || empty($user->email_verification_token)
             || ($user->email_verification_expires_at
@@ -636,7 +636,7 @@ class AuthController extends Controller
             ])->withInput();
         }
 
-        DB::table('users')->where('id', $user->id)->update([
+        DB::table('nguoidung')->where('id', $user->id)->update([
             'email_verified_at' => now(),
             'email_verification_token' => null,
             'email_verification_expires_at' => null,
@@ -665,12 +665,12 @@ class AuthController extends Controller
             'email' => ['required', 'email'],
         ]);
 
-        $user = DB::table('users')->where('email', $data['email'])->first();
+        $user = DB::table('nguoidung')->where('email', $data['email'])->first();
 
         if ($user && empty($user->email_verified_at)) {
             $token = (string) random_int(100000, 999999);
 
-            DB::table('users')->where('id', $user->id)->update([
+            DB::table('nguoidung')->where('id', $user->id)->update([
                 'email_verification_token' => Hash::make($token),
                 'email_verification_expires_at' => now()->addMinutes(10),
             ]);
@@ -689,7 +689,7 @@ class AuthController extends Controller
             return redirect()->route('login');
         }
 
-        $user = DB::table('users')->where('id', $customer['id'])->first();
+        $user = DB::table('nguoidung')->where('id', $customer['id'])->first();
 
         if (!$user) {
             $user = (object) [
@@ -701,11 +701,15 @@ class AuthController extends Controller
             ];
         }
 
-        $orders = DB::table('orders')
-    ->where('phone', $user->tel)
-    ->orWhere('email', $user->email)
-    ->orderByDesc('id')
-    ->get();
+        $orders = [];
+
+        if (Schema::hasTable('orders')) {
+            $orders = DB::table('orders')
+                ->where('phone', $user->tel)
+                ->orWhere('email', $user->email)
+                ->orderByDesc('id')
+                ->get();
+        }
 
         return view('account.profile', compact('user', 'orders'));
     }
@@ -743,27 +747,27 @@ class AuthController extends Controller
             'tel' => $request->tel,
         ];
 
-        if (Schema::hasColumn('users', 'city')) {
+        if (Schema::hasColumn('nguoidung', 'city')) {
             $data['city'] = $city;
         }
 
-        if (Schema::hasColumn('users', 'district')) {
+        if (Schema::hasColumn('nguoidung', 'district')) {
             $data['district'] = trim((string) $request->district);
         }
 
-        if (Schema::hasColumn('users', 'ward')) {
+        if (Schema::hasColumn('nguoidung', 'ward')) {
             $data['ward'] = $ward;
         }
 
-        if (Schema::hasColumn('users', 'address_detail')) {
+        if (Schema::hasColumn('nguoidung', 'address_detail')) {
             $data['address_detail'] = $addressDetail;
         }
 
-        if (Schema::hasColumn('users', 'updated_at')) {
+        if (Schema::hasColumn('nguoidung', 'updated_at')) {
             $data['updated_at'] = now();
         }
 
-        DB::table('users')->where('id', $customer['id'])->update($data);
+        DB::table('nguoidung')->where('id', $customer['id'])->update($data);
 
         session()->put('customer.email', $request->email);
         session()->put('customer.address', $parsedAddress);
@@ -789,7 +793,7 @@ class AuthController extends Controller
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
-        $user = DB::table('users')->where('id', $customer['id'])->first();
+        $user = DB::table('nguoidung')->where('id', $customer['id'])->first();
 
         if (!$user || (!Hash::check($data['current_password'], $user->pass)
             && !hash_equals((string) $user->pass, $data['current_password']))) {
@@ -798,7 +802,7 @@ class AuthController extends Controller
             ]);
         }
 
-        DB::table('users')
+        DB::table('nguoidung')
             ->where('id', $customer['id'])
             ->update(['pass' => Hash::make($data['password'])]);
 
@@ -806,68 +810,88 @@ class AuthController extends Controller
     }
 
     public function orderDetail($id)
-{
-    $customer = session('customer');
+    {
+        $customer = session('customer');
 
-    if (!$customer) {
+        if (!$customer) {
+            return redirect()->route('login');
+        }
 
-        return redirect()->route('login');
+        $order = Order::with('items.variant.product')->findOrFail($id);
 
+        $customerPhone = $customer['tel'] ?? null;
+        $customerEmail = $customer['email'] ?? null;
+
+        if (($order->phone ?? null) != $customerPhone && ($order->email ?? null) != $customerEmail) {
+            abort(403);
+        }
+
+        return view('account.order-detail', compact('order'));
     }
 
-    $order = Order::with('items.variant.product')
-    ->findOrFail($id);
+    public function cancelOrder($id)
+    {
+        $customer = session('customer');
 
-$customerPhone = $customer['tel'] ?? null;
-$customerEmail = $customer['email'] ?? null;
+        if (!$customer) {
+            return redirect()->route('login');
+        }
 
-if (
-    $order->phone != $customerPhone
-    &&
-    $order->email != $customerEmail
-) {
-    abort(403);
-}
+        $order = Order::findOrFail($id);
 
-    return view(
-        'account.order-detail',
-        compact('order')
-    );
-}
-public function cancelOrder($id)
-{
-    $customer = session('customer');
+        $customerPhone = $customer['tel'] ?? null;
+        $customerEmail = $customer['email'] ?? null;
 
-    if (!$customer) {
-        return redirect()->route('login');
+        if (($order->phone ?? null) != $customerPhone && ($order->email ?? null) != $customerEmail) {
+            abort(403);
+        }
+
+        if ($order->status != 'pending') {
+            return back()->with('error', 'Đơn hàng đã được xử lý, không thể hủy.');
+        }
+
+        $order->update([
+            'status' => 'cancelled',
+        ]);
+
+        return back()->with('success', 'Đã hủy đơn hàng thành công.');
     }
 
-    $order = Order::findOrFail($id);
+    public function requestRefund(Request $request, $id)
+    {
+        $customer = session('customer');
 
-    if (
-        $order->phone != $customer['tel']
-        &&
-        $order->email != $customer['email']
-    ) {
+        if (!$customer) {
+            return redirect()->route('login');
+        }
 
-        abort(403);
+        $order = Order::findOrFail($id);
 
+        $customerPhone = $customer['tel'] ?? null;
+        $customerEmail = $customer['email'] ?? null;
+
+        if (($order->phone ?? null) != $customerPhone && ($order->email ?? null) != $customerEmail) {
+            abort(403);
+        }
+
+        if ($order->status !== 'completed') {
+            return back()->with('error', 'Chỉ có thể yêu cầu trả hàng/hoàn tiền cho đơn hàng đã hoàn thành.');
+        }
+
+        $request->validate([
+            'refund_reason' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        if (in_array($order->refund_status, ['requested', 'approved', 'rejected'], true)) {
+            return back()->with('error', 'Đơn hàng này đã có yêu cầu trả hàng/hoàn tiền đang được xử lý.');
+        }
+
+        $order->update([
+            'refund_status' => 'requested',
+            'refund_reason' => trim((string) $request->input('refund_reason', '')),
+            'refund_requested_at' => now(),
+        ]);
+
+        return back()->with('success', 'Yêu cầu trả hàng/hoàn tiền đã được gửi. Chúng tôi sẽ xử lý trong thời gian sớm nhất.');
     }
-
-    if ($order->status != 'pending') {
-
-        return back()
-            ->with('error',
-                'Đơn hàng đã được xử lý, không thể hủy.');
-
-    }
-
-    $order->update([
-        'status'=>'cancelled'
-    ]);
-
-    return back()
-        ->with('success',
-            'Đã hủy đơn hàng thành công.');
-}
 }

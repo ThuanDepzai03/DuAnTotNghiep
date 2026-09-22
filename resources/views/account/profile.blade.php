@@ -99,6 +99,21 @@
 
                 <tbody>
                     @forelse($orders as $order)
+                        @php
+                            $customerOrderStatus = $order->status;
+                            $customerOrderLabel = 'Hoàn thành';
+                            $customerOrderClass = 'bg-success';
+
+                            if ($order->refund_status === 'approved') {
+                                $customerOrderStatus = 'refunded';
+                                $customerOrderLabel = 'Đã hoàn tiền';
+                                $customerOrderClass = 'bg-dark';
+                            } elseif ($order->refund_status === 'rejected') {
+                                $customerOrderStatus = 'complaint_cancelled';
+                                $customerOrderLabel = 'Khiếu nại đã hủy';
+                                $customerOrderClass = 'bg-secondary';
+                            }
+                        @endphp
                         <tr>
                             <td>#{{ $order->id }}</td>
 
@@ -111,11 +126,11 @@
                             </td>
 
                             <td>
-                                {{ number_format($order->final_price ?: $order->total_price, 0, ',', '.') }} ₫
+                                {{ number_format($order->total_price, 0, ',', '.') }} ₫
                             </td>
 
                             <td>
-    @switch($order->status)
+    @switch($customerOrderStatus)
         @case('pending')
             <span class="badge bg-warning">Đã nhận đơn</span>
             @break
@@ -130,6 +145,14 @@
 
         @case('completed')
             <span class="badge bg-success">Hoàn thành</span>
+            @break
+
+        @case('refunded')
+            <span class="badge {{ $customerOrderClass }}">{{ $customerOrderLabel }}</span>
+            @break
+
+        @case('complaint_cancelled')
+            <span class="badge {{ $customerOrderClass }}">{{ $customerOrderLabel }}</span>
             @break
 
         @case('cancelled')

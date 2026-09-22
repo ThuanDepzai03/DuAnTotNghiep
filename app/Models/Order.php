@@ -27,6 +27,10 @@ class Order extends Model
         'bank_code',
         'paid_at',
         'completed_at',
+        'refund_status',
+        'refund_reason',
+        'refund_requested_at',
+        'refund_processed_at',
     ];
 
     public function items()

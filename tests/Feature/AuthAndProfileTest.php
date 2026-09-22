@@ -12,8 +12,13 @@ class AuthAndProfileTest extends TestCase
     {
         parent::setUp();
 
+<<<<<<< HEAD
         if (!Schema::hasTable('users')) {
             Schema::create('users', function ($table) {
+=======
+        if (!Schema::hasTable('nguoidung')) {
+            Schema::create('nguoidung', function ($table) {
+>>>>>>> d67f1ad (Initial commit)
                 $table->id();
                 $table->string('user');
                 $table->string('pass');
@@ -35,8 +40,13 @@ class AuthAndProfileTest extends TestCase
             });
         }
 
+<<<<<<< HEAD
         if (!Schema::hasTable('legacy_orders')) {
             Schema::create('legacy_orders', function ($table) {
+=======
+        if (!Schema::hasTable('hoadon')) {
+            Schema::create('hoadon', function ($table) {
+>>>>>>> d67f1ad (Initial commit)
                 $table->id();
                 $table->string('tenkhachhang')->nullable();
                 $table->string('sdt')->nullable();
@@ -48,9 +58,15 @@ class AuthAndProfileTest extends TestCase
             });
         }
 
+<<<<<<< HEAD
         DB::table('users')->delete();
         DB::table('admins')->delete();
         DB::table('legacy_orders')->delete();
+=======
+        DB::table('nguoidung')->delete();
+        DB::table('admins')->delete();
+        DB::table('hoadon')->delete();
+>>>>>>> d67f1ad (Initial commit)
     }
 
     public function test_admin_requires_login(): void
@@ -91,9 +107,15 @@ class AuthAndProfileTest extends TestCase
 
     public function test_registration_works_when_timestamp_columns_are_missing(): void
     {
+<<<<<<< HEAD
         Schema::dropIfExists('users');
 
         Schema::create('users', function ($table) {
+=======
+        Schema::dropIfExists('nguoidung');
+
+        Schema::create('nguoidung', function ($table) {
+>>>>>>> d67f1ad (Initial commit)
             $table->id();
             $table->string('user');
             $table->string('pass');
@@ -134,6 +156,31 @@ class AuthAndProfileTest extends TestCase
             ->assertSee('Giỏ hàng');
     }
 
+<<<<<<< HEAD
+=======
+    public function test_customer_cancel_order_does_not_crash_when_session_missing_contact_fields(): void
+    {
+        session(['customer' => [
+            'id' => 1,
+            'user' => 'khachhang1',
+            'role' => 0,
+        ]]);
+
+        $order = \App\Models\Order::create([
+            'customer_name' => 'Khách hàng 1',
+            'phone' => '0909123456',
+            'email' => 'khachhang1@example.com',
+            'status' => 'pending',
+            'total_price' => 100000,
+            'final_price' => 100000,
+        ]);
+
+        $response = $this->put('/account/orders/' . $order->id . '/cancel');
+
+        $response->assertStatus(403);
+    }
+
+>>>>>>> d67f1ad (Initial commit)
     public function test_checkout_prefills_customer_info_for_logged_in_customer(): void
     {
         session(['customer' => [
