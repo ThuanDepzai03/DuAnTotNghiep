@@ -697,8 +697,10 @@ class CheckoutController extends Controller
                     ->update($customerData);
             }
 
-            $shippingVoucher?->increment('used_quantity');
-            $orderVoucher?->increment('used_quantity');
+            if ($request->payment_method === 'cod') {
+                $shippingVoucher?->increment('used_quantity');
+                $orderVoucher?->increment('used_quantity');
+            }
 
             DB::commit();
         } catch (\Exception $e) {
@@ -714,12 +716,6 @@ class CheckoutController extends Controller
         }
 
 
-        // ==============================
-        // XÓA GIỎ HÀNG
-        // ==============================
-
-        $this->clearCartItems();
-
         // Xóa voucher khỏi session
         session()->forget('voucher');
 
@@ -729,6 +725,7 @@ class CheckoutController extends Controller
         // ==============================
 
         if ($request->payment_method === 'cod') {
+            $this->clearCartItems();
 
             return redirect()
                 ->route('checkout.success');

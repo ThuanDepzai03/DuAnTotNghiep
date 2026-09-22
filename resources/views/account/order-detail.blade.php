@@ -351,7 +351,7 @@
         <div class="text-end mt-4">
             <div class="text-muted">Tổng thanh toán</div>
             <h3 class="text-danger">
-                {{ number_format($order->total_price, 0, ',', '.') }} ₫
+                {{ number_format($order->final_price ?: $order->total_price, 0, ',', '.') }} ₫
             </h3>
         </div>
 

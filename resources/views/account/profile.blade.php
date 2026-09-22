@@ -111,7 +111,7 @@
                             </td>
 
                             <td>
-                                {{ number_format($order->total_price, 0, ',', '.') }} ₫
+                                {{ number_format($order->final_price ?: $order->total_price, 0, ',', '.') }} ₫
                             </td>
 
                             <td>

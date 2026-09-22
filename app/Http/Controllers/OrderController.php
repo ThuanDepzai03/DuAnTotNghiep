@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\ProductVariant;
+use App\Models\Voucher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -97,6 +98,15 @@ class OrderController extends Controller
         if ($currentStatus === 'pending' && $newStatus === 'confirmed') {
             foreach ($order->items as $item) {
                 $item->variant()->decrement('stock', $item->quantity);
+            }
+        }
+
+        if ($newStatus === 'cancelled' && $order->payment_method === 'cod') {
+            $voucherCodes = array_filter(array_map('trim', explode(',', (string) $order->voucher_code)));
+            if ($voucherCodes !== []) {
+                Voucher::whereIn('code', $voucherCodes)
+                    ->where('used_quantity', '>', 0)
+                    ->decrement('used_quantity');
             }
         }
 

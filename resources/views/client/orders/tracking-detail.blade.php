@@ -30,7 +30,7 @@
                         <p><strong>Người nhận:</strong> {{ $order->customer_name }}</p>
                         <p><strong>Điện thoại:</strong> {{ $order->phone }}</p>
                         <p><strong>Địa chỉ:</strong> {{ $order->address }}</p>
-                        <p><strong>Tổng tiền:</strong> {{ number_format($order->total_price, 0, ',', '.') }}₫</p>
+                        <p><strong>Tổng tiền:</strong> {{ number_format($order->final_price ?: $order->total_price, 0, ',', '.') }}₫</p>
                         <p><strong>Phương thức thanh toán:</strong> {{ $order->payment_method }}</p>
                     </div>
                 </div>
