@@ -21,13 +21,20 @@ class ServiceController extends Controller
     public function convertReturnToWarranty(Request $request, ReturnRequest $returnRequest)
     {
         $data = $request->validate(['reason_id' => ['required', 'exists:service_reasons,id'], 'issue_description' => ['required', 'string', 'max:3000']]);
-        $item = $returnRequest->items()->with('imei', 'orderItem')->first();
-        abort_unless($item?->product_imei_id, 422, 'Yêu cầu này chưa có IMEI để chuyển sang bảo hành.');
+        $item = $returnRequest->items()->with('imei', 'orderItem.imeis')->first();
+        $imeiId = $item?->product_imei_id;
+        if (! $imeiId && $item?->orderItem?->imeis?->count() === 1) {
+            $imeiId = $item->orderItem->imeis->first()->id;
+        }
+        abort_unless($imeiId, 422, 'Yêu cầu này chưa có IMEI để chuyển sang bảo hành.');
         abort_if($returnRequest->warrantyClaim()->exists(), 422, 'Yêu cầu đã liên kết bảo hành.');
 
-        $claim = DB::transaction(function () use ($returnRequest, $item, $data) {
+        $claim = DB::transaction(function () use ($returnRequest, $item, $imeiId, $data) {
+            if (! $item->product_imei_id) {
+                $returnRequest->items()->whereKey($item->id)->update(['product_imei_id' => $imeiId]);
+            }
             $claim = WarrantyClaim::create([
-                'product_imei_id' => $item->product_imei_id,
+                'product_imei_id' => $imeiId,
                 'order_id' => $returnRequest->order_id,
                 'user_id' => $returnRequest->user_id,
                 'reason_id' => $data['reason_id'],
