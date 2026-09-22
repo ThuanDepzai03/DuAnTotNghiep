@@ -218,20 +218,81 @@
 
 @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
     const city = document.getElementById('profile-city');
     const ward = document.getElementById('profile-ward');
-    const wardsByCity = @json($wardsByCity ?? []);
-    const selectedWard = @json(old('ward', $user->ward ?? ''));
+    const currentCity = @json(old('city', $user->city ?? ''));
+    const currentWard = @json(old('ward', $user->ward ?? ''));
+    const addressApiUrl = @json(route('checkout.addressOptions'));
 
-    city?.addEventListener('change', function () {
-        const wards = wardsByCity[this.value] || [];
-        ward.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>' + wards.map(value => `<option value="${value}">${value}</option>`).join('');
-    });
+    if (!city || !ward) return;
 
-    if (city?.value && ward && !ward.value && (wardsByCity[city.value] || []).includes(selectedWard)) {
-        ward.value = selectedWard;
+    function normalize(value) {
+        return String(value || '').toLowerCase().normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/^(tinh|thanh pho|phuong|xa|thi tran)\s+/i, '').trim();
     }
+
+    function fillSelect(select, items, selectedValue, placeholder) {
+        select.innerHTML = `<option value="">${placeholder}</option>`;
+        let matched = false;
+        (Array.isArray(items) ? items : []).forEach(item => {
+            const option = document.createElement('option');
+            option.value = item.value || '';
+            option.textContent = item.label || item.value || '';
+            if (normalize(option.value) === normalize(selectedValue)) {
+                option.selected = true;
+                matched = true;
+            }
+            if (item.id) option.dataset.addressId = item.id;
+            select.appendChild(option);
+        });
+        if (!matched) select.selectedIndex = 0;
+    }
+
+    async function getAddressData(params) {
+        const response = await fetch(addressApiUrl + '?' + new URLSearchParams(params), {
+            headers: {'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
+            cache: 'no-store'
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Không thể tải dữ liệu địa chỉ.');
+        return Array.isArray(data.items) ? data.items : [];
+    }
+
+    async function loadWards(provinceId, selectedValue = '') {
+        ward.disabled = true;
+        ward.innerHTML = '<option value="">Đang tải Phường/Xã...</option>';
+        try {
+            const wards = await getAddressData({type: 'wards', parent_id: provinceId});
+            fillSelect(ward, wards, selectedValue, '-- Chọn Phường/Xã --');
+        } catch (error) {
+            ward.innerHTML = '<option value="">Không tải được Phường/Xã</option>';
+            console.error(error);
+        } finally {
+            ward.disabled = false;
+        }
+    }
+
+    city.disabled = true;
+    ward.disabled = true;
+    try {
+        const provinces = await getAddressData({type: 'provinces'});
+        fillSelect(city, provinces, currentCity, '-- Chọn Tỉnh/Thành phố --');
+        city.disabled = false;
+        const selected = city.options[city.selectedIndex];
+        if (selected?.dataset.addressId) await loadWards(selected.dataset.addressId, currentWard);
+        else ward.disabled = false;
+    } catch (error) {
+        console.error(error);
+        city.disabled = false;
+        ward.disabled = false;
+    }
+
+    city.addEventListener('change', function () {
+        const selected = city.options[city.selectedIndex];
+        loadWards(selected?.dataset.addressId || '', '');
+    });
 });
 </script>
 @endpush
