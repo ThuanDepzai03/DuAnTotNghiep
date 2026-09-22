@@ -83,14 +83,18 @@ class ServiceController extends Controller
 
     public function warranties()
     {
-        $claims = WarrantyClaim::with('imei.variant.product', 'user', 'reason', 'returnRequest')->latest()->paginate(20);
+        $claims = WarrantyClaim::with('imei.variant.product', 'user', 'order', 'reason', 'returnRequest')->latest()->paginate(20);
         $reasons = ServiceReason::for('return')->get();
         return view('admin.service.warranties', compact('claims', 'reasons'));
     }
 
     public function updateWarranty(Request $request, WarrantyClaim $warrantyClaim)
     {
-        $data = $request->validate(['status' => ['required', 'in:submitted,received,checking,repairing,ready,returned,rejected'], 'technician_note' => ['nullable', 'string']]);
+        $data = $request->validate([
+            'status' => ['required', 'in:submitted,received,checking,repairing,ready,returned,rejected'],
+            'technician_note' => ['nullable', 'string', 'max:2000'],
+            'return_method' => ['nullable', 'string', 'max:100'],
+        ]);
         if ($data['status'] === 'received' && ! $warrantyClaim->received_at) $data['received_at'] = now();
         if (in_array($data['status'], ['returned', 'rejected'], true)) $data['completed_at'] = now();
         $warrantyClaim->update($data);
