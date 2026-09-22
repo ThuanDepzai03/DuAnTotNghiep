@@ -261,6 +261,12 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
     async function loadWards(provinceId, selectedValue = '') {
+        if (!provinceId) {
+            ward.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+            ward.disabled = false;
+            return;
+        }
+
         ward.disabled = true;
         ward.innerHTML = '<option value="">Đang tải Phường/Xã...</option>';
         try {
