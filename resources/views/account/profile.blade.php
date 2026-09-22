@@ -10,6 +10,15 @@
         <form method="POST" action="{{ route('account.update') }}">
             @csrf
 
+            @if($errors->any())
+                <div class="alert alert-danger py-2">{{ $errors->first() }}</div>
+            @endif
+
+            <div class="mb-3">
+                <label class="form-label">Họ và tên</label>
+                <input class="form-control" type="text" name="name" value="{{ old('name', $user->name ?? $user->user ?? '') }}" maxlength="255" required>
+            </div>
+
             <div class="mb-3">
                 <label class="form-label">Tên đăng nhập</label>
                 <input class="form-control" value="{{ $user->user }}" disabled>
@@ -27,12 +36,22 @@
 
             <div class="mb-3">
                 <label class="form-label">Tỉnh/Thành phố</label>
-                <input type="text" name="city" class="form-control" value="{{ $user->city ?? '' }}">
+                <select name="city" id="profile-city" class="form-select">
+                    <option value="">-- Chọn Tỉnh/Thành phố --</option>
+                    @foreach($cities ?? [] as $city)
+                        <option value="{{ $city }}" @selected(old('city', $user->city ?? '') === $city)>{{ $city }}</option>
+                    @endforeach
+                </select>
             </div>
 
             <div class="mb-3">
                 <label class="form-label">Phường/Xã</label>
-                <input type="text" name="ward" class="form-control" value="{{ $user->ward ?? '' }}">
+                <select name="ward" id="profile-ward" class="form-select">
+                    <option value="">-- Chọn Phường/Xã --</option>
+                    @foreach($wards ?? [] as $ward)
+                        <option value="{{ $ward }}" @selected(old('ward', $user->ward ?? '') === $ward)>{{ $ward }}</option>
+                    @endforeach
+                </select>
             </div>
 
             <div class="mb-3">
@@ -126,7 +145,7 @@
                             </td>
 
                             <td>
-                                {{ number_format($order->total_price, 0, ',', '.') }} ₫
+                                {{ number_format($order->final_price ?? $order->total_price, 0, ',', '.') }} ₫
                             </td>
 
                             <td>
@@ -172,6 +191,16 @@
 
     </a>
 
+    <a href="{{ route('orders.tracking.show', $order->id) }}" class="btn btn-sm btn-outline-primary">
+        Theo dõi
+    </a>
+
+    @if($order->status === 'completed')
+        <a href="{{ route('orders.tracking.returns', $order->id) }}" class="btn btn-sm btn-outline-danger">
+            Trả hàng / hoàn tiền
+        </a>
+    @endif
+
     @if($order->status=='pending')
 
         <form
@@ -209,3 +238,90 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', async function () {
+    const city = document.getElementById('profile-city');
+    const ward = document.getElementById('profile-ward');
+    const currentCity = @json(old('city', $user->city ?? ''));
+    const currentWard = @json(old('ward', $user->ward ?? ''));
+    const addressApiUrl = @json(route('checkout.addressOptions'));
+
+    if (!city || !ward) return;
+
+    function normalize(value) {
+        return String(value || '').toLowerCase().normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/^(tinh|thanh pho|phuong|xa|thi tran)\s+/i, '').trim();
+    }
+
+    function fillSelect(select, items, selectedValue, placeholder) {
+        select.innerHTML = `<option value="">${placeholder}</option>`;
+        let matched = false;
+        (Array.isArray(items) ? items : []).forEach(item => {
+            const option = document.createElement('option');
+            option.value = item.value || '';
+            option.textContent = item.label || item.value || '';
+            if (normalize(option.value) === normalize(selectedValue)) {
+                option.selected = true;
+                matched = true;
+            }
+            if (item.id) option.dataset.addressId = item.id;
+            select.appendChild(option);
+        });
+        if (!matched) select.selectedIndex = 0;
+    }
+
+    async function getAddressData(params) {
+        const response = await fetch(addressApiUrl + '?' + new URLSearchParams(params), {
+            headers: {'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
+            cache: 'no-store'
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Không thể tải dữ liệu địa chỉ.');
+        return Array.isArray(data.items) ? data.items : [];
+    }
+
+    async function loadWards(provinceId, selectedValue = '') {
+        if (!provinceId) {
+            ward.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+            ward.disabled = false;
+            return;
+        }
+
+        ward.disabled = true;
+        ward.innerHTML = '<option value="">Đang tải Phường/Xã...</option>';
+        try {
+            const wards = await getAddressData({type: 'wards', parent_id: provinceId});
+            fillSelect(ward, wards, selectedValue, '-- Chọn Phường/Xã --');
+        } catch (error) {
+            ward.innerHTML = '<option value="">Không tải được Phường/Xã</option>';
+            console.error(error);
+        } finally {
+            ward.disabled = false;
+        }
+    }
+
+    city.disabled = true;
+    ward.disabled = true;
+    try {
+        const provinces = await getAddressData({type: 'provinces'});
+        fillSelect(city, provinces, currentCity, '-- Chọn Tỉnh/Thành phố --');
+        city.disabled = false;
+        const selected = city.options[city.selectedIndex];
+        if (selected?.dataset.addressId) await loadWards(selected.dataset.addressId, currentWard);
+        else ward.disabled = false;
+    } catch (error) {
+        console.error(error);
+        city.disabled = false;
+        ward.disabled = false;
+    }
+
+    city.addEventListener('change', function () {
+        const selected = city.options[city.selectedIndex];
+        loadWards(selected?.dataset.addressId || '', '');
+    });
+});
+</script>
+@endpush

@@ -374,6 +374,8 @@
     <script src="{{ asset('js/main.js') }}"></script>
     <script src="{{ asset('js/app-interactions.js') }}?v={{ filemtime(public_path('js/app-interactions.js')) }}"></script>
 
+    @stack('scripts')
+
     <!-- Search Suggestions CSS -->
     <style>
     .search-input {

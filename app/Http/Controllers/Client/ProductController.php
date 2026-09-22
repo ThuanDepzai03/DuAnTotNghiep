@@ -294,6 +294,7 @@ class ProductController extends Controller
     $product = Product::with([
         'category',
         'brand',
+        'attributes.values.attributeValue',
         'variants.attributeValues.attribute',
         'reviews' => fn ($query) => $query->where('status', 'approved')->latest(),
     ])

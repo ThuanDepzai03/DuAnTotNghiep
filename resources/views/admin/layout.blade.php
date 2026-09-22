@@ -55,6 +55,12 @@
                             <span>Danh mục</span>
                         </a>
                     </li>
+                    <li class="sidebar-item {{ request()->routeIs('admin.attributes.*') ? 'active' : '' }}">
+                        <a href="{{ route('admin.attributes.index') }}" class="sidebar-link">
+                            <i class="bi bi-sliders"></i>
+                            <span>Thuộc tính</span>
+                        </a>
+                    </li>
 
                     <li class="sidebar-item {{ request()->routeIs('admin.brands.*') ? 'active' : '' }}">
                         <a href="{{ route('admin.brands.index') }}" class="sidebar-link">
@@ -88,6 +94,24 @@
                         <a href="{{ route('admin.orders.index') }}" class="sidebar-link">
                             <i class="bi bi-receipt"></i>
                             <span>Đơn hàng</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item {{ request()->routeIs('admin.inventory.*') ? 'active' : '' }}">
+                        <a href="{{ route('admin.inventory.imeis.index') }}" class="sidebar-link">
+                            <i class="bi bi-upc-scan"></i>
+                            <span>Kho và IMEI</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item {{ request()->routeIs('admin.returns.*') ? 'active' : '' }}">
+                        <a href="{{ route('admin.returns.index') }}" class="sidebar-link">
+                            <i class="bi bi-box-arrow-in-left"></i>
+                            <span>Trả hàng</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item {{ request()->routeIs('admin.warranties.*') ? 'active' : '' }}">
+                        <a href="{{ route('admin.warranties.index') }}" class="sidebar-link">
+                            <i class="bi bi-tools"></i>
+                            <span>Bảo hành</span>
                         </a>
                     </li>
 <li class="sidebar-item {{ request()->routeIs('admin.vouchers.*') ? 'active' : '' }}">

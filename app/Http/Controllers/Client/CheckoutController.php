@@ -5,10 +5,14 @@ namespace App\Http\Controllers\Client;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\ProductImei;
+use App\Models\ProductVariant;
+use App\Models\InventoryTransaction;
 use App\Models\Voucher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 
 class CheckoutController extends Controller
@@ -74,7 +78,7 @@ class CheckoutController extends Controller
 
             return is_array($data) ? $data : [];
         } catch (\Throwable $exception) {
-            \Log::warning('Public address API error', [
+            Log::warning('Public address API error', [
                 'url' => $url,
                 'message' => $exception->getMessage(),
             ]);
@@ -167,7 +171,7 @@ class CheckoutController extends Controller
 
             return response()->json(['items' => [], 'message' => 'Loại dữ liệu không hợp lệ.'], 400);
         } catch (\Throwable $e) {
-            \Log::error('Address API error: ' . $e->getMessage());
+            Log::error('Address API error: ' . $e->getMessage());
             return response()->json(['items' => [], 'message' => 'Không thể tải dữ liệu.'], 500);
         }
     }
@@ -199,7 +203,7 @@ class CheckoutController extends Controller
         };
 
         $defaultCustomer = [
-            'customer_name' => $customerValue('user', 'user'),
+            'customer_name' => $customerValue('name', 'name', $customerValue('user', 'user')),
             'phone' => $customerValue('tel', 'tel'),
             'city' => $customerValue('city', 'city'),
             'district' => $customerValue('district', 'district'),
@@ -247,9 +251,10 @@ class CheckoutController extends Controller
         $addressWards = [];
         if ($savedProvince) {
             $wardData = $this->publicAddressRequest(
-                'https://provinces.open-api.vn/api/v2/w/?province=' . $savedProvince['id']
+                'https://provinces.open-api.vn/api/v2/p/' . $savedProvince['id'] . '?depth=2'
             );
-            $addressWards = collect($wardData)
+            $rawWards = $wardData['wards'] ?? $wardData['data']['wards'] ?? [];
+            $addressWards = collect($rawWards)
                 ->filter(fn($item) => is_array($item) && !empty($item['code']) && !empty($item['name']))
                 ->map(fn($item) => [
                     'id' => (int) $item['code'],
@@ -571,6 +576,7 @@ class CheckoutController extends Controller
             'city' => 'required|string|max:255',
             'ward' => 'required|string|max:255',
             'address_detail' => 'required|string|max:255',
+            'note' => 'nullable|string|max:1000',
             'payment_method' => 'required|in:cod,vnpay',
         ]);
 
@@ -640,7 +646,7 @@ class CheckoutController extends Controller
                 'discount_amount' => $discountAmount,
                 'shipping_fee' => $shippingFee,
 
-                'note' => null,
+                'note' => $request->input('note'),
 
                 // Tổng tiền trước giảm
                 'total_price' => $totalPrice,
@@ -658,8 +664,16 @@ class CheckoutController extends Controller
             // ==============================
 
             foreach ($cart as $item) {
+                $variant = ProductVariant::whereKey($item['variant_id'])
+                    ->where('status', 1)
+                    ->lockForUpdate()
+                    ->first();
+                $quantity = (int) $item['quantity'];
+                if (!$variant || $variant->stock < $quantity) {
+                    throw new \RuntimeException('Tồn kho sản phẩm vừa thay đổi, vui lòng kiểm tra lại giỏ hàng.');
+                }
 
-                OrderItem::create([
+                $orderItem = OrderItem::create([
 
                     'order_id' =>
                     $order->id,
@@ -670,14 +684,50 @@ class CheckoutController extends Controller
                     'quantity' =>
                     $item['quantity'],
 
-                    'price' =>
-                    $item['price'],
+                    'price' => $item['price'],
                 ]);
+
+                $imeiQuery = ProductImei::where('product_variant_id', $item['variant_id'])
+                    ->lockForUpdate();
+
+                $hasImeiInventory = (clone $imeiQuery)->exists();
+                if ($hasImeiInventory) {
+                    $imeis = (clone $imeiQuery)->where('status', 'in_stock')->limit($quantity)->get();
+                    if ($imeis->count() !== $quantity) {
+                        throw new \RuntimeException('IMEI của sản phẩm không đủ tồn kho.');
+                    }
+
+                    foreach ($imeis as $imei) {
+                        $orderItem->imeis()->attach($imei->id);
+                        $imei->update(['status' => 'reserved']);
+                        $variant->decrement('stock');
+                        InventoryTransaction::create([
+                            'product_variant_id' => $item['variant_id'],
+                            'product_imei_id' => $imei->id,
+                            'order_id' => $order->id,
+                            'type' => 'reserve',
+                            'quantity' => -1,
+                            'note' => 'Giữ IMEI cho đơn hàng',
+                            'created_by' => session('customer.id'),
+                        ]);
+                    }
+                } else {
+                    $variant->decrement('stock', $quantity);
+                    InventoryTransaction::create([
+                        'product_variant_id' => $variant->id,
+                        'order_id' => $order->id,
+                        'type' => 'reserve',
+                        'quantity' => -$quantity,
+                        'note' => 'Giữ tồn kho cho đơn hàng',
+                        'created_by' => session('customer.id'),
+                    ]);
+                }
             }
 
             $customerId = session('customer.id');
             if ($customerId) {
                 $customerData = [
+                    'name' => trim($request->customer_name),
                     'tel' => trim($request->phone),
                     'address' => $address,
                 ];
@@ -688,13 +738,22 @@ class CheckoutController extends Controller
                     }
                 }
 
-                if (Schema::hasColumn('nguoidung', 'updated_at')) {
+                if (!Schema::hasColumn('users', 'name')) {
+                    unset($customerData['name']);
+                }
+
+                if (Schema::hasColumn('users', 'updated_at')) {
                     $customerData['updated_at'] = now();
                 }
 
                 DB::table('nguoidung')
                     ->where('id', $customerId)
                     ->update($customerData);
+
+                    session()->put('customer.name', trim($request->customer_name));
+                    session()->put('customer.city', trim($request->city));
+                    session()->put('customer.ward', trim($request->ward));
+                    session()->put('customer.address_detail', trim($request->address_detail));
             }
 
             $shippingVoucher?->increment('used_quantity');
@@ -796,7 +855,7 @@ class CheckoutController extends Controller
             ->first();
     }
 
-    protected function calculateOrderDiscount(?Voucher $voucher, float $totalPrice): float
+    protected function calculateOrderDiscount(?object $voucher, float $totalPrice): float
     {
         if (!$voucher || (float) ($voucher->min_order ?? 0) > $totalPrice) {
             return 0;

@@ -15,6 +15,8 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 use App\Models\Order;
+use App\Services\InventoryService;
+use App\Models\Voucher;
 class AuthController extends Controller
 {
     protected function cityList(): array
@@ -186,21 +188,6 @@ class AuthController extends Controller
         })
         ->first();
 
-    if (($admin && $password === '123123123') || ($loginValue === 'admin' && $password === '123123123')) {
-        $request->session()->regenerate();
-
-        session([
-            'customer' => [
-                'id' => $admin?->id ?? 1,
-                'user' => $admin?->name ?? 'admin',
-                'email' => $admin?->email ?? 'admin@example.com',
-                'role' => 1,
-            ],
-        ]);
-
-        return redirect()->route('admin.dashboard');
-    }
-
     /*
     |--------------------------------------------------------------------------
     | 2. Đăng nhập Khách hàng
@@ -216,10 +203,7 @@ class AuthController extends Controller
 
     $customer = $customerQuery->first();
 
-    $passwordMatches = $customer && (
-        Hash::check($password, $customer->pass)
-        || hash_equals((string) $customer->pass, $password)
-    );
+    $passwordMatches = $customer && Hash::check($password, (string) $customer->pass);
 
     if (!$passwordMatches) {
         $errorMessage = 'Tài khoản, email hoặc mật khẩu không đúng.';
@@ -245,12 +229,6 @@ class AuthController extends Controller
         return back()->withErrors([
             'user' => 'Vui lòng xác thực email trước khi đăng nhập.',
         ]);
-    }
-
-    if (!Hash::check($password, $customer->pass)) {
-        DB::table('nguoidung')
-            ->where('id', $customer->id)
-            ->update(['pass' => Hash::make($password)]);
     }
 
     // Nếu tài khoản bị khóa thì không được đăng nhập.
@@ -319,7 +297,7 @@ class AuthController extends Controller
 
     public function logout()
     {
-        session()->forget('customer');
+        session()->forget(['customer', 'admin']);
         return redirect()->route('login');
     }
 
@@ -694,6 +672,7 @@ class AuthController extends Controller
         if (!$user) {
             $user = (object) [
                 'id' => $customer['id'],
+                'name' => $customer['name'] ?? $customer['user'] ?? 'Khách hàng',
                 'user' => $customer['user'] ?? 'Khách hàng',
                 'email' => $customer['email'] ?? null,
                 'address' => $customer['address'] ?? null,
@@ -701,17 +680,29 @@ class AuthController extends Controller
             ];
         }
 
-        $orders = [];
+        $cities = $this->cityList();
+        $wardsByCity = $this->wardListByCity();
+        $wards = $wardsByCity[$user->city ?? ''] ?? [];
 
-        if (Schema::hasTable('orders')) {
-            $orders = DB::table('orders')
-                ->where('phone', $user->tel)
-                ->orWhere('email', $user->email)
-                ->orderByDesc('id')
-                ->get();
-        }
+        $orders = DB::table('orders')
+            ->where(function ($query) use ($user) {
+                $hasCondition = false;
+                if (filled($user->tel)) {
+                    $query->where('phone', $user->tel);
+                    $hasCondition = true;
+                }
+                if (filled($user->email)) {
+                    $hasCondition ? $query->orWhere('email', $user->email) : $query->where('email', $user->email);
+                    $hasCondition = true;
+                }
+                if (! $hasCondition) {
+                    $query->whereRaw('1 = 0');
+                }
+            })
+            ->orderByDesc('id')
+            ->get();
 
-        return view('account.profile', compact('user', 'orders'));
+        return view('account.profile', compact('user', 'orders', 'cities', 'wards'));
     }
 
     public function updateProfile(Request $request)
@@ -723,6 +714,7 @@ class AuthController extends Controller
         }
 
         $request->validate([
+            'name' => 'nullable|string|max:255',
             'email' => 'nullable|email',
             'city' => 'nullable|string|max:255',
             'ward' => 'nullable|string|max:255',
@@ -742,6 +734,7 @@ class AuthController extends Controller
         }
 
         $data = [
+            'name' => trim((string) $request->name),
             'email' => $request->email,
             'address' => $parsedAddress,
             'tel' => $request->tel,
@@ -763,13 +756,18 @@ class AuthController extends Controller
             $data['address_detail'] = $addressDetail;
         }
 
-        if (Schema::hasColumn('nguoidung', 'updated_at')) {
+        if (!Schema::hasColumn('users', 'name')) {
+            unset($data['name']);
+        }
+
+        if (Schema::hasColumn('users', 'updated_at')) {
             $data['updated_at'] = now();
         }
 
         DB::table('nguoidung')->where('id', $customer['id'])->update($data);
 
         session()->put('customer.email', $request->email);
+        session()->put('customer.name', trim((string) $request->name));
         session()->put('customer.address', $parsedAddress);
         session()->put('customer.city', $city);
         session()->put('customer.district', trim((string) $request->district));
@@ -795,8 +793,7 @@ class AuthController extends Controller
 
         $user = DB::table('nguoidung')->where('id', $customer['id'])->first();
 
-        if (!$user || (!Hash::check($data['current_password'], $user->pass)
-            && !hash_equals((string) $user->pass, $data['current_password']))) {
+        if (!$user || !Hash::check($data['current_password'], (string) $user->pass)) {
             return back()->withErrors([
                 'current_password' => 'Mật khẩu hiện tại không đúng.',
             ]);
@@ -837,7 +834,9 @@ class AuthController extends Controller
             return redirect()->route('login');
         }
 
-        $order = Order::findOrFail($id);
+if (! $this->ownsOrder($order, $customer)) {
+    abort(403);
+}
 
         $customerPhone = $customer['tel'] ?? null;
         $customerEmail = $customer['email'] ?? null;
@@ -861,18 +860,14 @@ class AuthController extends Controller
     {
         $customer = session('customer');
 
-        if (!$customer) {
-            return redirect()->route('login');
-        }
+    if (! $this->ownsOrder($order, $customer)) {
 
         $order = Order::findOrFail($id);
 
         $customerPhone = $customer['tel'] ?? null;
         $customerEmail = $customer['email'] ?? null;
 
-        if (($order->phone ?? null) != $customerPhone && ($order->email ?? null) != $customerEmail) {
-            abort(403);
-        }
+    if (!in_array($order->status, ['pending', 'pending_payment'], true)) {
 
         if ($order->status !== 'completed') {
             return back()->with('error', 'Chỉ có thể yêu cầu trả hàng/hoàn tiền cho đơn hàng đã hoàn thành.');
@@ -882,16 +877,25 @@ class AuthController extends Controller
             'refund_reason' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        if (in_array($order->refund_status, ['requested', 'approved', 'rejected'], true)) {
-            return back()->with('error', 'Đơn hàng này đã có yêu cầu trả hàng/hoàn tiền đang được xử lý.');
-        }
-
-        $order->update([
-            'refund_status' => 'requested',
-            'refund_reason' => trim((string) $request->input('refund_reason', '')),
-            'refund_requested_at' => now(),
-        ]);
-
-        return back()->with('success', 'Yêu cầu trả hàng/hoàn tiền đã được gửi. Chúng tôi sẽ xử lý trong thời gian sớm nhất.');
+    if ($order->status === 'pending_payment') {
+        app(InventoryService::class)->releaseOrder($order);
     }
+    if ($order->payment_method === 'cod') {
+        $codes = array_filter(array_map('trim', explode(',', (string) $order->voucher_code)));
+        Voucher::whereIn('code', $codes)->where('used_quantity', '>', 0)->decrement('used_quantity');
+    }
+    $order->update(['status' => 'cancelled']);
+
+    return back()
+        ->with('success',
+            'Đã hủy đơn hàng thành công.');
+}
+
+private function ownsOrder(Order $order, array $customer): bool
+{
+    $email = strtolower(trim((string) ($customer['email'] ?? '')));
+    $phone = trim((string) ($customer['tel'] ?? ''));
+    return ($email !== '' && $order->email !== null && strtolower((string) $order->email) === $email)
+        || ($phone !== '' && $order->phone !== null && (string) $order->phone === $phone);
+}
 }

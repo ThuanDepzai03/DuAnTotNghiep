@@ -4,19 +4,29 @@ namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\Voucher;
+use App\Services\InventoryService;
 use Illuminate\Http\Request;
 
 class PaymentController extends Controller
 {
-   public function vnpay(Order $order)
-{
-    $vnpUrl = config('vnpay.url');
-    $vnpReturnUrl = config('vnpay.return_url');
-    $vnpTmnCode = config('vnpay.tmn_code');
-    $vnpHashSecret = config('vnpay.hash_secret');
+    public function vnpay(Order $order)
+    {
+        $customer = session('customer');
+        abort_unless($customer, 403);
+        abort_unless($order->status === 'pending_payment' && $order->payment_method === 'vnpay', 404);
 
-    $vnpTxnRef = $order->id . '_' . time();
-    $vnpAmount = $order->total_price * 100;
+        $ownsOrder = (filled($customer['email'] ?? null) && filled($order->email) && strtolower($customer['email']) === strtolower($order->email))
+            || (filled($customer['tel'] ?? null) && filled($order->phone) && (string) $customer['tel'] === (string) $order->phone);
+        abort_unless($ownsOrder, 403);
+
+        $vnpUrl = config('vnpay.url');
+        $vnpReturnUrl = config('vnpay.return_url');
+        $vnpTmnCode = config('vnpay.tmn_code');
+        $vnpHashSecret = config('vnpay.hash_secret');
+
+        $vnpTxnRef = $order->id . '_' . time();
+        $vnpAmount = (int) round(($order->final_price ?? $order->total_price) * 100);
 
     $inputData = [
         "vnp_Version" => "2.1.0",
@@ -76,7 +86,12 @@ class PaymentController extends Controller
         $txnRef = $request->vnp_TxnRef;
         $orderId = explode('_', $txnRef)[0];
 
-        $order = Order::find($orderId);
+            $order = ctype_digit($orderId) ? Order::find((int) $orderId) : null;
+            $expectedAmount = $order
+                ? (int) round(($order->final_price ?? $order->total_price) * 100)
+                : null;
+            $validReference = $order && preg_match('/^' . preg_quote((string) $order->id, '/') . '_\d+$/', $txnRef);
+            $validAmount = $order && (int) $request->vnp_Amount === $expectedAmount;
 
         if ($order && $request->vnp_ResponseCode === '00' && $request->vnp_TransactionStatus === '00') {
 
@@ -86,17 +101,20 @@ class PaymentController extends Controller
             }
 
             // Only process if status is still 'pending_payment'
-            if ($order->status === 'pending_payment') {
-                $order->update([
-                    'status' => 'confirmed',
-                    'transaction_no' => $request->vnp_TransactionNo,
-                    'bank_code' => $request->vnp_BankCode,
-                    'paid_at' => now(),
-                ]);
+                if ($order->status === 'pending_payment') {
+                    $order->update([
+                        'status' => 'confirmed',
+                        'transaction_no' => $request->vnp_TransactionNo,
+                        'bank_code' => $request->vnp_BankCode,
+                        'paid_at' => now(),
+                    ]);
 
-                // Deduct stock when VNPay payment is confirmed
-                foreach ($order->items as $item) {
-                    $item->variant()->decrement('stock', $item->quantity);
+                    app(InventoryService::class)->markOrderSold($order);
+
+                    $voucherCodes = array_filter(array_map('trim', explode(',', (string) $order->voucher_code)));
+                    if ($voucherCodes !== []) {
+                        Voucher::whereIn('code', $voucherCodes)->increment('used_quantity');
+                    }
                 }
             }
 
@@ -107,8 +125,8 @@ class PaymentController extends Controller
 
         // Payment failed - delete the pending_payment order
         if ($order && $order->status === 'pending_payment') {
-            $order->items()->delete();
-            $order->delete();
+            app(InventoryService::class)->releaseOrder($order);
+            $order->update(['status' => 'cancelled']);
         }
 
         return redirect()->route('checkout.show')->with('error', 'Thanh toán thất bại.');

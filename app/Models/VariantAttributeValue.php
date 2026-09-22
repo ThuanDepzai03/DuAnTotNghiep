@@ -10,16 +10,18 @@ class VariantAttributeValue extends Model
 
     protected $fillable = [
         'product_variant_id',
+        'attribute_id',
         'attribute_value_id',
+        'custom_value',
     ];
 
-    public function productVariant()
+    public function attribute()
     {
-        return $this->belongsTo(ProductVariant::class);
+        return $this->belongsTo(Attribute::class);
     }
 
-    public function attributeValue()
+    public function option()
     {
-        return $this->belongsTo(AttributeValue::class);
+        return $this->belongsTo(AttributeValue::class, 'attribute_value_id');
     }
 }
