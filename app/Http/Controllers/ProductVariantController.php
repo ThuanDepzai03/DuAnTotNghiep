@@ -19,13 +19,27 @@ class ProductVariantController extends Controller
         $product->load([
             'category',
             'brand',
+            'attributes.attribute.values',
+            'attributes.values.attributeValue',
             'variants.attributeValues.attribute',
             'variants.attributeEntries.attribute',
             'variants.imeis',
         ]);
 
-        $attributes = $product->category?->attributes()->with('values')->where('is_active', true)->get()
-            ?? collect();
+        $attributes = $product->attributes()
+            ->with('attribute.values')
+            ->get()
+            ->map(function ($productAttribute) {
+                $attribute = $productAttribute->attribute;
+                if (!$attribute) {
+                    return null;
+                }
+                $attribute->attribute_type = $productAttribute->attribute_type;
+                return $attribute;
+            })
+            ->filter()
+            ->values();
+
         if ($attributes->isEmpty()) {
             $attributes = Attribute::with('values')->where('is_active', true)->orderBy('sort_order')->get();
         }
@@ -73,6 +87,7 @@ class ProductVariantController extends Controller
                 'status' => (int) $data['status'],
             ]);
 
+            $variant->attributeValues()->sync($attributeValueIds);
             $this->saveAttributeEntries($variant, $data, $attributeValueIds);
         });
 
@@ -81,6 +96,102 @@ class ProductVariantController extends Controller
         return redirect()
             ->route('admin.products.variants.index', $product->id)
             ->with('success', 'Đã thêm biến thể mới.');
+    }
+
+    public function generate(Request $request, Product $product)
+    {
+        $data = $request->validate([
+            'attribute_values' => ['required', 'array', 'min:1'],
+            'attribute_values.*' => ['required', 'array', 'min:1'],
+            'attribute_values.*.*' => ['integer', 'distinct', 'exists:attribute_values,id'],
+            'price' => ['required', 'numeric', 'min:0'],
+            'sale_price' => ['nullable', 'numeric', 'min:0', 'lte:price'],
+            'stock' => ['required', 'integer', 'min:0'],
+            'status' => ['required', 'in:0,1'],
+        ]);
+
+        $valueIds = collect($data['attribute_values'])->map(
+            fn (array $ids) => collect($ids)->map(fn ($id) => (int) $id)->unique()->values()->all()
+        )->filter()->values()->all();
+
+        $values = \App\Models\AttributeValue::with('attribute')
+            ->whereIn('id', collect($valueIds)->flatten()->unique())
+            ->get()
+            ->keyBy('id');
+
+        $allowedValueIds = $product->attributes()
+            ->where('attribute_type', 'variation')
+            ->with('values')
+            ->get()
+            ->flatMap(fn ($attribute) => $attribute->values->pluck('attribute_value_id'))
+            ->map(fn ($id) => (int) $id)
+            ->unique();
+
+        if ($allowedValueIds->isEmpty()) {
+            $allowedValueIds = Attribute::with('values')
+                ->where('is_active', true)
+                ->where('attribute_type', 'variation')
+                ->get()
+                ->flatMap(fn (Attribute $attribute) => $attribute->values->pluck('id'))
+                ->map(fn ($id) => (int) $id)
+                ->unique();
+        }
+
+        if (collect($valueIds)->flatten()->diff($allowedValueIds)->isNotEmpty()) {
+            abort(422, 'Chỉ được dùng giá trị của thuộc tính variation đã gán cho sản phẩm.');
+        }
+
+        foreach ($valueIds as $ids) {
+            foreach ($ids as $id) {
+                abort_if(!$values->has($id), 422, 'Giá trị thuộc tính không hợp lệ.');
+            }
+        }
+
+        $combinations = [[]];
+        foreach ($valueIds as $ids) {
+            $combinations = collect($combinations)->flatMap(
+                fn (array $combination) => collect($ids)->map(
+                    fn (int $id) => [...$combination, $id]
+                )
+            )->values()->all();
+        }
+
+        $created = 0;
+        DB::transaction(function () use ($product, $data, $combinations, $values, &$created): void {
+            $existingKeys = $product->variants()
+                ->with('attributeValues:id')
+                ->get()
+                ->mapWithKeys(fn (ProductVariant $variant) => [
+                    $this->variantKey($variant->attributeValues->pluck('id')->all()) => true,
+                ]);
+
+            foreach ($combinations as $combination) {
+                $key = $this->variantKey($combination);
+                if ($existingKeys->has($key)) {
+                    continue;
+                }
+
+                $variant = $product->variants()->create([
+                    'sku' => $this->generateVariantSku($product, $combination),
+                    'price' => $data['price'],
+                    'sale_price' => $data['sale_price'] ?? null,
+                    'stock' => $data['stock'],
+                    'image' => $product->thumbnail,
+                    'status' => (int) $data['status'],
+                ]);
+
+                $variant->attributeValues()->sync($combination);
+                $this->saveAttributeEntries($variant, [], $combination);
+                $existingKeys->put($key, true);
+                $created++;
+            }
+        });
+
+        \App\Services\SeederSyncService::syncProducts();
+
+        return redirect()
+            ->route('admin.products.variants.index', $product->id)
+            ->with('success', "Đã tạo {$created} biến thể mới; biến thể cũ được giữ nguyên.");
     }
 
     public function update(
@@ -121,6 +232,7 @@ class ProductVariantController extends Controller
                 'status' => (int) $data['status'],
             ]);
 
+            $variant->attributeValues()->sync($attributeValueIds);
             $this->saveAttributeEntries($variant, $data, $attributeValueIds);
         });
 
@@ -138,6 +250,7 @@ class ProductVariantController extends Controller
 
         DB::transaction(function () use ($variant) {
             $variant->attributeValues()->detach();
+            VariantAttributeValue::where('product_variant_id', $variant->id)->delete();
             $variant->delete();
         });
 
@@ -183,6 +296,14 @@ class ProductVariantController extends Controller
             ->unique()
             ->values()
             ->all();
+    }
+
+    private function variantKey(array $attributeValueIds): string
+    {
+        $ids = array_map('intval', $attributeValueIds);
+        sort($ids);
+
+        return implode('-', $ids);
     }
 
     private function saveAttributeEntries(ProductVariant $variant, array $data, array $attributeValueIds): void

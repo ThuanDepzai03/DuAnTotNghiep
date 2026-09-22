@@ -11,14 +11,40 @@ class ServiceController extends Controller
 {
     public function returns()
     {
-        $returns = ReturnRequest::with('order', 'items.imei')->latest()->paginate(20);
+        $returns = ReturnRequest::with('order', 'items.imei', 'items.orderItem.variant.product')->latest()->paginate(20);
         return view('admin.service.returns', compact('returns'));
     }
 
     public function updateReturn(Request $request, ReturnRequest $returnRequest)
     {
-        $data = $request->validate(['status' => ['required', 'in:pending,approved,rejected,received,refunded,completed'], 'refund_amount' => ['nullable', 'numeric', 'min:0'], 'admin_note' => ['nullable', 'string']]);
-        $returnRequest->update($data);
+        $data = $request->validate([
+            'status' => ['required', 'in:pending,approved,rejected,received,refunded,completed'],
+            'refund_amount' => ['nullable', 'numeric', 'min:0'],
+            'refund_method' => ['nullable', 'string', 'max:100'],
+            'admin_note' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $allowed = [
+            'pending' => ['approved', 'rejected'],
+            'approved' => ['received', 'rejected'],
+            'received' => ['refunded', 'rejected'],
+            'refunded' => ['completed'],
+            'rejected' => [],
+            'completed' => [],
+        ];
+        if ($data['status'] !== $returnRequest->status && !in_array($data['status'], $allowed[$returnRequest->status] ?? [], true)) {
+            return back()->with('error', 'Trạng thái không thể chuyển theo quy trình hiện tại.');
+        }
+        if ($data['status'] === 'refunded' && (float) ($data['refund_amount'] ?? $returnRequest->refund_amount) <= 0) {
+            return back()->with('error', 'Vui lòng nhập số tiền hoàn trước khi xác nhận hoàn tiền.');
+        }
+
+        $returnRequest->update([
+            'status' => $data['status'],
+            'refund_amount' => $data['refund_amount'] ?? $returnRequest->refund_amount,
+            'refund_method' => $data['refund_method'] ?? $returnRequest->refund_method,
+            'admin_note' => $data['admin_note'] ?? $returnRequest->admin_note,
+        ]);
         return back()->with('success', 'Đã cập nhật yêu cầu trả hàng.');
     }
 

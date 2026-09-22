@@ -24,6 +24,18 @@
 
         return asset($path);
     };
+    $attributeJson = $attributes->map(function ($attribute) {
+        return [
+            'id' => $attribute->id,
+            'name' => $attribute->name,
+            'input_type' => $attribute->input_type,
+            'display_type' => $attribute->display_type,
+            'attribute_type' => $attribute->attribute_type,
+            'values' => $attribute->values->map(function ($value) {
+                return ['id' => $value->id, 'value' => $value->value];
+            })->values()->all(),
+        ];
+    })->values();
 @endphp
 
 <div class="page-heading">
@@ -105,34 +117,33 @@
 
                         @foreach($attributes as $attribute)
                             <div class="mb-3">
-                                <label class="form-label">
-                                    {{ $attribute->name }}
-                                </label>
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <label class="form-label mb-0">{{ $attribute->name }}</label>
+                                    <span class="badge bg-light-primary text-primary">{{ $attribute->attribute_type ?? 'variation' }}</span>
+                                </div>
 
-                                @if($attribute->input_type === 'select')
+                                @if($attribute->values->isNotEmpty())
                                     <select name="attribute_value_ids[{{ $attribute->id }}]" class="form-select">
                                         <option value="">-- Không chọn {{ $attribute->name }} --</option>
                                         @foreach($attribute->values as $value)
-                                            <option value="{{ $value->id }}" {{ in_array($value->id, $selectedAttributeValueIds) ? 'selected' : '' }}>
-                                                {{ $value->value }}
-                                            </option>
+                                            <option value="{{ $value->id }}" @selected(in_array($value->id, $selectedAttributeValueIds))>{{ $value->value }}</option>
                                         @endforeach
                                     </select>
-                                @elseif($attribute->input_type === 'boolean')
+                                @elseif(($attribute->input_type ?? $attribute->display_type) === 'boolean')
                                     <select name="attribute_custom_values[{{ $attribute->id }}]" class="form-select">
                                         <option value="">-- Chọn --</option>
-                                        <option value="Có" @selected(old('attribute_custom_values.' . $attribute->id, $customAttributeValues->get($attribute->id)?->custom_value) === 'Có')>Có</option>
-                                        <option value="Không" @selected(old('attribute_custom_values.' . $attribute->id, $customAttributeValues->get($attribute->id)?->custom_value) === 'Không')>Không</option>
+                                        <option value="Có" @selected($customAttributeValues->get($attribute->id)?->custom_value === 'Có')>Có</option>
+                                        <option value="Không" @selected($customAttributeValues->get($attribute->id)?->custom_value === 'Không')>Không</option>
                                     </select>
                                 @else
-                                    <input type="{{ $attribute->input_type === 'number' ? 'number' : 'text' }}"
-                                        name="attribute_custom_values[{{ $attribute->id }}]"
-                                        value="{{ old('attribute_custom_values.' . $attribute->id, $customAttributeValues->get($attribute->id)?->custom_value) }}"
-                                        class="form-control"
-                                        placeholder="Nhập {{ strtolower($attribute->name) }}">
+                                    <input type="{{ ($attribute->input_type ?? $attribute->display_type) === 'number' ? 'number' : 'text' }}" name="attribute_custom_values[{{ $attribute->id }}]" value="{{ $customAttributeValues->get($attribute->id)?->custom_value ?? '' }}" class="form-control" placeholder="Nhập {{ strtolower($attribute->name) }}">
                                 @endif
                             </div>
                         @endforeach
+
+                        <button type="button" class="btn btn-outline-secondary mb-3" id="create-new-attribute" data-bs-toggle="modal" data-bs-target="#new-attribute-modal">
+                            <i class="bi bi-lightning-charge me-1"></i>Tạo thuộc tính mới
+                        </button>
 
                         <div class="row">
                             <div class="col-md-6">
@@ -261,7 +272,6 @@
                                     <th>SKU / Cấu hình</th>
                                     <th>Giá</th>
                                     <th>Tồn</th>
-                                    <th>IMEI</th>
                                     <th>Trạng thái</th>
                                     <th>Thao tác</th>
                                 </tr>
@@ -312,19 +322,6 @@
                                         <td>{{ $variant->stock }}</td>
 
                                         <td>
-                                            @php
-                                                $imeiCounts = $variant->imeis->groupBy('status')->map->count();
-                                            @endphp
-                                            <a href="{{ route('admin.inventory.imeis.index', ['q' => $variant->sku]) }}">
-                                                {{ $variant->imeis->count() }} máy
-                                            </a>
-                                            <small class="d-block text-muted">
-                                                Kho: {{ $imeiCounts->get('in_stock', 0) }} |
-                                                Đã bán: {{ $imeiCounts->get('sold', 0) }}
-                                            </small>
-                                        </td>
-
-                                        <td>
                                             @if($variant->status)
                                                 <span class="badge bg-success">Hoạt động</span>
                                             @else
@@ -334,13 +331,6 @@
 
                                         <td>
                                             <div class="d-flex gap-1">
-                                                <a
-                                                    href="{{ route('admin.inventory.imeis.index', ['variant_id' => $variant->id]) }}"
-                                                    class="btn btn-sm btn-outline-success"
-                                                    title="Thêm IMEI cho biến thể này"
-                                                >
-                                                    IMEI
-                                                </a>
                                                 <a
                                                     href="{{ route('admin.products.variants.index', [
                                                         'product' => $product->id,
@@ -371,7 +361,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="7" class="text-center py-4">
+                                        <td colspan="6" class="text-center py-4">
                                             Chưa có biến thể nào.
                                         </td>
                                     </tr>
@@ -384,4 +374,77 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="new-attribute-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Tạo thuộc tính mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <form id="new-attribute-form">
+                <div class="modal-body">
+                    <div id="new-attribute-alert"></div>
+                    <div class="mb-3"><label class="form-label">Tên thuộc tính</label><input name="name" class="form-control" required maxlength="100"></div>
+                    <div class="mb-3"><label class="form-label">Slug</label><input name="slug" class="form-control" maxlength="100"></div>
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="form-label">Loại thuộc tính</label><select name="attribute_type" class="form-select"><option value="variation">Variation</option><option value="information">Information</option></select></div>
+                        <div class="col-md-6"><label class="form-label">Kiểu hiển thị</label><select name="display_type" class="form-select">@foreach(['select','radio','checkbox','color','button','text','number','textarea'] as $type)<option value="{{ $type }}">{{ $type }}</option>@endforeach</select></div>
+                    </div>
+                    <div class="mt-3"><label class="form-label">Giá trị ban đầu</label><input name="values" class="form-control" placeholder="128GB, 256GB, 512GB"></div>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal">Hủy</button><button type="submit" class="btn btn-primary" id="new-attribute-submit">Tạo thuộc tính</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('new-attribute-form');
+    const modal = document.getElementById('new-attribute-modal');
+    const attributesContainer = document.querySelector('.card-body form[action*="/variants"]');
+    const attributes = @json($attributeJson);
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.content || @json(csrf_token());
+    const alertBox = document.getElementById('new-attribute-alert');
+
+    function escapeHtml(value) {
+        return String(value ?? '').replace(/[&<>'"]/g, character => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#039;', '"': '&quot;'}[character]));
+    }
+
+    form?.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        const button = document.getElementById('new-attribute-submit');
+        button.disabled = true;
+        try {
+            const response = await fetch(@json(route('admin.attributes.ajax.store')), {
+                method: 'POST',
+                headers: {'Accept': 'application/json', 'X-CSRF-TOKEN': csrf},
+                body: new FormData(form)
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.message || 'Không thể tạo thuộc tính.');
+
+            const attribute = result.attribute;
+            attributes.push(attribute);
+            const wrapper = document.createElement('div');
+            wrapper.className = 'mb-3 new-attribute-field';
+            wrapper.dataset.attributeId = attribute.id;
+            const inputType = attribute.input_type || attribute.display_type;
+            const valueField = (attribute.values || []).length
+                ? `<select name="attribute_value_ids[${attribute.id}]" class="form-select"><option value="">-- Không chọn ${escapeHtml(attribute.name)} --</option>${attribute.values.map(value => `<option value="${value.id}">${escapeHtml(value.value)}</option>`).join('')}</select>`
+                : `<input type="${inputType === 'number' ? 'number' : 'text'}" name="attribute_custom_values[${attribute.id}]" class="form-control" placeholder="Nhập ${escapeHtml(attribute.name)}">`;
+            wrapper.innerHTML = `<label class="form-label">${escapeHtml(attribute.name)} <span class="badge bg-light-primary text-primary">Mới</span></label>${valueField}`;
+            const trigger = document.getElementById('create-new-attribute');
+            trigger.parentNode.insertBefore(wrapper, trigger);
+            form.reset();
+            window.bootstrap?.Modal.getOrCreateInstance(modal).hide();
+        } catch (error) {
+            alertBox.innerHTML = `<div class="alert alert-danger py-2">${escapeHtml(error.message)}</div>`;
+        } finally {
+            button.disabled = false;
+        }
+    });
+});
+</script>
 @endsection

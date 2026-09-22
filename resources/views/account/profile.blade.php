@@ -10,6 +10,15 @@
         <form method="POST" action="{{ route('account.update') }}">
             @csrf
 
+            @if($errors->any())
+                <div class="alert alert-danger py-2">{{ $errors->first() }}</div>
+            @endif
+
+            <div class="mb-3">
+                <label class="form-label">Họ và tên</label>
+                <input class="form-control" type="text" name="name" value="{{ old('name', $user->name ?? $user->user ?? '') }}" maxlength="255" required>
+            </div>
+
             <div class="mb-3">
                 <label class="form-label">Tên đăng nhập</label>
                 <input class="form-control" value="{{ $user->user }}" disabled>
@@ -27,12 +36,22 @@
 
             <div class="mb-3">
                 <label class="form-label">Tỉnh/Thành phố</label>
-                <input type="text" name="city" class="form-control" value="{{ $user->city ?? '' }}">
+                <select name="city" id="profile-city" class="form-select">
+                    <option value="">-- Chọn Tỉnh/Thành phố --</option>
+                    @foreach($cities ?? [] as $city)
+                        <option value="{{ $city }}" @selected(old('city', $user->city ?? '') === $city)>{{ $city }}</option>
+                    @endforeach
+                </select>
             </div>
 
             <div class="mb-3">
                 <label class="form-label">Phường/Xã</label>
-                <input type="text" name="ward" class="form-control" value="{{ $user->ward ?? '' }}">
+                <select name="ward" id="profile-ward" class="form-select">
+                    <option value="">-- Chọn Phường/Xã --</option>
+                    @foreach($wards ?? [] as $ward)
+                        <option value="{{ $ward }}" @selected(old('ward', $user->ward ?? '') === $ward)>{{ $ward }}</option>
+                    @endforeach
+                </select>
             </div>
 
             <div class="mb-3">
@@ -149,6 +168,16 @@
 
     </a>
 
+    <a href="{{ route('orders.tracking.show', $order->id) }}" class="btn btn-sm btn-outline-primary">
+        Theo dõi
+    </a>
+
+    @if($order->status === 'completed')
+        <a href="{{ route('orders.tracking.returns', $order->id) }}" class="btn btn-sm btn-outline-danger">
+            Trả hàng / hoàn tiền
+        </a>
+    @endif
+
     @if($order->status=='pending')
 
         <form
@@ -186,3 +215,23 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const city = document.getElementById('profile-city');
+    const ward = document.getElementById('profile-ward');
+    const wardsByCity = @json($wardsByCity ?? []);
+    const selectedWard = @json(old('ward', $user->ward ?? ''));
+
+    city?.addEventListener('change', function () {
+        const wards = wardsByCity[this.value] || [];
+        ward.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>' + wards.map(value => `<option value="${value}">${value}</option>`).join('');
+    });
+
+    if (city?.value && ward && !ward.value && (wardsByCity[city.value] || []).includes(selectedWard)) {
+        ward.value = selectedWard;
+    }
+});
+</script>
+@endpush

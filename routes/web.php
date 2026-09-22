@@ -121,6 +121,8 @@ Route::get('/orders/tracking', [App\Http\Controllers\Client\OrderTrackingControl
 
 Route::get('/orders/tracking/{id}', [App\Http\Controllers\Client\OrderTrackingController::class, 'show'])
     ->name('orders.tracking.show');
+Route::get('/orders/tracking/{order}/returns', [ReturnRequestController::class, 'tracking'])
+    ->name('orders.tracking.returns');
 Route::post('/orders/tracking/{id}/reviews', [App\Http\Controllers\Client\OrderTrackingController::class, 'submitReview'])
     ->name('orders.tracking.review');
 
@@ -146,6 +148,16 @@ Route::middleware(['web', 'admin'])
 
         Route::resource('categories', CategoryController::class);
         Route::resource('attributes', AttributeController::class)->only(['index', 'store', 'update', 'destroy']);
+        Route::post('/attributes/ajax', [AttributeController::class, 'ajaxStore'])
+            ->name('attributes.ajax.store');
+        Route::post('/attributes/{attribute}/values', [AttributeController::class, 'storeValue'])
+            ->name('attributes.values.store');
+        Route::post('/attributes/{attribute}/values/ajax', [AttributeController::class, 'ajaxStoreValue'])
+            ->name('attributes.values.ajax.store');
+        Route::put('/attributes/{attribute}/values/{value}', [AttributeController::class, 'updateValue'])
+            ->name('attributes.values.update');
+        Route::delete('/attributes/{attribute}/values/{value}', [AttributeController::class, 'destroyValue'])
+            ->name('attributes.values.destroy');
 
         Route::get(
             '/products/{product}/variants',
@@ -156,6 +168,11 @@ Route::middleware(['web', 'admin'])
             '/products/{product}/variants',
             [ProductVariantController::class, 'store']
         )->name('products.variants.store');
+
+        Route::post(
+            '/products/{product}/variants/generate',
+            [ProductVariantController::class, 'generate']
+        )->name('products.variants.generate');
 
         Route::put(
             '/products/{product}/variants/{variant}',
@@ -171,6 +188,8 @@ Route::middleware(['web', 'admin'])
             ->name('categories.restore');
 
         Route::resource('products', AdminProductController::class);
+        Route::put('/products/{product}/attributes', [AdminProductController::class, 'saveAttributes'])
+            ->name('products.attributes.update');
 
         Route::post('/products/{id}/restore', [AdminProductController::class, 'restore'])
             ->name('products.restore');

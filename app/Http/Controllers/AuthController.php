@@ -672,12 +672,17 @@ class AuthController extends Controller
         if (!$user) {
             $user = (object) [
                 'id' => $customer['id'],
+                'name' => $customer['name'] ?? $customer['user'] ?? 'Khách hàng',
                 'user' => $customer['user'] ?? 'Khách hàng',
                 'email' => $customer['email'] ?? null,
                 'address' => $customer['address'] ?? null,
                 'tel' => $customer['tel'] ?? null,
             ];
         }
+
+        $cities = $this->cityList();
+        $wardsByCity = $this->wardListByCity();
+        $wards = $wardsByCity[$user->city ?? ''] ?? [];
 
         $orders = DB::table('orders')
             ->where(function ($query) use ($user) {
@@ -697,7 +702,7 @@ class AuthController extends Controller
             ->orderByDesc('id')
             ->get();
 
-        return view('account.profile', compact('user', 'orders'));
+        return view('account.profile', compact('user', 'orders', 'cities', 'wards'));
     }
 
     public function updateProfile(Request $request)
@@ -709,6 +714,7 @@ class AuthController extends Controller
         }
 
         $request->validate([
+            'name' => 'nullable|string|max:255',
             'email' => 'nullable|email',
             'city' => 'nullable|string|max:255',
             'ward' => 'nullable|string|max:255',
@@ -728,6 +734,7 @@ class AuthController extends Controller
         }
 
         $data = [
+            'name' => trim((string) $request->name),
             'email' => $request->email,
             'address' => $parsedAddress,
             'tel' => $request->tel,
@@ -749,6 +756,10 @@ class AuthController extends Controller
             $data['address_detail'] = $addressDetail;
         }
 
+        if (!Schema::hasColumn('users', 'name')) {
+            unset($data['name']);
+        }
+
         if (Schema::hasColumn('users', 'updated_at')) {
             $data['updated_at'] = now();
         }
@@ -756,6 +767,7 @@ class AuthController extends Controller
         DB::table('users')->where('id', $customer['id'])->update($data);
 
         session()->put('customer.email', $request->email);
+        session()->put('customer.name', trim((string) $request->name));
         session()->put('customer.address', $parsedAddress);
         session()->put('customer.city', $city);
         session()->put('customer.district', trim((string) $request->district));

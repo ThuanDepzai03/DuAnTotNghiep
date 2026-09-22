@@ -37,7 +37,7 @@ class OrderTrackingController extends Controller
             return redirect()->route('login');
         }
 
-        $order = Order::with(['items.variant.product'])
+        $order = Order::with(['items.variant.product', 'returnRequests.items.orderItem.variant.product', 'returnRequests.items.imei'])
             ->where('id', $id)
             ->where($this->ownerFilter($customer))
             ->firstOrFail();

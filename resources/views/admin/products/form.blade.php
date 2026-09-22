@@ -71,6 +71,49 @@
         $selectedAttributeValueIds ?? []
     );
 
+    $productAttributeRows = ($product->attributes ?? collect())->map(function ($productAttribute) {
+        return [
+            'attribute_id' => $productAttribute->attribute_id,
+            'attribute_type' => $productAttribute->attribute_type,
+            'show_on_product' => (bool) $productAttribute->show_on_product,
+            'values' => $productAttribute->values->pluck('attribute_value_id')->filter()->values()->all(),
+            'custom_value' => $productAttribute->values->pluck('custom_value')->filter()->implode(', '),
+        ];
+    })->values();
+
+    if ($productAttributeRows->isEmpty() && $isEdit && $firstVariant) {
+        $productAttributeRows = $firstVariant->attributeValues
+            ->groupBy('attribute_id')
+            ->map(function ($values) use ($firstVariant) {
+                $attribute = $values->first()->attribute;
+                return [
+                    'attribute_id' => $attribute->id,
+                    'attribute_type' => $attribute->attribute_type ?: 'variation',
+                    'show_on_product' => true,
+                    'values' => $values->pluck('id')->values()->all(),
+                    'custom_value' => $firstVariant->attributeEntries
+                        ->where('attribute_id', $attribute->id)
+                        ->pluck('custom_value')
+                        ->filter()
+                        ->implode(', '),
+                ];
+            })->values();
+    }
+
+    $attributeOptions = $attributes->map(function ($attribute) {
+        return [
+            'id' => $attribute->id,
+            'name' => $attribute->name,
+            'display_type' => $attribute->display_type ?: $attribute->input_type,
+            'attribute_type' => $attribute->attribute_type ?: 'variation',
+            'values' => $attribute->values->map(fn ($value) => [
+                'id' => $value->id,
+                'value' => $value->value,
+                'color_hex' => $value->color_hex,
+            ])->values()->all(),
+        ];
+    })->values();
+
 @endphp
 
 
@@ -740,6 +783,24 @@
 
                 <div class="card-body">
 
+                    <div class="border rounded p-3 mb-4 bg-light" id="product-attributes-card">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                            <div>
+                                <h5 class="mb-1"><i class="bi bi-sliders me-1"></i>Thuộc tính biến thể</h5>
+                                <small class="text-muted">Chọn thuộc tính sẵn có, thêm giá trị hoặc tạo thuộc tính mới ngay trong biến thể đầu tiên.</small>
+                            </div>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <button type="button" class="btn btn-sm btn-outline-primary" id="add-product-attribute"><i class="bi bi-plus-circle me-1"></i>Thêm thuộc tính</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" id="create-new-attribute" data-bs-toggle="modal" data-bs-target="#new-attribute-modal"><i class="bi bi-lightning-charge me-1"></i>Tạo thuộc tính mới</button>
+                                <button type="button" class="btn btn-sm btn-primary" id="save-product-attributes"><i class="bi bi-save me-1"></i>Lưu thuộc tính</button>
+                            </div>
+                        </div>
+                        <div id="product-attributes-alert"></div>
+                        <div id="product-attributes-list" class="vstack gap-3"></div>
+                        <div id="product-attributes-empty" class="text-center text-muted border rounded p-3">Chưa có thuộc tính cho sản phẩm.</div>
+                        <input type="hidden" name="product_attributes_payload" id="product-attributes-payload">
+                    </div>
+
 
                     @if(!$isEdit)
 
@@ -753,65 +814,6 @@
                         </div>
 
                     @endif
-
-
-
-                    {{-- ATTRIBUTES --}}
-
-                    <div class="mb-4">
-
-                        <label class="form-label fw-bold">
-
-                            Thuộc tính biến thể
-
-                        </label>
-
-
-                        <div class="row">
-
-                            @foreach($attributes as $attribute)
-
-                                <div class="col-md-4 mb-3">
-
-                                    <label class="form-label">
-
-                                        {{ $attribute->name }}
-
-                                    </label>
-
-
-                                    @if($attribute->input_type === 'select')
-                                        <select name="attribute_value_ids[{{ $attribute->id }}]" class="form-select">
-                                            <option value="">-- Chọn {{ $attribute->name }} --</option>
-                                            @foreach($attribute->values as $value)
-                                                <option value="{{ $value->id }}" @selected(in_array($value->id, $selectedAttributeValueIds))>{{ $value->value }}</option>
-                                            @endforeach
-                                        </select>
-                                    @elseif($attribute->input_type === 'boolean')
-                                        <select name="attribute_custom_values[{{ $attribute->id }}]" class="form-select">
-                                            <option value="">-- Chọn --</option>
-                                            <option value="Có" @selected(old('attribute_custom_values.' . $attribute->id, $selectedCustomAttributeValues[$attribute->id] ?? '') === 'Có')>Có</option>
-                                            <option value="Không" @selected(old('attribute_custom_values.' . $attribute->id, $selectedCustomAttributeValues[$attribute->id] ?? '') === 'Không')>Không</option>
-                                        </select>
-                                    @else
-                                        <input type="{{ $attribute->input_type === 'number' ? 'number' : 'text' }}" name="attribute_custom_values[{{ $attribute->id }}]" value="{{ old('attribute_custom_values.' . $attribute->id, $selectedCustomAttributeValues[$attribute->id] ?? '') }}" class="form-control" placeholder="Nhập {{ strtolower($attribute->name) }}">
-                                    @endif
-
-                                </div>
-
-                            @endforeach
-
-                        </div>
-
-
-                        <small class="text-muted">
-
-                            Ví dụ:
-                            Màu sắc + RAM + Bộ nhớ.
-
-                        </small>
-
-                    </div>
 
 
 
@@ -1239,6 +1241,29 @@
 </div>
 
 
+
+<div class="modal fade" id="new-attribute-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Tạo thuộc tính mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <form id="new-attribute-form">
+                <div class="modal-body">
+                    <div id="new-attribute-alert"></div>
+                    <div class="mb-3"><label class="form-label">Tên thuộc tính</label><input name="name" class="form-control" required maxlength="100"></div>
+                    <div class="mb-3"><label class="form-label">Slug</label><input name="slug" class="form-control" maxlength="100"></div>
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="form-label">Loại</label><select name="attribute_type" class="form-select"><option value="variation">Variation</option><option value="information">Information</option></select></div>
+                        <div class="col-md-6"><label class="form-label">Kiểu nhập</label><select name="display_type" class="form-select">@foreach(['select','radio','checkbox','color','button','text','number','textarea'] as $type)<option value="{{ $type }}">{{ $type }}</option>@endforeach</select></div>
+                    </div>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal">Hủy</button><button type="submit" class="btn btn-primary" id="new-attribute-submit">Tạo thuộc tính</button></div>
+            </form>
+        </div>
+    </div>
+</div>
 
 {{-- =========================================================
     EDITOR CSS
@@ -2462,6 +2487,228 @@ document.addEventListener('DOMContentLoaded', function () {
 
 });
 
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const list = document.getElementById('product-attributes-list');
+    const empty = document.getElementById('product-attributes-empty');
+    const alertBox = document.getElementById('product-attributes-alert');
+    const attributes = @json($attributeOptions);
+    const initialRows = @json($productAttributeRows);
+    const saveUrl = @json($isEdit ? route('admin.products.attributes.update', $product) : null);
+    const attributeCreateUrl = @json(route('admin.attributes.ajax.store'));
+    const valueCreateBaseUrl = @json(url('/admin/attributes'));
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || @json(csrf_token());
+
+    if (!list) return;
+
+    const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, character => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#039;', '"': '&quot;'
+    }[character]));
+
+    const getAttribute = id => attributes.find(attribute => Number(attribute.id) === Number(id));
+    const selectedValues = select => Array.from(select.selectedOptions).map(option => Number(option.value));
+
+    function showAlert(message, type = 'success') {
+        alertBox.innerHTML = `<div class="alert alert-${type} py-2 mb-0">${escapeHtml(message)}</div>`;
+        window.setTimeout(() => { alertBox.innerHTML = ''; }, 4500);
+    }
+
+    function updateEmptyState() {
+        empty.classList.toggle('d-none', list.children.length > 0);
+    }
+
+    function renderRow(row = {}) {
+        const attribute = getAttribute(row.attribute_id) || attributes[0];
+        if (!attribute) return;
+
+        const values = Array.isArray(row.values) ? row.values.map(Number) : [];
+        const wrapper = document.createElement('div');
+        wrapper.className = 'product-attribute-row border rounded p-3';
+        wrapper.dataset.attributeId = attribute.id;
+        wrapper.innerHTML = `
+            <div class="row g-3 align-items-start">
+                <div class="col-lg-3">
+                    <label class="form-label fw-semibold">Thuộc tính</label>
+                    <select class="form-select product-attribute-select">
+                        ${attributes.map(item => `<option value="${item.id}" ${Number(item.id) === Number(attribute.id) ? 'selected' : ''}>${escapeHtml(item.name)}</option>`).join('')}
+                    </select>
+                    <span class="small text-muted attribute-type-label"></span>
+                </div>
+                <div class="col-lg-5">
+                    <label class="form-label fw-semibold">Giá trị</label>
+                    <select class="form-select product-attribute-values" multiple size="3"></select>
+                    <div class="input-group input-group-sm mt-2">
+                        <input class="form-control new-attribute-value" placeholder="Giá trị mới, nhấn Enter">
+                        <input class="form-control new-attribute-color d-none" type="color" value="#d10024" style="max-width:52px">
+                        <button class="btn btn-outline-secondary add-attribute-value" type="button">Thêm giá trị</button>
+                    </div>
+                    <input class="form-control form-control-sm mt-2 product-attribute-custom d-none" placeholder="Giá trị riêng của sản phẩm" value="${escapeHtml(row.custom_value || '')}">
+                </div>
+                <div class="col-lg-3 pt-lg-4">
+                    <div class="form-check mb-2"><input class="form-check-input use-for-variation" type="checkbox" ${row.attribute_type === 'variation' ? 'checked' : ''}><label class="form-check-label">Dùng để tạo biến thể</label></div>
+                    <div class="form-check"><input class="form-check-input show-on-product" type="checkbox" ${row.show_on_product !== false ? 'checked' : ''}><label class="form-check-label">Hiển thị trên trang sản phẩm</label></div>
+                </div>
+                <div class="col-lg-1 pt-lg-4 text-lg-end"><button type="button" class="btn btn-sm btn-outline-danger remove-product-attribute" title="Xóa thuộc tính"><i class="bi bi-trash"></i></button></div>
+            </div>`;
+
+        list.appendChild(wrapper);
+        refreshRow(wrapper, values);
+        updateEmptyState();
+    }
+
+    function refreshRow(rowElement, keepValues = []) {
+        const attribute = getAttribute(rowElement.querySelector('.product-attribute-select').value);
+        const valueSelect = rowElement.querySelector('.product-attribute-values');
+        const customInput = rowElement.querySelector('.product-attribute-custom');
+        const colorInput = rowElement.querySelector('.new-attribute-color');
+        const typeLabel = rowElement.querySelector('.attribute-type-label');
+        const allowedValues = attribute?.values || [];
+        const selected = new Set(keepValues.map(Number));
+
+        rowElement.dataset.attributeId = attribute?.id || '';
+        valueSelect.innerHTML = allowedValues.map(value => `<option value="${value.id}" ${selected.has(Number(value.id)) ? 'selected' : ''}>${escapeHtml(value.value)}</option>`).join('');
+        typeLabel.textContent = attribute ? `${attribute.attribute_type} · ${attribute.display_type}` : '';
+        customInput.classList.toggle('d-none', !['text', 'number', 'textarea'].includes(attribute?.display_type));
+        colorInput.classList.toggle('d-none', attribute?.display_type !== 'color');
+    }
+
+    function collectRows() {
+        return Array.from(list.querySelectorAll('.product-attribute-row')).map(row => ({
+            attribute_id: Number(row.dataset.attributeId),
+            values: selectedValues(row.querySelector('.product-attribute-values')),
+            custom_value: row.querySelector('.product-attribute-custom').value.trim(),
+            attribute_type: row.querySelector('.use-for-variation').checked ? 'variation' : 'information',
+            show_on_product: row.querySelector('.show-on-product').checked ? 1 : 0,
+        }));
+    }
+
+    function syncProductAttributesPayload() {
+        const payload = document.getElementById('product-attributes-payload');
+        if (payload) {
+            payload.value = JSON.stringify(collectRows());
+        }
+    }
+
+    initialRows.forEach(renderRow);
+    updateEmptyState();
+
+    document.getElementById('add-product-attribute')?.addEventListener('click', () => renderRow());
+
+    document.getElementById('save-product-attributes')?.addEventListener('click', async function () {
+        if (!saveUrl) {
+            syncProductAttributesPayload();
+            showAlert('Thuộc tính đã sẵn sàng và sẽ được lưu cùng sản phẩm.', 'success');
+            return;
+        }
+
+        const button = this;
+        button.disabled = true;
+        button.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang lưu';
+        try {
+            const response = await fetch(saveUrl, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken},
+                body: JSON.stringify({attributes: collectRows()})
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.message || 'Không thể lưu thuộc tính.');
+            showAlert(result.message);
+        } catch (error) {
+            showAlert(error.message, 'danger');
+        } finally {
+            button.disabled = false;
+            button.innerHTML = '<i class="bi bi-save me-1"></i>Lưu thuộc tính';
+        }
+    });
+                        syncProductAttributesPayload();
+
+    list.addEventListener('change', event => {
+        if (event.target.classList.contains('product-attribute-select')) {
+            refreshRow(event.target.closest('.product-attribute-row'));
+        }
+    });
+
+    list.addEventListener('click', async event => {
+        const row = event.target.closest('.product-attribute-row');
+        if (!row) return;
+        if (event.target.closest('.remove-product-attribute')) {
+            row.remove();
+            updateEmptyState();
+            return;
+        }
+        if (!event.target.closest('.add-attribute-value')) return;
+
+        const input = row.querySelector('.new-attribute-value');
+        const value = input.value.trim();
+        const attributeId = Number(row.dataset.attributeId);
+        if (!value) return;
+        const button = event.target.closest('.add-attribute-value');
+        button.disabled = true;
+        try {
+            const response = await fetch(`${valueCreateBaseUrl}/${attributeId}/values/ajax`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken},
+                body: JSON.stringify({value, color_hex: row.querySelector('.new-attribute-color').value})
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.message || 'Không thể thêm giá trị.');
+            const option = new Option(result.value.value, result.value.id, true, true);
+            row.querySelector('.product-attribute-values').add(option);
+            input.value = '';
+            showAlert(result.message);
+        } catch (error) {
+            showAlert(error.message, 'danger');
+        } finally {
+            button.disabled = false;
+        }
+    });
+
+    list.addEventListener('keydown', event => {
+        if (event.key === 'Enter' && event.target.classList.contains('new-attribute-value')) {
+            event.preventDefault();
+            event.target.closest('.product-attribute-row').querySelector('.add-attribute-value').click();
+        }
+    });
+
+    const modalElement = document.getElementById('new-attribute-modal');
+    document.getElementById('create-new-attribute')?.addEventListener('click', () => {
+        if (!modalElement || !window.bootstrap) {
+            showAlert('Giao diện Bootstrap chưa sẵn sàng. Vui lòng thử lại.', 'danger');
+            return;
+        }
+
+        window.bootstrap.Modal.getOrCreateInstance(modalElement).show();
+    });
+    document.getElementById('new-attribute-form')?.addEventListener('submit', async event => {
+        event.preventDefault();
+        const form = event.currentTarget;
+        const button = document.getElementById('new-attribute-submit');
+        button.disabled = true;
+        try {
+            const response = await fetch(attributeCreateUrl, {
+                method: 'POST',
+                headers: {'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken},
+                body: new FormData(form)
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.message || 'Không thể tạo thuộc tính.');
+            const attribute = result.attribute;
+            attributes.push(attribute);
+            renderRow({attribute_id: attribute.id, attribute_type: attribute.attribute_type, show_on_product: true, values: []});
+            form.reset();
+            if (modalElement && window.bootstrap) {
+                window.bootstrap.Modal.getOrCreateInstance(modalElement).hide();
+            }
+            showAlert(result.message);
+        } catch (error) {
+            document.getElementById('new-attribute-alert').innerHTML = `<div class="alert alert-danger py-2">${escapeHtml(error.message)}</div>`;
+        } finally {
+            button.disabled = false;
+        }
+    });
+});
 </script>
 
 @endsection

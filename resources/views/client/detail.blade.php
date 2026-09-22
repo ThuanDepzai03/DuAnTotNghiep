@@ -142,6 +142,23 @@
                         <span id="variant-stock">Chưa chọn sản phẩm</span>
                     </p>
 
+                    @php
+                        $informationAttributes = $product->attributes
+                            ->where('attribute_type', 'information')
+                            ->where('show_on_product', true);
+                    @endphp
+                    @if($informationAttributes->isNotEmpty())
+                        <div class="product-specifications mt-4">
+                            <h4>Thông số kỹ thuật</h4>
+                            @foreach($informationAttributes as $productAttribute)
+                                <p class="mb-2">
+                                    <strong>{{ $productAttribute->name }}:</strong>
+                                    {{ $productAttribute->values->map(fn ($entry) => $entry->custom_value ?: $entry->attributeValue?->value)->filter()->join(', ') ?: 'Đang cập nhật' }}
+                                </p>
+                            @endforeach
+                        </div>
+                    @endif
+
                     <hr>
 
                     {{-- Thuộc tính biến thể --}}

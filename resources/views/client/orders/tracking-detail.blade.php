@@ -83,6 +83,26 @@
                         @endforeach
                     </div>
                 </div>
+
+                <div class="panel panel-default" style="margin-top: 20px; border: 1px solid #f0d4d8;">
+                    <div class="panel-heading"><strong>Trả hàng và hoàn tiền</strong></div>
+                    <div class="panel-body">
+                        <p class="mb-2">Bạn có thể yêu cầu trả hàng trong vòng 7 ngày kể từ khi đơn hoàn tất.</p>
+                        <ul class="text-muted small mb-3">
+                            <li>Sản phẩm cần còn đủ phụ kiện và thông tin IMEI nếu có.</li>
+                            <li>Shop sẽ kiểm tra trước khi duyệt và hoàn tiền.</li>
+                            <li>Mỗi sản phẩm chỉ có một yêu cầu đang được xử lý.</li>
+                        </ul>
+                        <div class="d-flex gap-2 flex-wrap">
+                            @if($order->status === 'completed')
+                                <a href="{{ route('account.order.return', $order->id) }}" class="btn btn-outline-danger">Trả hàng</a>
+                            @else
+                                <button type="button" class="btn btn-outline-secondary" disabled>Chỉ trả hàng sau khi đơn hoàn tất</button>
+                            @endif
+                            <a href="{{ route('orders.tracking.returns', $order->id) }}" class="btn btn-outline-primary">Theo dõi trả hàng / hoàn tiền</a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

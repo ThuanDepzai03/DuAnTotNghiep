@@ -1,6 +1,9 @@
 @extends('layouts.master')
 
 @section('content')
+@php
+    $currentOrderId = request()->route('id') ?? request()->route('order') ?? (isset($order) ? $order->id : null);
+@endphp
 <div class="section">
     <div class="container">
         <div class="row">
@@ -12,8 +15,11 @@
                     <a href="{{ route('cart.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('cart.index') ? 'active' : '' }}">
                         <i class="fa fa-shopping-cart"></i> Giỏ hàng
                     </a>
-                    <a href="{{ route('account.profile') }}" class="list-group-item list-group-item-action">
+                    <a href="{{ $currentOrderId ? route('account.order.detail', $currentOrderId) : route('orders.tracking') }}" class="list-group-item list-group-item-action {{ request()->routeIs('account.order.detail') || request()->routeIs('orders.tracking.show') ? 'active' : '' }}">
                         <i class="fa fa-clipboard"></i> Đơn hàng của tôi
+                    </a>
+                    <a href="{{ $currentOrderId ? route('orders.tracking.returns', $currentOrderId) : route('orders.tracking') }}" class="list-group-item list-group-item-action {{ request()->routeIs('orders.tracking.returns') ? 'active' : '' }}">
+                        <i class="fa fa-clipboard"></i> Trả hàng
                     </a>
                     <form action="{{ route('logout') }}" method="POST">
                         @csrf

@@ -203,7 +203,7 @@ class CheckoutController extends Controller
         };
 
         $defaultCustomer = [
-            'customer_name' => $customerValue('user', 'user'),
+            'customer_name' => $customerValue('name', 'name', $customerValue('user', 'user')),
             'phone' => $customerValue('tel', 'tel'),
             'city' => $customerValue('city', 'city'),
             'district' => $customerValue('district', 'district'),
@@ -727,6 +727,7 @@ class CheckoutController extends Controller
             $customerId = session('customer.id');
             if ($customerId) {
                 $customerData = [
+                    'name' => trim($request->customer_name),
                     'tel' => trim($request->phone),
                     'address' => $address,
                 ];
@@ -737,6 +738,10 @@ class CheckoutController extends Controller
                     }
                 }
 
+                if (!Schema::hasColumn('users', 'name')) {
+                    unset($customerData['name']);
+                }
+
                 if (Schema::hasColumn('users', 'updated_at')) {
                     $customerData['updated_at'] = now();
                 }
@@ -744,6 +749,11 @@ class CheckoutController extends Controller
                     DB::table('users')
                     ->where('id', $customerId)
                     ->update($customerData);
+
+                    session()->put('customer.name', trim($request->customer_name));
+                    session()->put('customer.city', trim($request->city));
+                    session()->put('customer.ward', trim($request->ward));
+                    session()->put('customer.address_detail', trim($request->address_detail));
             }
 
             if ($request->payment_method === 'cod') {
