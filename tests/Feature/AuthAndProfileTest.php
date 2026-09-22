@@ -12,8 +12,8 @@ class AuthAndProfileTest extends TestCase
     {
         parent::setUp();
 
-        if (!Schema::hasTable('nguoidung')) {
-            Schema::create('nguoidung', function ($table) {
+        if (!Schema::hasTable('users')) {
+            Schema::create('users', function ($table) {
                 $table->id();
                 $table->string('user');
                 $table->string('pass');
@@ -35,8 +35,8 @@ class AuthAndProfileTest extends TestCase
             });
         }
 
-        if (!Schema::hasTable('hoadon')) {
-            Schema::create('hoadon', function ($table) {
+        if (!Schema::hasTable('legacy_orders')) {
+            Schema::create('legacy_orders', function ($table) {
                 $table->id();
                 $table->string('tenkhachhang')->nullable();
                 $table->string('sdt')->nullable();
@@ -48,9 +48,9 @@ class AuthAndProfileTest extends TestCase
             });
         }
 
-        DB::table('nguoidung')->delete();
+        DB::table('users')->delete();
         DB::table('admins')->delete();
-        DB::table('hoadon')->delete();
+        DB::table('legacy_orders')->delete();
     }
 
     public function test_admin_requires_login(): void
@@ -91,9 +91,9 @@ class AuthAndProfileTest extends TestCase
 
     public function test_registration_works_when_timestamp_columns_are_missing(): void
     {
-        Schema::dropIfExists('nguoidung');
+        Schema::dropIfExists('users');
 
-        Schema::create('nguoidung', function ($table) {
+        Schema::create('users', function ($table) {
             $table->id();
             $table->string('user');
             $table->string('pass');

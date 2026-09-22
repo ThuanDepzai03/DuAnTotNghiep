@@ -16,7 +16,7 @@ class PaymentController extends Controller
     $vnpHashSecret = config('vnpay.hash_secret');
 
     $vnpTxnRef = $order->id . '_' . time();
-    $vnpAmount = $order->total_price * 100;
+    $vnpAmount = ($order->final_price ?: $order->total_price) * 100;
 
     $inputData = [
         "vnp_Version" => "2.1.0",

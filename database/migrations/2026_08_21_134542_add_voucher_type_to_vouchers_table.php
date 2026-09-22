@@ -8,19 +8,23 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('vouchers', function (Blueprint $table) {
-    $table->enum('voucher_type', [
-        'normal',
-        'flash_sale',
-        'mid_autumn'
-    ])->default('normal');
-});
+        if (! Schema::hasColumn('vouchers', 'voucher_type')) {
+            Schema::table('vouchers', function (Blueprint $table) {
+                $table->enum('voucher_type', [
+                    'normal',
+                    'flash_sale',
+                    'mid_autumn'
+                ])->default('normal');
+            });
+        }
     }
 
     public function down(): void
     {
-        Schema::table('vouchers', function (Blueprint $table) {
-            $table->dropColumn('voucher_type');
-        });
+        if (Schema::hasColumn('vouchers', 'voucher_type')) {
+            Schema::table('vouchers', function (Blueprint $table) {
+                $table->dropColumn('voucher_type');
+            });
+        }
     }
 };

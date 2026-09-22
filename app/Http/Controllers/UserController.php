@@ -11,7 +11,7 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = DB::table('nguoidung')
+        $users = DB::table('users')
             ->select([
                 'id',
                 'name',
@@ -41,7 +41,7 @@ class UserController extends Controller
                 'required',
                 'string',
                 'max:255',
-                'unique:nguoidung,user',
+                'unique:users,user',
             ],
             'pass' => [
                 'required',
@@ -52,7 +52,7 @@ class UserController extends Controller
                 'required',
                 'email',
                 'max:255',
-                'unique:nguoidung,email',
+                'unique:users,email',
             ],
             'address' => [
                 'nullable',
@@ -78,7 +78,7 @@ class UserController extends Controller
             'email.unique' => 'Email này đã được sử dụng.',
         ]);
 
-        DB::table('nguoidung')->insert([
+        DB::table('users')->insert([
             'name' => trim($data['name']),
             'user' => trim($data['user']),
             'pass' => Hash::make($data['pass']),
@@ -97,7 +97,7 @@ class UserController extends Controller
 
     public function edit($id)
     {
-        $user = DB::table('nguoidung')
+        $user = DB::table('users')
             ->where('id', $id)
             ->first();
 
@@ -114,7 +114,7 @@ class UserController extends Controller
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('nguoidung', 'user')->ignore($id),
+                Rule::unique('users', 'user')->ignore($id),
             ],
             'pass' => [
                 'nullable',
@@ -125,7 +125,7 @@ class UserController extends Controller
                 'required',
                 'email',
                 'max:255',
-                Rule::unique('nguoidung', 'email')->ignore($id),
+                Rule::unique('users', 'email')->ignore($id),
             ],
             'address' => [
                 'nullable',
@@ -163,7 +163,7 @@ class UserController extends Controller
             $updateData['pass'] = Hash::make($data['pass']);
         }
 
-        DB::table('nguoidung')
+        DB::table('users')
             ->where('id', $id)
             ->update($updateData);
 
@@ -176,7 +176,7 @@ class UserController extends Controller
 
     public function destroy($id)
     {
-        DB::table('nguoidung')
+        DB::table('users')
             ->where('id', $id)
             ->delete();
 

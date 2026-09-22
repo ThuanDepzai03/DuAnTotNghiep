@@ -131,7 +131,7 @@ class OrderController extends Controller
 
         $orders = $ordersQuery->orderByDesc('created_at')->get();
 
-        $totalRevenue = $orders->sum('total_price');
+        $totalRevenue = $orders->sum(fn ($order) => $order->final_price ?: $order->total_price);
         $totalOrders = $orders->count();
 
         $bestSellingProducts = OrderItem::selectRaw('product_variant_id, SUM(quantity) as total_sold')

@@ -114,8 +114,8 @@ class ChatController extends Controller
                 $query->latest();
             }
         ])
-        ->leftJoin('nguoidung', 'conversations.user_id', '=', 'nguoidung.id')
-        ->select('conversations.*', 'nguoidung.user as customer_user', 'nguoidung.email as customer_email')
+        ->leftJoin('users', 'conversations.user_id', '=', 'users.id')
+        ->select('conversations.*', 'users.user as customer_user', 'users.email as customer_email')
         ->orderByDesc('last_message_at')
         ->get();
     }

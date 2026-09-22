@@ -12,8 +12,8 @@ class AdminDashboardTest extends TestCase
     {
         parent::setUp();
 
-        if (!Schema::hasTable('danhmuc')) {
-            Schema::create('danhmuc', function ($table) {
+        if (!Schema::hasTable('categories')) {
+            Schema::create('categories', function ($table) {
                 $table->id();
                 $table->string('name');
                 $table->boolean('deleted')->default(false);
@@ -21,8 +21,8 @@ class AdminDashboardTest extends TestCase
             });
         }
 
-        if (!Schema::hasTable('sanpham')) {
-            Schema::create('sanpham', function ($table) {
+        if (!Schema::hasTable('legacy_products')) {
+            Schema::create('legacy_products', function ($table) {
                 $table->id();
                 $table->string('name');
                 $table->decimal('price', 12, 2)->default(0);
@@ -33,8 +33,8 @@ class AdminDashboardTest extends TestCase
             });
         }
 
-        if (!Schema::hasTable('hoadon')) {
-            Schema::create('hoadon', function ($table) {
+        if (!Schema::hasTable('legacy_orders')) {
+            Schema::create('legacy_orders', function ($table) {
                 $table->id();
                 $table->string('tenkhachhang')->nullable();
                 $table->string('sdt')->nullable();
@@ -46,8 +46,8 @@ class AdminDashboardTest extends TestCase
             });
         }
 
-        if (!Schema::hasTable('chitiethoadon')) {
-            Schema::create('chitiethoadon', function ($table) {
+        if (!Schema::hasTable('legacy_order_items')) {
+            Schema::create('legacy_order_items', function ($table) {
                 $table->id();
                 $table->integer('id_hoadon');
                 $table->integer('id_sanpham');
@@ -57,8 +57,8 @@ class AdminDashboardTest extends TestCase
             });
         }
 
-        if (!Schema::hasTable('nguoidung')) {
-            Schema::create('nguoidung', function ($table) {
+        if (!Schema::hasTable('users')) {
+            Schema::create('users', function ($table) {
                 $table->id();
                 $table->string('user');
                 $table->string('pass');

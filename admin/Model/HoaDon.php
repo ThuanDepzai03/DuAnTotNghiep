@@ -6,29 +6,29 @@ class HoaDon
     // --- 1. CÁC HÀM CƠ BẢN (CRUD) ---
     public function getAll()
     {
-        $sql = "select * from hoadon ORDER BY id DESC";
+        $sql = "select * from legacy_orders ORDER BY id DESC";
         return pdo_query($sql);
     }
     public function getOne($id)
     {
-        $sql = "select * from hoadon where id = ?";
+        $sql = "select * from legacy_orders where id = ?";
         return pdo_query_one($sql, $id);
     }
 
     public function updateStatus($id, $trangthai)
     {
-        $sql = "UPDATE hoadon SET trangthai = ? WHERE id = ?";
+        $sql = "UPDATE legacy_orders SET trangthai = ? WHERE id = ?";
         pdo_execute($sql, $trangthai, $id);
     }
     public function getAllCthdByIdHoaDon($id_hoadon)
     {
-        $sql = "SELECT ct.*, sp.name, sp.img FROM chitiethoadon ct JOIN sanpham sp ON ct.id_sanpham = sp.id WHERE ct.id_hoadon = ?";
+        $sql = "SELECT ct.*, sp.name, sp.img FROM legacy_order_items ct JOIN legacy_products sp ON ct.id_sanpham = sp.id WHERE ct.id_hoadon = ?";
         return pdo_query($sql, $id_hoadon);
     }
     // --- HÀM LỌC  ---
     public function getAllByFilter($keyword = "", $trangthai = "", $dateFrom = "", $dateTo = "")
     {
-        $sql = "SELECT * FROM hoadon WHERE 1=1";
+        $sql = "SELECT * FROM legacy_orders WHERE 1=1";
         $params = [];
 
         // 1. Lọc theo tên hoặc SĐT
@@ -66,7 +66,7 @@ class HoaDon
     // Đếm tổng đơn
     public function getCount()
     {
-        $sql = "SELECT count(*) as total FROM hoadon";
+        $sql = "SELECT count(*) as total FROM legacy_orders";
         $row = pdo_query_one($sql);
         return $row['total'];
     }
@@ -74,7 +74,7 @@ class HoaDon
     // Doanh thu HÔM NAY
     public function getDoanhThuHomNay()
     {
-        $sql = "SELECT SUM(tongtien) as total FROM hoadon WHERE trangthai = 2 AND DATE(ngaygiodat) = CURDATE()";
+        $sql = "SELECT SUM(tongtien) as total FROM legacy_orders WHERE trangthai = 2 AND DATE(ngaygiodat) = CURDATE()";
         $row = pdo_query_one($sql);
         return $row['total'] ?? 0;
     }
@@ -82,7 +82,7 @@ class HoaDon
     // Doanh thu 30 NGÀY QUA (Tháng này)
     public function getDoanhThu30DayAgo()
     {
-        $sql = "SELECT SUM(tongtien) as total FROM hoadon WHERE trangthai = 2 AND ngaygiodat >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)";
+        $sql = "SELECT SUM(tongtien) as total FROM legacy_orders WHERE trangthai = 2 AND ngaygiodat >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)";
         $row = pdo_query_one($sql);
         return $row['total'] ?? 0;
     }
@@ -90,7 +90,7 @@ class HoaDon
     // Doanh thu NĂM NAY
     public function getDoanhThuNamNay()
     {
-        $sql = "SELECT SUM(tongtien) as total FROM hoadon WHERE trangthai = 2 AND YEAR(ngaygiodat) = YEAR(CURDATE())";
+        $sql = "SELECT SUM(tongtien) as total FROM legacy_orders WHERE trangthai = 2 AND YEAR(ngaygiodat) = YEAR(CURDATE())";
         $row = pdo_query_one($sql);
         return $row['total'] ?? 0;
     }
@@ -98,7 +98,7 @@ class HoaDon
     // Tổng doanh thu TOÀN THỜI GIAN
     public function getTongDoanhThu()
     {
-        $sql = "SELECT SUM(tongtien) as total FROM hoadon WHERE trangthai = 2";
+        $sql = "SELECT SUM(tongtien) as total FROM legacy_orders WHERE trangthai = 2";
         $row = pdo_query_one($sql);
         return $row['total'] ?? 0;
     }
@@ -107,7 +107,7 @@ class HoaDon
     public function getDuLieuBieuDo30Day()
     {
         $sql = "SELECT DATE(ngaygiodat) as ngay, SUM(tongtien) as tong_tien 
-                FROM hoadon WHERE trangthai = 2 AND ngaygiodat >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+                FROM legacy_orders WHERE trangthai = 2 AND ngaygiodat >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
                 GROUP BY DATE(ngaygiodat) ORDER BY ngay ASC";
         return pdo_query($sql);
     }
@@ -116,7 +116,7 @@ class HoaDon
     public function getDuLieuBieuDoYear()
     {
         $sql = "SELECT DATE_FORMAT(ngaygiodat, '%Y-%m') as thang, SUM(tongtien) as tong_tien 
-                FROM hoadon WHERE trangthai = 2 AND ngaygiodat >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+                FROM legacy_orders WHERE trangthai = 2 AND ngaygiodat >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
                 GROUP BY DATE_FORMAT(ngaygiodat, '%Y-%m') ORDER BY thang ASC";
         return pdo_query($sql);
     }
@@ -125,7 +125,7 @@ class HoaDon
     public function getDuLieuBieuDo999Day()
     {
         $sql = "SELECT DATE(ngaygiodat) as ngay, SUM(tongtien) as tong_tien 
-                FROM hoadon WHERE trangthai = 2 AND ngaygiodat >= DATE_SUB(CURDATE(), INTERVAL 999 DAY)
+                FROM legacy_orders WHERE trangthai = 2 AND ngaygiodat >= DATE_SUB(CURDATE(), INTERVAL 999 DAY)
                 GROUP BY DATE(ngaygiodat) ORDER BY ngay ASC";
         return pdo_query($sql);
     }
