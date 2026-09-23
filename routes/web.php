@@ -236,6 +236,8 @@ Route::get('/chat', [ChatController::class, 'adminIndex'])
 
 Route::get('/chat/unread', [ChatController::class, 'unreadCount'])
     ->name('chat.unread');
+Route::get('/admin/notification-summary', [AdminController::class, 'notificationSummary'])
+    ->name('admin.notifications.summary');
 Route::get('/chat/conversations', [ChatController::class, 'adminConversations'])
     ->name('chat.conversations');
 

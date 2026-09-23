@@ -1,31 +1,8 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>So Sánh Điện Thoại Bằng AI - AE PHOENIC</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <meta name="csrf-token" content="{{ csrf_token() }}">
-</head>
-<body class="bg-neutral-100 text-neutral-800 min-h-screen flex flex-col">
+@extends('layouts.master')
 
-  <!-- Header đồng bộ AE PHOENIC -->
-  <header class="bg-neutral-900 text-white py-4 px-6 border-b border-neutral-800 sticky top-0 z-50 shadow-md">
-    <div class="max-w-7xl mx-auto flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <a href="/" class="text-red-600 font-black text-2xl tracking-wider hover:opacity-90">AE PHOENIC</a>
-        <span class="text-xs bg-red-600/20 text-red-500 font-bold px-2 py-0.5 rounded border border-red-600/30 flex items-center gap-1">
-          <i class="fa-solid fa-wand-magic-sparkles"></i> AI COMPARATOR
-        </span>
-      </div>
-      <a href="/" class="text-sm text-neutral-400 hover:text-white flex items-center gap-1.5 transition">
-        <i class="fa-solid fa-arrow-left"></i> Quay lại trang chủ
-      </a>
-    </div>
-  </header>
-
-  <main class="max-w-6xl mx-auto p-4 md:py-8 w-full flex-1">
+@section('content')
+  <div class="bg-neutral-100 text-neutral-800 min-h-screen">
+    <main class="max-w-6xl mx-auto p-4 md:py-8 w-full">
     <!-- Tiêu đề -->
     <div class="text-center mb-8">
       <h1 class="text-3xl md:text-4xl font-black text-neutral-900 tracking-tight">
@@ -107,9 +84,8 @@
     </div>
   </main>
 
-  <footer class="bg-white border-t border-neutral-200 py-4 text-center text-xs text-neutral-400">
-    © AE PHOENIC - Đồ án tốt nghiệp hệ thống bán điện thoại tích hợp AI
-  </footer>
+    </main>
+  </div>
 
   <script>
     const compareCatalog = @json($compareProducts);
@@ -267,5 +243,4 @@
       document.getElementById('resultBox').classList.remove('hidden');
     }
   </script>
-</body>
-</html>
+@endsection

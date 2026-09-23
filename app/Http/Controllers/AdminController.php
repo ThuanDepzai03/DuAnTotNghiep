@@ -9,6 +9,18 @@ use App\Models\OrderItem;
 
 class AdminController extends Controller
 {
+    public function notificationSummary()
+    {
+        $summary = [
+            'orders' => Order::where('status', 'pending')->count(),
+            'returns' => \App\Models\ReturnRequest::whereIn('status', ['pending', 'approved', 'received'])->count(),
+            'warranties' => \App\Models\WarrantyClaim::whereIn('status', ['submitted', 'received', 'checking', 'repairing'])->count(),
+            'messages' => \App\Models\Message::where('sender_type', 'customer')->where('is_read', false)->count(),
+        ];
+
+        return response()->json($summary);
+    }
+
     public function index(Request $request)
 {
     $from = $request->from;

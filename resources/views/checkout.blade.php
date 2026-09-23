@@ -570,6 +570,43 @@
         flex: 0.95;
     }
 
+    .checkout-product-card {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .checkout-product-card__image {
+        width: 84px;
+        height: 84px;
+        min-width: 84px;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #f3f4f6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .checkout-product-card__image img,
+    .checkout-product-card__image .product-thumb-placeholder {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        border-radius: 12px;
+    }
+
+    .checkout-product-card__info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .checkout-product-card__meta {
+        margin-top: 8px;
+    }
+
     .checkout-panel,
     .order-details {
         background: #fff;
@@ -681,8 +718,8 @@
         pointer-events: none;
     }
 
-    .choice-card:has(input:checked),
-    .payment-option:has(input:checked) {
+    .choice-card.selected,
+    .payment-option.selected {
         border-color: #1d4ed8;
         background: #eef4ff;
         box-shadow: 0 0 0 1px rgba(29, 78, 216, 0.1);
@@ -696,7 +733,8 @@
         box-shadow: 0 6px 18px rgba(59, 130, 246, 0.08);
     }
 
-    .payment-option:has(input:checked):hover {
+    .payment-option.selected:hover,
+    .choice-card.selected:hover {
         border-color: #1d4ed8;
         background: #eef4ff;
         box-shadow: 0 0 0 1px rgba(29, 78, 216, 0.1);
@@ -1368,6 +1406,13 @@
             updateCartQuantity(input.dataset.variantId, value);
         });
 
+        function syncSelectionClasses() {
+            document.querySelectorAll('.choice-card, .payment-option').forEach(function (card) {
+                const radio = card.querySelector('input[type="radio"]');
+                card.classList.toggle('selected', !!(radio && radio.checked));
+            });
+        }
+
         function updateDeliveryEstimate() {
             if (!deliveryEstimateText || !deliveryEstimateNote) return;
 
@@ -1411,9 +1456,17 @@
         wardSelect?.addEventListener('change', updateShippingFee);
 
         deliveryMethodInputs.forEach(function (input) {
-            input.addEventListener('change', updateDeliveryEstimate);
+            input.addEventListener('change', function () {
+                syncSelectionClasses();
+                updateDeliveryEstimate();
+            });
         });
 
+        document.querySelectorAll('input[name="payment_method"]').forEach(function (input) {
+            input.addEventListener('change', syncSelectionClasses);
+        });
+
+        syncSelectionClasses();
         updateDeliveryEstimate();
         initializeAddressSelectors();
         updateShippingFee();

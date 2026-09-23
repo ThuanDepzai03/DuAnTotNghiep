@@ -5,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>AE Phoenic Store</title>
-<link rel="icon" type="image/png" href="{{ asset('img/logo.png') }}">
-<link rel="shortcut icon" type="image/png" href="{{ asset('img/logo.png') }}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="{{ asset('img/logo.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ asset('img/logo.png') }}">
     <link href="https://fonts.googleapis.com/css?family=Montserrat:400,500,700" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}" />
     <link rel="stylesheet" href="{{ asset('css/slick.css') }}" />
@@ -658,6 +659,13 @@
 body {
     margin-top: 0 !important;
     padding-top: 0 !important;
+}
+
+.container {
+    width: min(75vw, 1280px) !important;
+    max-width: min(75vw, 1280px) !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
 }
 
 .site-header {

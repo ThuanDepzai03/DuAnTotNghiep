@@ -151,4 +151,89 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     });
+
+    let uiAudioContext = null;
+
+    function ensureUiAudio() {
+        const AudioCtor = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtor) return null;
+
+        if (!uiAudioContext) {
+            uiAudioContext = new AudioCtor();
+        }
+
+        if (uiAudioContext.state === 'suspended') {
+            uiAudioContext.resume().catch(function () {});
+        }
+
+        return uiAudioContext;
+    }
+
+    function playUiTone(options = {}) {
+        try {
+            const audioContext = ensureUiAudio();
+            if (!audioContext) return;
+
+            const oscillator = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            const now = audioContext.currentTime;
+            const type = options.type || 'sine';
+            const startFrequency = options.startFrequency || 520;
+            const endFrequency = options.endFrequency || 360;
+            const duration = options.duration || 0.12;
+
+            oscillator.type = type;
+            oscillator.frequency.setValueAtTime(startFrequency, now);
+            oscillator.frequency.exponentialRampToValueAtTime(endFrequency, now + duration);
+
+            gain.gain.setValueAtTime(0.0001, now);
+            gain.gain.exponentialRampToValueAtTime(0.04, now + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+            oscillator.connect(gain);
+            gain.connect(audioContext.destination);
+            oscillator.start(now);
+            oscillator.stop(now + duration);
+        } catch (error) {
+            console.log('Không phát âm thanh click UI:', error);
+        }
+    }
+
+    function playDangerButtonTone() {
+        playUiTone({
+            type: 'square',
+            startFrequency: 180,
+            endFrequency: 110,
+            duration: 0.2
+        });
+    }
+
+    function playAnyClickTone(target) {
+        if (!target) return;
+
+        const isDanger = target.closest('.btn-danger, .btn-outline-danger, .bg-danger, .badge.bg-danger, .delete-btn, [data-danger-action]');
+        const isProduct = target.closest('.product-card, .product-card-custom, .product-item, .product-link, article.product');
+
+        if (isDanger) {
+            playDangerButtonTone();
+            return;
+        }
+
+        if (target.closest('button, .btn') || isProduct) {
+            playUiTone({
+                type: 'sine',
+                startFrequency: isProduct ? 620 : 420,
+                endFrequency: isProduct ? 460 : 280,
+                duration: isProduct ? 0.14 : 0.1
+            });
+        }
+    }
+
+    document.addEventListener('pointerdown', ensureUiAudio, { once: true });
+    document.addEventListener('keydown', ensureUiAudio, { once: true });
+
+    document.addEventListener('click', function (event) {
+        const target = event.target.closest('button, .btn, a, .product-card, .product-card-custom, .product-item, .product-link, article.product');
+        playAnyClickTone(target);
+    });
 });
