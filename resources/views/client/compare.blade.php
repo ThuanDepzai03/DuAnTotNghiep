@@ -45,10 +45,11 @@
             <i class="fa-solid fa-mobile-screen text-red-600 mr-1"></i> Sản phẩm thứ nhất
           </label>
           <div class="relative">
-            <input id="phone1" type="text" placeholder="Gõ tên máy: iPhone 15 Pro, S24 Ultra..." 
+            <input id="phone1" type="text" autocomplete="off" placeholder="Tìm sản phẩm trong cửa hàng..." 
               class="w-full pl-10 pr-4 py-3 bg-neutral-50 border border-neutral-300 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-red-600 focus:bg-white transition" />
             <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-neutral-400 text-sm"></i>
           </div>
+          <div id="product1Suggestions" class="mt-2 space-y-1"></div>
         </div>
 
         <!-- Biểu tượng VS ở giữa -->
@@ -64,26 +65,17 @@
             <i class="fa-solid fa-mobile-screen text-red-600 mr-1"></i> Sản phẩm thứ hai
           </label>
           <div class="relative">
-            <input id="phone2" type="text" placeholder="Gõ tên máy: Xiaomi 14, Galaxy S23 FE..." 
+            <input id="phone2" type="text" autocomplete="off" placeholder="Tìm sản phẩm trong cửa hàng..." 
               class="w-full pl-10 pr-4 py-3 bg-neutral-50 border border-neutral-300 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-red-600 focus:bg-white transition" />
             <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-neutral-400 text-sm"></i>
           </div>
+          <div id="product2Suggestions" class="mt-2 space-y-1"></div>
         </div>
       </div>
 
-      <!-- Gợi ý nhanh các cặp so sánh hot -->
-      <div class="mt-4 pt-4 border-t border-neutral-100 flex flex-wrap items-center gap-2 text-xs">
-        <span class="text-neutral-400 font-medium">Gợi ý so sánh hot:</span>
-        <button onclick="setCompare('iPhone 15 Pro Max', 'Samsung Galaxy S24 Ultra')" class="bg-neutral-100 hover:bg-neutral-200 px-2.5 py-1 rounded-full text-neutral-700 transition">
-          iPhone 15 Pro Max vs S24 Ultra
-        </button>
-        <button onclick="setCompare('Samsung Galaxy S23 FE', 'iPhone 13')" class="bg-neutral-100 hover:bg-neutral-200 px-2.5 py-1 rounded-full text-neutral-700 transition">
-          S23 FE vs iPhone 13
-        </button>
-        <button onclick="setCompare('Xiaomi 14 Ultra', 'Samsung Galaxy S24 Ultra')" class="bg-neutral-100 hover:bg-neutral-200 px-2.5 py-1 rounded-full text-neutral-700 transition">
-          Xiaomi 14 Ultra vs S24 Ultra
-        </button>
-      </div>
+      <p class="mt-4 pt-4 border-t border-neutral-100 text-center text-xs text-neutral-400">
+        Chỉ có thể chọn các sản phẩm đang kinh doanh và còn hàng trong cửa hàng.
+      </p>
 
       <!-- Nút bấm hành động -->
       <div class="mt-6 flex justify-center">
@@ -120,19 +112,66 @@
   </footer>
 
   <script>
-    // Hàm bấm vào gợi ý nhanh
-    function setCompare(p1, p2) {
-      document.getElementById('phone1').value = p1;
-      document.getElementById('phone2').value = p2;
-      executeCompare();
+    const compareCatalog = @json($compareProducts);
+    const selectedProductId = @json($selectedProductId);
+    const selectedProducts = [null, null];
+    const compareInputs = [document.getElementById('phone1'), document.getElementById('phone2')];
+    const suggestionBoxes = [document.getElementById('product1Suggestions'), document.getElementById('product2Suggestions')];
+
+    function productById(id) {
+      return compareCatalog.find(product => Number(product.id) === Number(id)) || null;
     }
 
+    function renderSuggestions(index) {
+      const query = compareInputs[index].value.trim().toLowerCase();
+      const selectedOther = selectedProducts[1 - index]?.id;
+      const products = compareCatalog
+        .filter(product => product.id !== selectedOther)
+        .filter(product => !query || product.name.toLowerCase().includes(query))
+        .slice(0, 8);
+
+      suggestionBoxes[index].innerHTML = products.map(product => `
+        <button type="button" data-product-id="${product.id}"
+          class="flex w-full items-center justify-between rounded-lg border border-neutral-200 bg-white px-3 py-2 text-left text-sm hover:border-red-300 hover:bg-red-50">
+          <span class="font-medium text-neutral-700">${product.name}</span>
+          <span class="ml-3 whitespace-nowrap text-xs font-bold text-red-600">${product.priceLabel}</span>
+        </button>
+      `).join('');
+
+      suggestionBoxes[index].querySelectorAll('[data-product-id]').forEach(button => {
+        button.addEventListener('click', () => selectProduct(index, button.dataset.productId));
+      });
+    }
+
+    function selectProduct(index, productId) {
+      const product = productById(productId);
+      if (!product) return;
+      selectedProducts[index] = product;
+      compareInputs[index].value = product.name;
+      suggestionBoxes[index].innerHTML = `<div class="text-xs font-semibold text-emerald-600">Đã chọn: ${product.name} · ${product.priceLabel}</div>`;
+    }
+
+    compareInputs.forEach((input, index) => {
+      input.addEventListener('focus', () => renderSuggestions(index));
+      input.addEventListener('input', () => {
+        selectedProducts[index] = null;
+        renderSuggestions(index);
+      });
+    });
+
+    if (selectedProductId) {
+      selectProduct(0, selectedProductId);
+    } else {
+      renderSuggestions(0);
+    }
+    renderSuggestions(1);
+
     async function executeCompare() {
-      const p1 = document.getElementById('phone1').value.trim();
-      const p2 = document.getElementById('phone2').value.trim();
+      const p1 = selectedProducts[0];
+      const p2 = selectedProducts[1];
 
       if (!p1 || !p2) {
-        alert("Vui lòng nhập tên cả 2 dòng điện thoại để so sánh!");
+        alert("Vui lòng chọn đủ 2 sản phẩm trong danh sách cửa hàng!");
         return;
       }
 
@@ -155,8 +194,8 @@
           },
           body: JSON.stringify({
             products: [
-              { name: p1, price: "Tra cứu theo thị trường" },
-              { name: p2, price: "Tra cứu theo thị trường" }
+              { name: p1.name, price: p1.priceLabel },
+              { name: p2.name, price: p2.priceLabel }
             ]
           })
         });

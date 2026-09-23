@@ -421,9 +421,9 @@
                                             </button>
                                         </form>
 
-                                        <button type="button" class="btn-icon" title="So sánh">
+                                        <a href="{{ route('compare.index', ['product_id' => $product->id]) }}" class="btn-icon" title="So sánh sản phẩm">
                                             <i class="fa fa-exchange"></i>
-                                        </button>
+                                        </a>
 
                                         <a
                                             class="btn-icon"

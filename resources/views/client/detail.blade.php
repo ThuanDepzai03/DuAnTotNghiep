@@ -241,10 +241,10 @@
                             </button>
                         </form>
 
-                        <button type="button" class="add-to-compare">
+                        <a href="{{ route('compare.index', ['product_id' => $product->id]) }}" class="add-to-compare">
                             <i class="fa fa-exchange"></i>
                             So sánh
-                        </button>
+                        </a>
                     </div>
                 </div>
             </div>
