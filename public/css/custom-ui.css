@@ -1167,9 +1167,26 @@ body {
 }
 
 .wishlist-inline-form .btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
     background: transparent;
     border: 0;
     padding: 0;
+    color: #8d99ae !important;
+    line-height: 1;
+}
+
+.wishlist-inline-form .wishlist-button .fa-heart-o {
+    display: inline-block;
+    color: #8d99ae !important;
+    opacity: 1;
+}
+
+.wishlist-inline-form .wishlist-button:hover .fa-heart-o {
+    color: #d10024 !important;
 }
 
 .wishlist-inline-form .fa-heart {
