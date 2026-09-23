@@ -302,7 +302,7 @@
                             </div>
 
                             <div class="choice-grid">
-                                <label class="choice-card selected">
+                                <label class="choice-card">
                                     <input type="radio" name="delivery_method" value="home" checked>
                                     <span class="choice-icon">🚚</span>
                                     <span>
@@ -681,14 +681,22 @@
         pointer-events: none;
     }
 
-    .choice-card.selected,
-    .payment-option input:checked + .payment-box {
+    .choice-card:has(input:checked),
+    .payment-option:has(input:checked) {
         border-color: #1d4ed8;
         background: #eef4ff;
         box-shadow: 0 0 0 1px rgba(29, 78, 216, 0.1);
     }
 
-    .choice-card:has(input:checked) {
+    .choice-card:hover,
+    .payment-option:hover {
+        border-color: #93c5fd;
+        background: #f3f8ff;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(59, 130, 246, 0.08);
+    }
+
+    .payment-option:has(input:checked):hover {
         border-color: #1d4ed8;
         background: #eef4ff;
         box-shadow: 0 0 0 1px rgba(29, 78, 216, 0.1);

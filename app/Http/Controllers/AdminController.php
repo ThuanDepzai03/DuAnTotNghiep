@@ -18,7 +18,7 @@ class AdminController extends Controller
     $stats = [
         'orders' => Order::count(),
         'products' => DB::table('products')->count(),
-        'users' => DB::table('nguoidung')->count(),
+        'users' => \App\Support\CustomerTable::query()->count(),
     ];
 
     // Hôm nay

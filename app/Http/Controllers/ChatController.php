@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Conversation;
 use App\Models\Message;
+use App\Support\CustomerTable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -114,8 +115,8 @@ class ChatController extends Controller
                 $query->latest();
             }
         ])
-        ->leftJoin('nguoidung', 'conversations.user_id', '=', 'nguoidung.id')
-        ->select('conversations.*', 'nguoidung.user as customer_user', 'nguoidung.email as customer_email')
+        ->leftJoin(CustomerTable::name(), 'conversations.user_id', '=', CustomerTable::name() . '.id')
+        ->select('conversations.*', CustomerTable::name() . '.user as customer_user', CustomerTable::name() . '.email as customer_email')
         ->orderByDesc('last_message_at')
         ->get();
     }

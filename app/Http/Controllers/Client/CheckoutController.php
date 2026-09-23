@@ -9,6 +9,7 @@ use App\Models\ProductImei;
 use App\Models\ProductVariant;
 use App\Models\InventoryTransaction;
 use App\Models\Voucher;
+use App\Support\CustomerTable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -191,7 +192,7 @@ class CheckoutController extends Controller
         // ==============================
 
         $customer = session('customer');
-        $customerRecord = DB::table('nguoidung')->where('id', $customer['id'] ?? 0)->first();
+        $customerRecord = CustomerTable::query()->where('id', $customer['id'] ?? 0)->first();
         $customerValue = function (string $recordField, string $sessionField, string $fallback = '') use ($customerRecord, $customer): string {
             $recordValue = $customerRecord->{$recordField} ?? null;
             if (is_string($recordValue) && trim($recordValue) !== '') {
@@ -733,7 +734,7 @@ class CheckoutController extends Controller
                 ];
 
                 foreach (['city', 'ward', 'address_detail'] as $field) {
-                    if (Schema::hasColumn('nguoidung', $field)) {
+                    if (CustomerTable::hasColumn($field)) {
                         $customerData[$field] = trim($request->{$field});
                     }
                 }
@@ -746,7 +747,7 @@ class CheckoutController extends Controller
                     $customerData['updated_at'] = now();
                 }
 
-                DB::table('nguoidung')
+                CustomerTable::query()
                     ->where('id', $customerId)
                     ->update($customerData);
 

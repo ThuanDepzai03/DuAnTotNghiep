@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\CustomerTable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -11,7 +12,7 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = DB::table('nguoidung')
+        $users = CustomerTable::query()
             ->select([
                 'id',
                 'name',
@@ -41,7 +42,7 @@ class UserController extends Controller
                 'required',
                 'string',
                 'max:255',
-                'unique:nguoidung,user',
+                'unique:' . CustomerTable::name() . ',user',
             ],
             'pass' => [
                 'required',
@@ -52,7 +53,7 @@ class UserController extends Controller
                 'required',
                 'email',
                 'max:255',
-                'unique:nguoidung,email',
+                'unique:' . CustomerTable::name() . ',email',
             ],
             'address' => [
                 'nullable',
@@ -78,7 +79,7 @@ class UserController extends Controller
             'email.unique' => 'Email này đã được sử dụng.',
         ]);
 
-        DB::table('nguoidung')->insert([
+        CustomerTable::query()->insert([
             'name' => trim($data['name']),
             'user' => trim($data['user']),
             'pass' => Hash::make($data['pass']),
@@ -97,7 +98,7 @@ class UserController extends Controller
 
     public function edit($id)
     {
-        $user = DB::table('nguoidung')
+        $user = CustomerTable::query()
             ->where('id', $id)
             ->first();
 
@@ -114,7 +115,7 @@ class UserController extends Controller
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('nguoidung', 'user')->ignore($id),
+                Rule::unique(CustomerTable::name(), 'user')->ignore($id),
             ],
             'pass' => [
                 'nullable',
@@ -125,7 +126,7 @@ class UserController extends Controller
                 'required',
                 'email',
                 'max:255',
-                Rule::unique('nguoidung', 'email')->ignore($id),
+                Rule::unique(CustomerTable::name(), 'email')->ignore($id),
             ],
             'address' => [
                 'nullable',
@@ -163,7 +164,7 @@ class UserController extends Controller
             $updateData['pass'] = Hash::make($data['pass']);
         }
 
-        DB::table('nguoidung')
+        CustomerTable::query()
             ->where('id', $id)
             ->update($updateData);
 
@@ -176,7 +177,7 @@ class UserController extends Controller
 
     public function destroy($id)
     {
-        DB::table('nguoidung')
+        CustomerTable::query()
             ->where('id', $id)
             ->delete();
 
