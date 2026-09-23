@@ -1065,6 +1065,91 @@ body {
     text-align: center;
 }
 
+.header-cart-action {
+    position: relative;
+}
+
+.cart-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: #d10024;
+    color: #fff;
+    font-size: 10px;
+    line-height: 1;
+    transition: opacity .2s ease, transform .2s ease;
+}
+
+.cart-count.is-empty {
+    display: none;
+}
+
+.is-cart-bumping {
+    animation: cart-bump .55s ease;
+}
+
+.cart-fly-item {
+    position: fixed;
+    z-index: 100000;
+    width: 44px;
+    height: 44px;
+    border: 2px solid #d10024;
+    border-radius: 50%;
+    background-color: #fff;
+    background-position: center;
+    background-size: cover;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, .2);
+    pointer-events: none;
+    transition: transform .6s cubic-bezier(.2, .8, .2, 1), opacity .6s ease;
+}
+
+.cart-fly-item.is-flying {
+    transform: translate(var(--cart-x), var(--cart-y)) scale(.25);
+    opacity: .2;
+}
+
+.cart-fly-item i {
+    display: grid;
+    height: 100%;
+    place-items: center;
+    color: #d10024;
+    font-size: 18px;
+}
+
+.cart-toast {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 100001;
+    padding: 12px 18px;
+    border-left: 4px solid #16a34a;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .16);
+    color: #202124;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity .22s ease, transform .22s ease;
+}
+
+.cart-toast.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.cart-toast--error {
+    border-left-color: #d10024;
+}
+
+@keyframes cart-bump {
+    0%, 100% { transform: scale(1); }
+    35% { transform: scale(1.14) rotate(-4deg); }
+    70% { transform: scale(.94) rotate(4deg); }
+}
+
 
 .header-action:hover {
     color: #fff !important;
@@ -1074,6 +1159,21 @@ body {
 
 .header-action:hover i {
     color: #e11d48;
+}
+
+.wishlist-inline-form {
+    display: inline-flex;
+    margin: 0;
+}
+
+.wishlist-inline-form .btn-icon {
+    background: transparent;
+    border: 0;
+    padding: 0;
+}
+
+.wishlist-inline-form .fa-heart {
+    color: #d10024;
 }
 
 

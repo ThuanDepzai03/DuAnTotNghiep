@@ -84,10 +84,25 @@
                     @endphp
 
                     {{-- GIỎ HÀNG --}}
+                    @php
+                        $headerCartKey = $customer['id'] ?? 'guest';
+                        $headerCart = session('cart.' . $headerCartKey, []);
+                        $headerCartQuantity = collect($headerCart)->sum('quantity');
+                    @endphp
                     <a href="{{ route('cart.index') }}"
-                       class="header-action">
+                       class="header-action header-cart-action"
+                       aria-label="Giỏ hàng, {{ $headerCartQuantity }} sản phẩm">
                         <i class="fa fa-shopping-cart"></i>
                         <span>Giỏ hàng</span>
+                        <span class="cart-count {{ $headerCartQuantity ? '' : 'is-empty' }}"
+                              aria-live="polite">{{ $headerCartQuantity }}</span>
+                    </a>
+
+                    <a href="{{ route('wishlist.index') }}"
+                       class="header-action"
+                       aria-label="Sản phẩm yêu thích">
+                        <i class="fa fa-heart-o"></i>
+                        <span>Yêu thích</span>
                     </a>
 
 
