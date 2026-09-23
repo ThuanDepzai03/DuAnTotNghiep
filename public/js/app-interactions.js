@@ -57,4 +57,98 @@ document.addEventListener('DOMContentLoaded', function () {
     } else {
         revealItems.forEach((item) => item.classList.add('is-visible'));
     }
+
+    const cartForms = document.querySelectorAll('form[action*="/cart/add"]');
+    const cartLink = document.querySelector('.header-cart-action');
+    const cartIcon = cartLink?.querySelector('.fa-shopping-cart');
+    const cartCount = cartLink?.querySelector('.cart-count');
+
+    function showCartToast(message, isError = false) {
+        const toast = document.createElement('div');
+        toast.className = `cart-toast${isError ? ' cart-toast--error' : ''}`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        requestAnimationFrame(() => toast.classList.add('is-visible'));
+        window.setTimeout(() => {
+            toast.classList.remove('is-visible');
+            window.setTimeout(() => toast.remove(), 220);
+        }, 2400);
+    }
+
+    function updateCartBadge(totalQuantity) {
+        if (!cartCount) return;
+        cartCount.textContent = totalQuantity;
+        cartCount.classList.toggle('is-empty', Number(totalQuantity) < 1);
+        cartLink?.setAttribute('aria-label', `Giỏ hàng, ${totalQuantity} sản phẩm`);
+    }
+
+    function animateItemToCart(form) {
+        if (!cartIcon) return;
+
+        const sourceImage = form.closest('.product-card-custom, .product-card, article')?.querySelector('img')
+            || document.querySelector('#main-product-image');
+        const sourceRect = (sourceImage || form.querySelector('button'))?.getBoundingClientRect();
+        const targetRect = cartIcon.getBoundingClientRect();
+
+        if (!sourceRect) return;
+
+        const flyer = document.createElement('span');
+        flyer.className = 'cart-fly-item';
+        flyer.style.left = `${sourceRect.left + sourceRect.width / 2 - 22}px`;
+        flyer.style.top = `${sourceRect.top + sourceRect.height / 2 - 22}px`;
+        if (sourceImage?.src) {
+            flyer.style.backgroundImage = `url("${sourceImage.src}")`;
+        } else {
+            flyer.innerHTML = '<i class="fa fa-shopping-cart"></i>';
+        }
+        flyer.style.setProperty('--cart-x', `${targetRect.left + targetRect.width / 2 - sourceRect.left - sourceRect.width / 2}px`);
+        flyer.style.setProperty('--cart-y', `${targetRect.top + targetRect.height / 2 - sourceRect.top - sourceRect.height / 2}px`);
+        document.body.appendChild(flyer);
+        requestAnimationFrame(() => flyer.classList.add('is-flying'));
+        window.setTimeout(() => flyer.remove(), 650);
+        cartLink.classList.remove('is-cart-bumping');
+        void cartLink.offsetWidth;
+        cartLink.classList.add('is-cart-bumping');
+    }
+
+    cartForms.forEach(form => {
+        form.addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            const button = form.querySelector('button[type="submit"]');
+            const originalText = button?.innerHTML;
+            if (button) {
+                button.disabled = true;
+                button.classList.add('is-loading');
+            }
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: new FormData(form),
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                });
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || 'Không thể thêm sản phẩm vào giỏ hàng.');
+                }
+
+                updateCartBadge(data.totalQuantity);
+                animateItemToCart(form);
+                showCartToast(data.message);
+            } catch (error) {
+                showCartToast(error.message, true);
+            } finally {
+                if (button) {
+                    button.disabled = false;
+                    button.classList.remove('is-loading');
+                    button.innerHTML = originalText;
+                }
+            }
+        });
+    });
 });

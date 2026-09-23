@@ -413,13 +413,17 @@
                                     </div>
 
                                     <div class="prod-actions">
-                                        <button type="button" class="btn-icon" title="Yêu thích">
-                                            <i class="fa fa-heart-o"></i>
-                                        </button>
+                                        <form action="{{ route('wishlist.toggle') }}" method="POST" class="wishlist-inline-form">
+                                            @csrf
+                                            <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                            <button type="submit" class="btn-icon wishlist-button" title="Yêu thích" aria-label="Thêm {{ $product->name }} vào yêu thích">
+                                                <i class="fa {{ in_array((int) $product->id, array_map('intval', session('wishlist', [])), true) ? 'fa-heart' : 'fa-heart-o' }}"></i>
+                                            </button>
+                                        </form>
 
-                                        <button type="button" class="btn-icon" title="So sánh">
+                                        <a href="{{ route('compare.index', ['product_id' => $product->id]) }}" class="btn-icon" title="So sánh sản phẩm">
                                             <i class="fa fa-exchange"></i>
-                                        </button>
+                                        </a>
 
                                         <a
                                             class="btn-icon"

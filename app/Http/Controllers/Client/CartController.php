@@ -42,11 +42,11 @@ class CartController extends Controller
             ->findOrFail($request->product_variant_id);
 
         if (!$variant->product || $variant->product->status != 1) {
-            return back()->with('error', 'Sản phẩm hiện không khả dụng.');
+            return $this->cartAddResponse($request, false, 'Sản phẩm hiện không khả dụng.', 422);
         }
 
         if ($variant->stock < 1) {
-            return back()->with('error', 'Biến thể này hiện đã hết hàng.');
+            return $this->cartAddResponse($request, false, 'Biến thể này hiện đã hết hàng.', 422);
         }
 
         $cart = $this->getCartItems();
@@ -55,9 +55,11 @@ class CartController extends Controller
         $currentQuantity = $cart[$variantId]['quantity'] ?? 0;
 
         if (($currentQuantity + $quantity) > $variant->stock) {
-            return back()->with(
-                'error',
-                'Số lượng vượt quá tồn kho. Hiện còn ' . $variant->stock . ' sản phẩm.'
+            return $this->cartAddResponse(
+                $request,
+                false,
+                'Số lượng vượt quá tồn kho. Hiện còn ' . $variant->stock . ' sản phẩm.',
+                422
             );
         }
 
@@ -89,9 +91,31 @@ class CartController extends Controller
 
         $this->saveCartItems($cart);
 
+        $totalQuantity = collect($cart)->sum('quantity');
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Đã thêm sản phẩm vào giỏ hàng.',
+                'totalQuantity' => $totalQuantity,
+            ]);
+        }
+
         return redirect()
             ->route('cart.index')
             ->with('success', 'Đã thêm sản phẩm vào giỏ hàng.');
+    }
+
+    private function cartAddResponse(Request $request, bool $success, string $message, int $status)
+    {
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => $success,
+                'message' => $message,
+            ], $status);
+        }
+
+        return back()->with('error', $message);
     }
 
     public function update(Request $request)
