@@ -466,6 +466,43 @@
         background-color: #f9f9f9;
     }
 
+    .suggestion-group {
+        padding: 8px 0;
+    }
+
+    .suggestion-group + .suggestion-group {
+        border-top: 1px solid #eef0f3;
+    }
+
+    .suggestion-group-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 15px 6px;
+        color: #252a34;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+    }
+
+    .suggestion-group-title i {
+        color: #d10024;
+        font-size: 13px;
+    }
+
+    .suggestion-arrow {
+        margin-left: auto;
+        color: #b4bac4;
+        font-size: 11px;
+        transition: transform .2s ease, color .2s ease;
+    }
+
+    .suggestion-item:hover .suggestion-arrow {
+        color: #d10024;
+        transform: translateX(3px);
+    }
+
     .suggestion-item:last-child {
         border-bottom: none;
     }
@@ -642,15 +679,13 @@ body {
             const suggestionsContainer = document.getElementById('search-suggestions');
             let debounceTimer;
 
+            searchInput.addEventListener('focus', function() {
+                fetchSuggestions(this.value.trim());
+            });
+
             searchInput.addEventListener('input', function() {
                 clearTimeout(debounceTimer);
                 const keyword = this.value.trim();
-
-                if (keyword.length === 0) {
-                    suggestionsContainer.classList.remove('active');
-                    suggestionsContainer.innerHTML = '';
-                    return;
-                }
 
                 debounceTimer = setTimeout(function() {
                     fetchSuggestions(keyword);
@@ -676,6 +711,11 @@ body {
             }
 
             function displaySuggestions(products) {
+                if (!Array.isArray(products)) {
+                    displaySuggestionGroups(products);
+                    return;
+                }
+
                 if (products.length === 0) {
                     suggestionsContainer.innerHTML = '<div class="suggestion-empty">Không tìm thấy sản phẩm</div>';
                     suggestionsContainer.classList.add('active');
@@ -692,6 +732,36 @@ body {
                     </a>
                 `).join('');
                 suggestionsContainer.classList.add('active');
+            }
+
+            function displaySuggestionGroups(groups) {
+                const sections = [
+                    { title: 'Sản phẩm nổi bật', icon: 'fa-star', items: groups.featured || [] },
+                    { title: 'Sản phẩm bán chạy', icon: 'fa-fire', items: groups.popular || [] },
+                ].filter(section => section.items.length);
+
+                suggestionsContainer.innerHTML = sections.length
+                    ? sections.map(section => `
+                        <section class="suggestion-group">
+                            <div class="suggestion-group-title"><i class="fa ${section.icon}"></i>${section.title}</div>
+                            ${section.items.map(product => suggestionMarkup(product)).join('')}
+                        </section>
+                    `).join('')
+                    : '<div class="suggestion-empty">Chưa có sản phẩm gợi ý</div>';
+                suggestionsContainer.classList.add('active');
+            }
+
+            function suggestionMarkup(product) {
+                return `
+                    <a href="${product.url}" class="suggestion-item">
+                        <img src="${product.image}" alt="${product.name}" class="suggestion-image">
+                        <div class="suggestion-content">
+                            <div class="suggestion-name">${product.name}</div>
+                            <div class="suggestion-price">${formatPrice(product.price)}</div>
+                        </div>
+                        <i class="fa fa-arrow-right suggestion-arrow"></i>
+                    </a>
+                `;
             }
 
             function formatPrice(price) {
