@@ -720,7 +720,7 @@ sequenceDiagram
         participant Google as Google OAuth
         participant DB as MySQL nguoidung
 
-        Customer->>Browser: Chọn Đăng nhập bằng Google
+        Customer->>Browser: Chọn Đăng nhập bằn
         Browser->>Laravel: GET /auth/google/redirect
         Laravel->>Browser: Redirect đến Google
         Browser->>Google: Xác nhận quyền truy cập
