@@ -715,7 +715,7 @@ flowchart TD
 ```mermaid
 sequenceDiagram
         actor Customer as Khách hàng
-        participant Browser as Trình duyệt
+        participant Browser as 
         participant Laravel as
         participant Google as Google OAuth
         participant DB as MySQL nguoidung
