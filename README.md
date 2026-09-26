@@ -729,7 +729,7 @@ sequenceDiagram
         Google-->>Laravel: google_id, email, tên và ảnh hồ sơ
         Laravel->>DB: Tìm theo google_id hoặc
         alt Chưa có tài khoản
-                Laravel->>DB: Tạo nguoidung role=0, status=1
+                Laravel->>DB: Tạo nguoidung role=0, statu
         else Đã có
                 Laravel->>DB: Liên kết google_id nếu còn 
         end
