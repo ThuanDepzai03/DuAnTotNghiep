@@ -756,7 +756,7 @@ sequenceDiagram
 - Admin cập nhật trạng thái đơn qua `PUT /admin/orders/{id}/status` theo các chuyển trạng thái được
 - Khách xem lịch sử/chi tiết đơn qua `/account/orders/{id}` và theo dõi đơn qua `/orders/tracking`
 - Đánh giá sản phẩm lưu trong `reviews`; sản phẩm yêu thích được xử lý qua `WishlistController`.
-- Chat khách hàng/admin dùng các route `/chat/*`, lưu hội thoại trong `conversations` và tin nhắn trong `messages`.
+- Chat khách hàng/admin dùng các route `/chat/*`, lưu hội thoại trong `conversations` và tin nhắn trong `messages`
 - Lượt xem được ghi trong `product_clicks` và dùng để xếp hạng sản phẩm nổi bật trên Shop.
 
 ### 8.6. Luồng quản trị
