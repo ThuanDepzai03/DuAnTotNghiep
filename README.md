@@ -727,7 +727,7 @@ sequenceDiagram
         Google->>Laravel: GET /auth/google/callback?
         Laravel->>Google: Đổi code lấy thông tin tài khoản
         Google-->>Laravel: google_id, email, tên và ảnh hồ sơ
-        Laravel->>DB: Tìm theo google_id hoặc email
+        Laravel->>DB: Tìm theo google_id hoặc
         alt Chưa có tài khoản
                 Laravel->>DB: Tạo nguoidung role=0, status=1
         else Đã có tài khoản
