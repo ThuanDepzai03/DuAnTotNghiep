@@ -721,7 +721,7 @@ sequenceDiagram
         participant DB as MySQL nguoidung
 
         Customer->>Browser: Chọn Đăng nhậ
-        Browser->>Laravel: GET /auth/google/
+        Browser->>Laravel: GET /auth/google
         Laravel->>Browser: Redirect đến Google
         Browser->>Google: Xác nhận quyền truy cập
         Google->>Laravel: GET /auth/google/callback?code=...
