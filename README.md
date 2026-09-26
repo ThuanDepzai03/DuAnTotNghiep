@@ -722,7 +722,7 @@ sequenceDiagram
 
         Customer->>Browser: Chọn Đăng
         Browser->>Laravel: GET /auth/google
-        Laravel->>Browser: Redirect đến Google
+        Laravel->>Browser: Redirect đến Goo
         Browser->>Google: Xác nhận quyền truy cập
         Google->>Laravel: GET /auth/google/callback?
         Laravel->>Google: Đổi code lấy thông tin tài khoản
