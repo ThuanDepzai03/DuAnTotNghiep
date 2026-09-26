@@ -730,7 +730,7 @@ sequenceDiagram
         Laravel->>DB: Tìm theo google_id hoặc
         alt Chưa có tài khoản
                 Laravel->>DB: Tạo nguoidung role=0, status=1
-        else Đã có tài khoản
+        else Đã có tài
                 Laravel->>DB: Liên kết google_id nếu còn thiếu
         end
         Laravel->>Laravel: Ghi session customer
