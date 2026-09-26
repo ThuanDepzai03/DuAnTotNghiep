@@ -736,7 +736,7 @@ sequenceDiagram
         Laravel->>Laravel: Ghi session custom
         Laravel-->>Browser: Redirect /
         Browser->>Laravel
-        Laravel-->>Browser: Header tài khoản,
+        Laravel-->>Browser: Header tài khoản
 ```
 
 ### 8.4. Luồng checkout và tạo đơn
