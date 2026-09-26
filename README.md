@@ -699,7 +699,7 @@ flowchart TD
 - `GET /shop` gọi `Client\ProductController@index`, lọc sản phẩm đang hoạt động theo nhóm, danh mục, thương hiệu, từ khóa, giá và thuộc tính biến thể; kết quả được phân trang tại `client/shop.blade.php`.
 - `GET /detail/{id}` gọi `Client\ProductController@show`, eager-load sản phẩm, biến thể, thuộc tính, ảnh và đánh giá; JavaScript trên Blade chọn tổ hợp variant và cập nhật giá/tồn kho.
 - `POST /cart/add` gọi `Client\CartController@add`, kiểm tra sản phẩm, variant và tồn kho rồi lưu vào session `cart.guest` hoặc `cart.{customer_id}`.
-- `GET /cart`, `POST /cart/update` và `POST /cart/remove` đọc/cập nhật session giỏ hàng và tính lại tổng tiền.
+- `GET /cart`, `POST /cart/update` và `POST /cart/remove` đọc/cập nhật session giỏ hàng và tính lại
 
 ### 8.3. Luồng đăng ký và đăng nhập
 
