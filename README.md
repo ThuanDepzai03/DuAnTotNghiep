@@ -735,7 +735,7 @@ sequenceDiagram
         end
         Laravel->>Laravel: Ghi session custom
         Laravel-->>Browser: Redirect /
-        Browser->>Laravel: GET /
+        Browser->>Laravel
         Laravel-->>Browser: Header tài khoản, không mở
 ```
 
