@@ -717,7 +717,7 @@ sequenceDiagram
         actor Customer as Khách hàng
         participant Browser as 
         participant Laravel as
-        participant Google as GoogleAuth
+        participant Google as GoogleAu
         participant DB as MySQL
 
         Customer->>Browser: Chọn Đăng
