@@ -733,7 +733,7 @@ sequenceDiagram
         else Đã có
                 Laravel->>DB: Liên kết google_id nếu còn thiếu
         end
-        Laravel->>Laravel: Ghi session customer
+        Laravel->>Laravel: Ghi session custom
         Laravel-->>Browser: Redirect /
         Browser->>Laravel: GET /
         Laravel-->>Browser: Header tài khoản, không mở
