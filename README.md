@@ -741,7 +741,7 @@ sequenceDiagram
 
 ### 8.4. Luồng checkout và tạo đơn
 
-1. `GET /checkout` yêu cầu khách đã đăng nhập và giỏ hàng không rỗng.
+1. `GET /checkout` yêu cầu khách đã đăng nhập và giỏ hàng .
 2. `CheckoutController@index` đọc thông tin khách, giỏ hàng, voucher và tính tiền hàng.
 3. Route `GET /checkout/address-options` gọi backend Laravel; backend gọi API địa chỉ bên ngoài rồi trả dữ liệu tỉnh/thành phố và phường/xã.
 4. Hệ thống kiểm tra voucher, phí vận chuyển, giảm giá và tổng thanh toán cuối cùng.
