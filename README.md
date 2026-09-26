@@ -718,7 +718,7 @@ sequenceDiagram
         participant Browser as 
         participant Laravel as
         participant Google as Google OAuth
-        participant DB as MySQL nguoidung
+        participant DB as MySQL
 
         Customer->>Browser: Chọn Đăng
         Browser->>Laravel: GET /auth/google
