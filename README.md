@@ -743,7 +743,7 @@ sequenceDiagram
 
 1. `GET /checkout` yêu cầu khách đã đăng nhập và giỏ.
 2. `CheckoutController@index` đọc thông tin khách, giỏ hàng, voucher và tính tiền hàng.
-3. Route `GET /checkout/address-options` gọi backend Laravel; backend gọi API địa chỉ bên ngoài rồi trả dữ liệu tỉnh/thành phố và phường/xã.
+3. Route `GET /checkout/address-options` gọi backend Laravel; backend gọi API địa chỉ bên ngoài rồi trả dữ liệu tỉnh/thành phố và
 4. Hệ thống kiểm tra voucher, phí vận chuyển, giảm giá và tổng thanh toán cuối cùng.
 5. `POST /checkout/submit` tạo bản ghi `orders` và các dòng `order_items` cho phương thức COD.
 6. Với VNPay, `PaymentController@vnpay` tạo URL thanh toán và VNPay gọi `vnpayReturn` khi hoàn tất.
