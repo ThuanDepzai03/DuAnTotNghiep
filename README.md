@@ -724,7 +724,7 @@ sequenceDiagram
         Browser->>Laravel: GET /auth/google
         Laravel->>Browser: Redirect đến Google
         Browser->>Google: Xác nhận quyền truy cập
-        Google->>Laravel: GET /auth/google/callback?code=...
+        Google->>Laravel: GET /auth/google/callback?
         Laravel->>Google: Đổi code lấy thông tin tài khoản
         Google-->>Laravel: google_id, email, tên và ảnh hồ sơ
         Laravel->>DB: Tìm theo google_id hoặc email
