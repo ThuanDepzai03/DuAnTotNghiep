@@ -716,7 +716,7 @@ flowchart TD
 sequenceDiagram
         actor Customer as Khách hàng
         participant Browser as Trình duyệt
-        participant Laravel as Laravel
+        participant Laravel as
         participant Google as Google OAuth
         participant DB as MySQL nguoidung
 
