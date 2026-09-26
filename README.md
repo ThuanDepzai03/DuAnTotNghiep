@@ -736,7 +736,7 @@ sequenceDiagram
         Laravel->>Laravel: Ghi session customer
         Laravel-->>Browser: Redirect /
         Browser->>Laravel: GET /
-        Laravel-->>Browser: Header tài khoản, không mở modal
+        Laravel-->>Browser: Header tài khoản, không mở
 ```
 
 ### 8.4. Luồng checkout và tạo đơn
