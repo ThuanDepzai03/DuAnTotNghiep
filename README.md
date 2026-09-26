@@ -731,7 +731,7 @@ sequenceDiagram
         alt Chưa có tài khoản
                 Laravel->>DB: Tạo nguoidung role=0, status=1
         else Đã có
-                Laravel->>DB: Liên kết google_id nếu còn thiếu
+                Laravel->>DB: Liên kết google_id nếu còn 
         end
         Laravel->>Laravel: Ghi session custom
         Laravel-->>Browser: Redirect /
