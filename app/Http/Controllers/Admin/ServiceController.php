@@ -15,15 +15,37 @@ class ServiceController extends Controller
 {
     public function returns()
     {
-        $returns = ReturnRequest::with('order', 'items.imei', 'items.orderItem.variant.product', 'serviceReason', 'warrantyClaim', 'statusHistory')->latest()->paginate(20);
-        foreach ($returns as $returnRequest) {
-            $returnRequest->workflow_timeline = ServiceWorkflow::timeline('return', $returnRequest->status, $returnRequest->statusHistory, $returnRequest->created_at);
-            $returnRequest->next_workflow_statuses = ServiceWorkflow::adminTransitions('return', $returnRequest->status);
-            $returnRequest->workflow_status = ServiceWorkflow::legacyStatus('return', $returnRequest->status);
-        }
+        $returns = ReturnRequest::with(['order', 'serviceReason'])
+            ->latest()
+            ->paginate(20);
+
+        return view('admin.service.returns', compact('returns'));
+    }
+
+    public function returnDetail(ReturnRequest $returnRequest)
+    {
+        $returnRequest->load([
+            'order',
+            'items.imei',
+            'items.orderItem.variant.product',
+            'serviceReason',
+            'warrantyClaim',
+            'statusHistory',
+        ]);
+
+        $returnRequest->workflow_timeline = ServiceWorkflow::timeline(
+            'return',
+            $returnRequest->status,
+            $returnRequest->statusHistory,
+            $returnRequest->created_at
+        );
+        $returnRequest->next_workflow_statuses = ServiceWorkflow::adminTransitions('return', $returnRequest->status);
+        $returnRequest->workflow_status = ServiceWorkflow::legacyStatus('return', $returnRequest->status);
+
         $reasons = ServiceReason::for('warranty')->get();
         $workflowSteps = ServiceWorkflow::steps('return');
-        return view('admin.service.returns', compact('returns', 'reasons', 'workflowSteps'));
+
+        return view('admin.service.return-detail', compact('returnRequest', 'reasons', 'workflowSteps'));
     }
 
     public function convertReturnToWarranty(Request $request, ReturnRequest $returnRequest)

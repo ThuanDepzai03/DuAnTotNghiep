@@ -219,6 +219,7 @@ Route::middleware(['web', 'admin'])
         Route::post('/inventory/imeis', [ProductImeiController::class, 'store'])->name('inventory.imeis.store');
         Route::put('/inventory/imeis/{imei}', [ProductImeiController::class, 'update'])->name('inventory.imeis.update');
         Route::get('/returns', [ServiceController::class, 'returns'])->name('returns.index');
+        Route::get('/returns/{returnRequest}', [ServiceController::class, 'returnDetail'])->name('returns.show');
         Route::put('/returns/{returnRequest}', [ServiceController::class, 'updateReturn'])->name('returns.update');
         Route::post('/returns/{returnRequest}/to-warranty', [ServiceController::class, 'convertReturnToWarranty'])->name('returns.to-warranty');
         Route::get('/warranties', [ServiceController::class, 'warranties'])->name('warranties.index');
