@@ -2934,9 +2934,9 @@ class ProductSeeder extends Seeder
   'category_id' => 1,
   'brand_id' => 1,
   'name' => 'iPhone 17 Pro Max Lướt 98%',
-  'slug' => 'iphone-17-pro-max-luot-98-73',
+  'slug' => 'iphone-17-pro-max-luot-98',
   'sku' => 'SP0073',
-  'description' => 'iPhone 17 Pro Max Lướt 98% đảm bảo chất lượng, nguyên zin, bảo hành 12 tháng tại Thanh Thảo Mobile.',
+  'description' => 'iPhone 17 Pro Max Lướt 98% đảm bảo chất lượng, nguyên zin, bảo hành 12 tháng tại Mobile Mart.',
   'thumbnail' => 'image/iphone17promax_blue.jpg',
   'status' => 1,
 ),
@@ -2951,9 +2951,6 @@ class ProductSeeder extends Seeder
   'status' => 1,
 ),
                         'attribute_value_ids' => array (
-  0 => 3,
-  1 => 19,
-  2 => 23,
 ),
                     ],
                     [
