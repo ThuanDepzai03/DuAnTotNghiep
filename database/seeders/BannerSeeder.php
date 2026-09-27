@@ -30,7 +30,7 @@ class BannerSeeder extends Seeder
             [
                 'title' => 'Mừng lễ 2/9',
                 'subtitle' => 'Giảm sâu đến 30% cho điện thoại flagship',
-                'image' => 'img/logo.png',
+                'image' => 'uploads/banners/1790495081-TF9bBumY.png',
                 'link' => '/shop',
                 'type' => 'hero',
                 'position' => 1,
