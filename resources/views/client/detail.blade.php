@@ -1210,6 +1210,32 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    const defaultVariant = variants.find(variant => variant.stock > 0);
+
+    if (defaultVariant) {
+        attributeIds.forEach(attributeId => {
+            const option = Array.from(buttons).find(button => {
+                return button.dataset.attributeId === attributeId
+                    && defaultVariant.attribute_value_ids.includes(Number(button.dataset.valueId));
+            });
+
+            if (!option) {
+                return;
+            }
+
+            selected[attributeId] = option.dataset.valueId;
+            option.classList.add('active');
+
+            const selectedText = document.getElementById(
+                `selected-attribute-${attributeId}`
+            );
+
+            if (selectedText) {
+                selectedText.textContent = option.dataset.valueName;
+            }
+        });
+    }
+
     updateAvailableOptions();
     updateVariantInformation();
 });

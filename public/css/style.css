@@ -1612,7 +1612,15 @@ textarea.input {
     -webkit-transition: 0.2s all;
     transition: 0.2s all;
 }
+.product-details .add-to-cart .add-to-cart-btn:hover,
+.product-details .add-to-cart .add-to-cart-btn:focus {
+    background-color: #1e1f29 !important;
+    color: #fff !important;
+}
 
+.product-details .add-to-cart .add-to-cart-btn:hover > i {
+    color: #fff !important;
+}
 .product-details .add-to-cart .add-to-cart-btn > i {
     position: absolute;
     left: 0;
@@ -1623,6 +1631,10 @@ textarea.input {
     color: #d10024;
     opacity: 0;
     visibility: hidden;
+}
+
+.product-details .add-to-cart .add-to-cart-btn::before {
+    content: none;
 }
 
 .product-details .add-to-cart .add-to-cart-btn:hover {
