@@ -14,7 +14,7 @@
         <article class="card shadow-sm mb-3">
             <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <strong>Bảo hành #{{ $claim->id }} · Đơn #{{ $claim->order_id }}</strong>
-                <span class="badge {{ \App\Support\ServiceWorkflow::isFailure('warranty', $claim->status) ? 'bg-danger' : ($claim->status === 'completed' ? 'bg-success' : 'bg-warning text-dark') }}">
+                <span class="badge {{ \App\Support\ServiceWorkflow::isFailure('warranty', $claim->status) ? 'bg-danger' : (\App\Support\ServiceWorkflow::isSuccessful('warranty', $claim->status) ? 'bg-success' : 'bg-warning text-dark') }}">
                     {{ \App\Support\ServiceWorkflow::label('warranty', $claim->status) }}
                 </span>
             </div>

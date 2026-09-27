@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.master')
 @section('content')
 <div class="container py-5" style="max-width:760px"><div class="d-flex justify-content-between align-items-center flex-wrap gap-2"><h2>Tra cứu và yêu cầu bảo hành</h2>@if(session('customer'))<a class="btn btn-outline-secondary" href="{{ route('account.warranties.index') }}">Yêu cầu bảo hành của tôi</a>@endif</div>@if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif
 <form method="GET" class="input-group mb-4"><input name="imei" value="{{ request('imei') }}" class="form-control" placeholder="Nhập IMEI" required><button class="btn btn-primary">Tra cứu</button></form>

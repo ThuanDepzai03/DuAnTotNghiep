@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.master')
 
 @section('content')
 <div class="container py-5" style="max-width: 820px">
@@ -8,7 +8,7 @@
             <p class="text-muted mb-0">{{ $warrantyClaim->imei?->variant?->product?->name ?? 'Thiết bị' }} · IMEI {{ $warrantyClaim->imei?->imei }}</p>
         </div>
         <a class="btn btn-outline-secondary" href="{{ route('account.warranties.index') }}">Yêu cầu của tôi</a>
-        <span class="badge {{ \App\Support\ServiceWorkflow::isFailure('warranty', $warrantyClaim->status) ? 'bg-danger' : ($warrantyClaim->status === 'completed' ? 'bg-success' : 'bg-warning text-dark') }}">
+        <span class="badge {{ \App\Support\ServiceWorkflow::isFailure('warranty', $warrantyClaim->status) ? 'bg-danger' : (\App\Support\ServiceWorkflow::isSuccessful('warranty', $warrantyClaim->status) ? 'bg-success' : 'bg-warning text-dark') }}">
             {{ \App\Support\ServiceWorkflow::label('warranty', $warrantyClaim->status) }}
         </span>
     </div>

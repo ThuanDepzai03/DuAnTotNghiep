@@ -124,6 +124,15 @@ final class ServiceWorkflow
         return in_array(self::legacyStatus($type, $status), ['request_rejected', 'refund_rejected', 'rejected', 'return_failed'], true);
     }
 
+    public static function isSuccessful(string $type, string $status): bool
+    {
+        $status = self::legacyStatus($type, $status);
+
+        return $type === 'return'
+            ? in_array($status, ['refunded', 'completed'], true)
+            : $status === 'completed';
+    }
+
     public static function timeline(string $type, string $status, iterable $history, $createdAt): array
     {
         $status = self::legacyStatus($type, $status);

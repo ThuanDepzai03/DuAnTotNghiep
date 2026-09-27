@@ -19,7 +19,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
                         <h5 class="mb-1">Yêu cầu #{{ $return->id }}</h5>
-                        <span class="badge {{ \App\Support\ServiceWorkflow::isFailure('return', $return->status) ? 'bg-danger' : (in_array($return->status, ['refunded', 'completed']) ? 'bg-success' : 'bg-warning text-dark') }}">
+                        <span class="badge {{ \App\Support\ServiceWorkflow::isFailure('return', $return->status) ? 'bg-danger' : (\App\Support\ServiceWorkflow::isSuccessful('return', $return->status) ? 'bg-success' : 'bg-warning text-dark') }}">
                             {{ \App\Support\ServiceWorkflow::label('return', $return->status) }}
                         </span>
                     </div>

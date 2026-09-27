@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.master')
 
 @section('content')
 <div class="container py-5" style="max-width: 920px">
@@ -18,7 +18,7 @@
                         <h5 class="mb-1">Bảo hành #{{ $claim->id }}</h5>
                         <p class="text-muted mb-0">{{ $claim->imei?->variant?->product?->name ?? 'Thiết bị' }} · IMEI {{ $claim->imei?->imei }}</p>
                     </div>
-                    <span class="badge {{ \App\Support\ServiceWorkflow::isFailure('warranty', $claim->status) ? 'bg-danger' : ($claim->status === 'completed' ? 'bg-success' : 'bg-warning text-dark') }}">
+                    <span class="badge {{ \App\Support\ServiceWorkflow::isFailure('warranty', $claim->status) ? 'bg-danger' : (\App\Support\ServiceWorkflow::isSuccessful('warranty', $claim->status) ? 'bg-success' : 'bg-warning text-dark') }}">
                         {{ \App\Support\ServiceWorkflow::label('warranty', $claim->status) }}
                     </span>
                 </div>
