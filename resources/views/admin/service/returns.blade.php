@@ -1,13 +1,73 @@
 @extends('admin.layout')
+
 @section('content')
-<div class="page-heading"><h3>Trả hàng và hoàn tiền</h3><p class="text-muted">Tiếp nhận, kiểm tra và chuyển yêu cầu sang bảo hành khi cần.</p></div>
+<div class="page-heading d-flex justify-content-between align-items-start flex-wrap gap-2">
+    <div>
+        <h3>Yêu cầu trả hàng và hoàn tiền</h3>
+        <p class="text-muted">Danh sách yêu cầu mới nhất của khách hàng.</p>
+    </div>
+</div>
+
 <div class="page-content">
-@if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif
-@if(session('error'))<div class="alert alert-danger">{{ session('error') }}</div>@endif
-@php($labels=['pending'=>'Chờ xử lý','approved'=>'Đã duyệt','rejected'=>'Từ chối','received'=>'Đã nhận hàng','refunded'=>'Đã hoàn tiền','completed'=>'Hoàn tất'])
-@forelse($returns as $return)
-<div class="card shadow-sm mb-3"><div class="card-header d-flex justify-content-between"><strong>Yêu cầu #{{ $return->id }} · Đơn #{{ $return->order_id }}</strong><span class="badge bg-warning text-dark">{{ $labels[$return->status] ?? $return->status }}</span></div><div class="card-body"><div class="row g-4"><div class="col-lg-6"><p><strong>Khách:</strong> {{ $return->order->customer_name ?? 'Khách hàng' }}</p><p><strong>Lý do:</strong> {{ $return->serviceReason?->name ?? $return->reason }}</p><p class="small text-muted">{{ $return->serviceReason?->condition_text }}</p><p><strong>Mô tả:</strong> {{ $return->description ?: 'Không có mô tả.' }}</p><table class="table table-sm"><thead><tr><th>Sản phẩm</th><th>IMEI</th><th>SL</th></tr></thead><tbody>@foreach($return->items as $item)<tr><td>{{ $item->orderItem->variant->product->name ?? 'Sản phẩm' }}</td><td>{{ $item->imei->imei ?? 'Không có' }}</td><td>{{ $item->quantity }}</td></tr>@endforeach</tbody></table></div><div class="col-lg-6"><form method="POST" action="{{ route('admin.returns.update', $return) }}" class="border rounded p-3 bg-light">@csrf @method('PUT')<label class="form-label">Trạng thái</label><select name="status" class="form-select mb-2">@foreach($labels as $status=>$label)<option value="{{ $status }}" @selected($return->status===$status)>{{ $label }}</option>@endforeach</select><div class="row g-2"><div class="col-md-6"><label class="form-label">Tiền hoàn</label><input type="number" name="refund_amount" min="0" value="{{ $return->refund_amount }}" class="form-control"></div><div class="col-md-6"><label class="form-label">Phương thức</label><select name="refund_method" class="form-select"><option value="">Chưa xác định</option><option value="Chuyển khoản">Chuyển khoản</option><option value="Tiền mặt">Tiền mặt</option><option value="Ví điện tử">Ví điện tử</option></select></div></div><textarea name="admin_note" class="form-control my-2" rows="3" placeholder="Ghi chú xử lý">{{ $return->admin_note }}</textarea><button class="btn btn-primary">Lưu xử lý</button></form>@if(!$return->warrantyClaim)<form method="POST" action="{{ route('admin.returns.to-warranty',$return) }}" class="border rounded p-3 mt-3">@csrf<h6>Thêm bảo hành cho sản phẩm này</h6><select name="reason_id" class="form-select mb-2" required><option value="">Chọn lý do bảo hành</option>@foreach($reasons as $reason)<option value="{{ $reason->id }}">{{ $reason->name }}</option>@endforeach</select><textarea name="issue_description" class="form-control mb-2" required placeholder="Mô tả lỗi bảo hành"></textarea><button class="btn btn-outline-warning">Thêm BẢO HÀNH</button></form>@else<div class="alert alert-info mt-3">Đã liên kết bảo hành #{{ $return->warrantyClaim->id }}</div>@endif</div></div></div></div>
-@empty<div class="alert alert-info">Chưa có yêu cầu trả hàng.</div>@endforelse
-{{ $returns->links() }}
+    @if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif
+    @if(session('error'))<div class="alert alert-danger">{{ session('error') }}</div>@endif
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h4 class="card-title mb-0">Danh sách yêu cầu</h4>
+            <span class="text-muted small">{{ $returns->total() }} yêu cầu</span>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th scope="col">STT</th>
+                            <th scope="col">Số đơn</th>
+                            <th scope="col">Tên khách hàng</th>
+                            <th scope="col">Lý do</th>
+                            <th scope="col">Ngày giờ tạo yêu cầu</th>
+                            <th scope="col">Trạng thái</th>
+                            <th scope="col" class="text-end">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($returns as $return)
+                            <tr>
+                                <td>{{ $returns->firstItem() + $loop->index }}</td>
+                                <td><a href="{{ route('admin.orders.show', $return->order_id) }}">#{{ $return->order_id }}</a></td>
+                                <td>{{ $return->order?->customer_name ?? 'Khách hàng' }}</td>
+                                <td>{{ $return->serviceReason?->name ?? $return->reason }}</td>
+                                <td>{{ $return->created_at?->format('d/m/Y H:i') }}</td>
+                                <td>
+                                    @php
+                                        $statusClass = \App\Support\ServiceWorkflow::isFailure('return', $return->status)
+                                            ? 'bg-danger'
+                                            : (\App\Support\ServiceWorkflow::isSuccessful('return', $return->status)
+                                                ? 'bg-success'
+                                                : 'bg-warning text-dark');
+                                    @endphp
+                                    <span class="badge {{ $statusClass }}">{{ \App\Support\ServiceWorkflow::label('return', $return->status) }}</span>
+                                </td>
+                                <td class="text-end">
+                                    <a href="{{ route('admin.returns.show', $return) }}" class="btn btn-sm btn-primary">
+                                        <i class="fa fa-eye me-1" aria-hidden="true"></i> Xem chi tiết
+                                    </a>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="7" class="py-4 text-center text-muted">Chưa có yêu cầu trả hàng nào.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="d-flex justify-content-end mt-3">
+                {{ $returns->links() }}
+            </div>
+        </div>
+    </div>
 </div>
 @endsection

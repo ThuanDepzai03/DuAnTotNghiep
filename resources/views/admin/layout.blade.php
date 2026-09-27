@@ -14,6 +14,8 @@
     <link rel="stylesheet" href="{{ asset('admin-assets/vendors/bootstrap-icons/bootstrap-icons.css') }}">
     <link rel="stylesheet" href="{{ asset('admin-assets/css/app.css') }}">
     <link rel="stylesheet" href="{{ asset('admin-assets/css/custom.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/font-awesome.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/service-workflow.css') }}">
     <link rel="shortcut icon" href="{{ asset('admin-assets/images/favicon.svg') }}" type="image/x-icon">
 </head>
 <body class="theme-dark">
@@ -380,7 +382,7 @@
     let adminNotificationsInitialized = false;
 
     function pollAdminNotifications() {
-        fetch('/admin/notification-summary', {
+        fetch('{{ route('admin.notifications.summary') }}', {
             headers: { 'Accept': 'application/json' }
         })
             .then(function (response) {

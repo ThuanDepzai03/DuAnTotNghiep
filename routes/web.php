@@ -125,6 +125,20 @@ Route::get('/orders/tracking/{id}', [App\Http\Controllers\Client\OrderTrackingCo
     ->name('orders.tracking.show');
 Route::get('/orders/tracking/{order}/returns', [ReturnRequestController::class, 'tracking'])
     ->name('orders.tracking.returns');
+Route::get('/account/service-requests', [ReturnRequestController::class, 'index'])
+    ->name('account.service-requests.index');
+Route::post('/account/returns/{returnRequest}/sent', [ReturnRequestController::class, 'markSent'])
+    ->name('account.returns.sent');
+Route::post('/account/returns/{returnRequest}/confirm-received', [ReturnRequestController::class, 'confirmReceived'])
+    ->name('account.returns.confirm-received');
+Route::get('/account/warranties/{warrantyClaim}', [WarrantyController::class, 'show'])
+    ->name('account.warranties.show');
+Route::get('/account/warranties', [WarrantyController::class, 'index'])
+    ->name('account.warranties.index');
+Route::post('/account/warranties/{warrantyClaim}/sent', [WarrantyController::class, 'markSent'])
+    ->name('account.warranties.sent');
+Route::post('/account/warranties/{warrantyClaim}/confirm-received', [WarrantyController::class, 'confirmReceived'])
+    ->name('account.warranties.confirm-received');
 Route::post('/orders/tracking/{id}/reviews', [App\Http\Controllers\Client\OrderTrackingController::class, 'submitReview'])
     ->name('orders.tracking.review');
 
@@ -207,6 +221,7 @@ Route::middleware(['web', 'admin'])
         Route::post('/inventory/imeis', [ProductImeiController::class, 'store'])->name('inventory.imeis.store');
         Route::put('/inventory/imeis/{imei}', [ProductImeiController::class, 'update'])->name('inventory.imeis.update');
         Route::get('/returns', [ServiceController::class, 'returns'])->name('returns.index');
+        Route::get('/returns/{returnRequest}', [ServiceController::class, 'returnDetail'])->name('returns.show');
         Route::put('/returns/{returnRequest}', [ServiceController::class, 'updateReturn'])->name('returns.update');
         Route::post('/returns/{returnRequest}/to-warranty', [ServiceController::class, 'convertReturnToWarranty'])->name('returns.to-warranty');
         Route::get('/warranties', [ServiceController::class, 'warranties'])->name('warranties.index');
@@ -236,8 +251,8 @@ Route::get('/chat', [ChatController::class, 'adminIndex'])
 
 Route::get('/chat/unread', [ChatController::class, 'unreadCount'])
     ->name('chat.unread');
-Route::get('/admin/notification-summary', [AdminController::class, 'notificationSummary'])
-    ->name('admin.notifications.summary');
+Route::get('/notification-summary', [AdminController::class, 'notificationSummary'])
+    ->name('notifications.summary');
 Route::get('/chat/conversations', [ChatController::class, 'adminConversations'])
     ->name('chat.conversations');
 

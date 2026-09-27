@@ -13,8 +13,8 @@ class AdminController extends Controller
     {
         $summary = [
             'orders' => Order::where('status', 'pending')->count(),
-            'returns' => \App\Models\ReturnRequest::whereIn('status', ['pending', 'approved', 'received'])->count(),
-            'warranties' => \App\Models\WarrantyClaim::whereIn('status', ['submitted', 'received', 'checking', 'repairing'])->count(),
+            'returns' => \App\Models\ReturnRequest::whereIn('status', \App\Support\ServiceWorkflow::activeStatuses('return'))->count(),
+            'warranties' => \App\Models\WarrantyClaim::whereIn('status', \App\Support\ServiceWorkflow::activeStatuses('warranty'))->count(),
             'messages' => \App\Models\Message::where('sender_type', 'customer')->where('is_read', false)->count(),
         ];
 

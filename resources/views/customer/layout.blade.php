@@ -18,8 +18,8 @@
                     <a href="{{ $currentOrderId ? route('account.order.detail', $currentOrderId) : route('orders.tracking') }}" class="list-group-item list-group-item-action {{ request()->routeIs('account.order.detail') || request()->routeIs('orders.tracking.show') ? 'active' : '' }}">
                         <i class="fa fa-clipboard"></i> Đơn hàng của tôi
                     </a>
-                    <a href="{{ $currentOrderId ? route('orders.tracking.returns', $currentOrderId) : route('orders.tracking') }}" class="list-group-item list-group-item-action {{ request()->routeIs('orders.tracking.returns') ? 'active' : '' }}">
-                        <i class="fa fa-clipboard"></i> Trả hàng
+                    <a href="{{ route('account.service-requests.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('account.service-requests.index', 'orders.tracking.returns', 'account.warranties.*') ? 'active' : '' }}">
+                        <i class="fa fa-refresh"></i> Trả hàng / bảo hành
                     </a>
                     <form action="{{ route('logout') }}" method="POST">
                         @csrf

@@ -4,12 +4,97 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\ReturnRequest;
+use App\Models\ServiceReason;
+use App\Services\ServiceRequestWorkflowService;
+use App\Support\ServiceWorkflow;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
-use App\Models\ServiceReason;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class ReturnRequestController extends Controller
 {
+    public function index(Request $request)
+    {
+        $customer = $request->session()->get('customer');
+        abort_unless($customer, 403);
+
+        $email = strtolower(trim((string) ($customer['email'] ?? '')));
+        $phone = trim((string) ($customer['tel'] ?? ''));
+        abort_unless($email !== '' || $phone !== '', 403);
+
+        $type = $request->query('type', 'all');
+        $status = $request->query('status', '');
+        $validTypes = ['all', 'return', 'warranty'];
+        abort_unless(in_array($type, $validTypes, true), 404);
+
+        $returnQuery = DB::table('return_requests as rr')
+            ->join('orders as o', 'o.id', '=', 'rr.order_id')
+            ->leftJoin('service_reasons as sr', 'sr.id', '=', 'rr.reason_id')
+            ->selectRaw("'return' as request_type, rr.id as request_id, rr.order_id, o.customer_name, COALESCE(sr.name, rr.reason) as reason_label, rr.status, rr.created_at")
+            ->where(function ($query) use ($email, $phone) {
+                if ($email !== '') {
+                    $query->whereRaw('LOWER(o.email) = ?', [$email]);
+                }
+                if ($phone !== '') {
+                    $email !== '' ? $query->orWhere('o.phone', $phone) : $query->where('o.phone', $phone);
+                }
+            });
+
+        $warrantyQuery = DB::table('warranty_claims as wc')
+            ->join('orders as o', 'o.id', '=', 'wc.order_id')
+            ->leftJoin('service_reasons as sr', 'sr.id', '=', 'wc.reason_id')
+            ->selectRaw("'warranty' as request_type, wc.id as request_id, wc.order_id, o.customer_name, COALESCE(sr.name, wc.issue_description) as reason_label, wc.status, wc.created_at")
+            ->where(function ($query) use ($email, $phone) {
+                if ($email !== '') {
+                    $query->whereRaw('LOWER(o.email) = ?', [$email]);
+                }
+                if ($phone !== '') {
+                    $email !== '' ? $query->orWhere('o.phone', $phone) : $query->where('o.phone', $phone);
+                }
+            });
+
+        if ($type === 'return') {
+            $requestsQuery = $returnQuery;
+        } elseif ($type === 'warranty') {
+            $requestsQuery = $warrantyQuery;
+        } else {
+            $requestsQuery = $returnQuery->unionAll($warrantyQuery);
+        }
+
+        $requestsQuery = DB::query()->fromSub($requestsQuery, 'service_requests');
+
+        if ($status !== '') {
+            $requestsQuery->where('service_requests.status', $status);
+        }
+
+        $requestsQuery
+            ->orderByDesc('created_at')
+            ->orderByDesc('request_id');
+        $page = LengthAwarePaginator::resolveCurrentPage();
+        $perPage = 15;
+        $requests = $requestsQuery->paginate($perPage, ['*'], 'page', $page)
+            ->withQueryString();
+
+        $statusOptions = [];
+        foreach (['return', 'warranty'] as $workflowType) {
+            foreach (ServiceWorkflow::steps($workflowType) as $statusCode => $step) {
+                if ($statusCode === 'decision_pending') {
+                    continue;
+                }
+
+                $label = ServiceWorkflow::label($workflowType, $statusCode);
+                if (isset($statusOptions[$statusCode]) && $statusOptions[$statusCode] !== $label) {
+                    $statusOptions[$statusCode] .= ' / ' . $label;
+                } else {
+                    $statusOptions[$statusCode] = $label;
+                }
+            }
+        }
+
+        return view('client.orders.service-requests-index', compact('requests', 'type', 'status', 'statusOptions'));
+    }
+
     public function create(Order $order)
     {
         $this->authorizeOrder($order);
@@ -22,7 +107,18 @@ class ReturnRequestController extends Controller
     public function tracking(Order $order)
     {
         $this->authorizeOrder($order);
-        $order->load(['returnRequests.items.orderItem.variant.product', 'returnRequests.items.imei']);
+        $order->load(['returnRequests.items.orderItem.variant.product', 'returnRequests.items.imei', 'returnRequests.statusHistory']);
+
+        foreach ($order->returnRequests as $returnRequest) {
+            $returnRequest->workflow_timeline = ServiceWorkflow::timeline(
+                'return',
+                $returnRequest->status,
+                $returnRequest->statusHistory,
+                $returnRequest->created_at
+            );
+            $returnRequest->can_customer_mark_sent = $returnRequest->status === 'approved';
+            $returnRequest->can_customer_confirm_received = $returnRequest->status === 'return_shipping';
+        }
 
         return view('client.orders.return-tracking', compact('order'));
     }
@@ -38,25 +134,67 @@ class ReturnRequestController extends Controller
             'order_item_id' => ['required', 'exists:order_items,id'],
             'product_imei_id' => ['nullable', 'exists:product_imeis,id'],
         ]);
+        if (!empty($data['reason_id'])) {
+            abort_unless(ServiceReason::for('return')->whereKey($data['reason_id'])->exists(), 422, 'Lý do trả hàng không còn khả dụng.');
+        }
+
         $orderItem = $order->items()->whereKey($data['order_item_id'])->with('imeis')->first();
         abort_unless($orderItem, 422);
-        abort_if($order->returnRequests()->whereIn('status', ['pending', 'approved', 'received'])->whereHas('items', fn ($query) => $query->where('order_item_id', $orderItem->id))->exists(), 422, 'Sản phẩm này đã có yêu cầu trả hàng đang được xử lý.');
+        $existingRequest = $order->returnRequests()
+            ->whereNotIn('status', ['completed', 'request_rejected', 'rejected'])
+            ->whereHas('items', fn ($query) => $query->where('order_item_id', $orderItem->id))
+            ->latest()
+            ->first();
+
+        if ($existingRequest) {
+            return redirect()
+                ->route('orders.tracking.returns', $order)
+                ->with('error', 'Sản phẩm này đã có yêu cầu trả hàng #' . $existingRequest->id . ' đang được xử lý. Bạn có thể theo dõi tiến độ tại đây.');
+        }
         if (! empty($data['product_imei_id'])) {
             abort_unless($orderItem->imeis->contains('id', (int) $data['product_imei_id']), 422);
         }
-        ReturnRequest::create([
-            'order_id' => $order->id,
-            'user_id' => session('customer.id'),
-            'reason' => $data['reason'],
-            'reason_id' => $data['reason_id'] ?? null,
-            'description' => $data['description'] ?? null,
-            'refund_amount' => 0,
-        ])->items()->create([
-            'order_item_id' => $data['order_item_id'],
-            'product_imei_id' => $data['product_imei_id'] ?? null,
-            'quantity' => 1,
-        ]);
+        DB::transaction(function () use ($order, $data, $request) {
+            $returnRequest = ReturnRequest::create([
+                'order_id' => $order->id,
+                'user_id' => session('customer.id'),
+                'reason' => $data['reason'],
+                'reason_id' => $data['reason_id'] ?? null,
+                'description' => $data['description'] ?? null,
+                'refund_amount' => 0,
+            ]);
+            $returnRequest->items()->create([
+                'order_item_id' => $data['order_item_id'],
+                'product_imei_id' => $data['product_imei_id'] ?? null,
+                'quantity' => 1,
+            ]);
+            app(ServiceRequestWorkflowService::class)->recordInitial('return', $returnRequest, $returnRequest->reason, $request);
+        });
+
         return redirect()->route('orders.tracking.returns', $order)->with('success', 'Đã gửi yêu cầu trả hàng.');
+    }
+
+    public function markSent(Request $request, ReturnRequest $returnRequest, ServiceRequestWorkflowService $workflow)
+    {
+        $this->authorizeOrder($returnRequest->order);
+        $data = $request->validate(['tracking_number' => ['nullable', 'string', 'max:100']]);
+
+        $workflow->transitionCustomer('return', $returnRequest, 'return_shipped', null, [
+            'customer_return_tracking_number' => $data['tracking_number'] ?? null,
+            'customer_sent_at' => now(),
+        ], $request);
+
+        return back()->with('success', 'Đã cập nhật: bạn đã gửi sản phẩm trả về shop.');
+    }
+
+    public function confirmReceived(Request $request, ReturnRequest $returnRequest, ServiceRequestWorkflowService $workflow)
+    {
+        $this->authorizeOrder($returnRequest->order);
+        $workflow->transitionCustomer('return', $returnRequest, 'customer_received', null, [
+            'customer_received_at' => now(),
+        ], $request);
+
+        return back()->with('success', 'Đã xác nhận nhận lại sản phẩm.');
     }
 
     private function isEligible(Order $order): bool
