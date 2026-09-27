@@ -283,9 +283,9 @@
                             </li>
 
                             <li>
-                                <a href="mailto:aephoenic@gmail.com">
+                                <a href="mailto:thuanvillager24@gmail.com">
                                     <i class="fa fa-envelope-o"></i>
-                                    aephoenic@gmail.com
+                                    MobileMart@gmail.com
                                 </a>
                             </li>
 

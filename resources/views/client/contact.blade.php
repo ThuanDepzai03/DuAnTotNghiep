@@ -54,7 +54,7 @@
 
                         <div>
                             <span>Email</span>
-                            <strong>aephoenic@gmail.com</strong>
+                            <strong>MobileMart@gmail.com</strong>
                         </div>
                     </div>
 
