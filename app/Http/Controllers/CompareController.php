@@ -48,7 +48,7 @@ class CompareController extends Controller
             return response()->json(['error' => 'Chưa cấu hình GEMINI_API_KEY trong file .env'], 500);
         }
 
-        $prompt = "Bạn là chuyên gia đánh giá và thẩm định điện thoại công nghệ của cửa hàng AE PHOENIC.
+        $prompt = "Bạn là chuyên gia đánh giá và thẩm định điện thoại công nghệ của cửa hàng Mobile Mart.
 Hãy so sánh chi tiết giữa 2 dòng điện thoại sau:
 - Sản phẩm 1: '{$products[0]['name']}'
 - Sản phẩm 2: '{$products[1]['name']}'

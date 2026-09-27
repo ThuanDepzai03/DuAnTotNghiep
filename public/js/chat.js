@@ -291,7 +291,7 @@ function loadCustomerMessages() {
                             max-width:80%;
                             font-size:13px;
                         ">
-                            Xin chào! AE Phoenic Store có thể hỗ trợ gì cho bạn?
+                            Xin chào! Mobile Mart có thể hỗ trợ gì cho bạn?
                         </div>
                     </div>
                 `;
