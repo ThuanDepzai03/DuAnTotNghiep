@@ -110,7 +110,13 @@ final class ServiceWorkflow
             ? ['completed', 'request_rejected', 'rejected', 'decision_pending']
             : ['completed', 'returned'];
 
-        return array_values(array_diff(array_keys(self::steps($type)), $terminal));
+        $statuses = array_diff(array_keys(self::steps($type)), $terminal);
+
+        if ($type === 'warranty') {
+            $statuses = array_merge($statuses, ['checking', 'repairing', 'ready']);
+        }
+
+        return array_values(array_unique($statuses));
     }
 
     public static function isFailure(string $type, string $status): bool
@@ -122,6 +128,12 @@ final class ServiceWorkflow
     {
         $status = self::legacyStatus($type, $status);
         $history = collect($history);
+        $history->each(function ($entry) use ($type): void {
+            $entry->new_status = self::legacyStatus($type, (string) $entry->new_status);
+            if ($entry->old_status !== null) {
+                $entry->old_status = self::legacyStatus($type, (string) $entry->old_status);
+            }
+        });
         $statuses = $type === 'return'
             ? self::returnPath($status, $history)
             : self::warrantyPath($status, $history);
