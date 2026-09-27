@@ -475,20 +475,35 @@ class AuthController extends Controller
             'role' => 0,
         ];
 
-        $existingByUser = CustomerTable::query()->where('user', $request->user)->first();
-        $existingByEmail = CustomerTable::query()->where('email', $request->email)->first();
-        if ($verificationEnabled && (($existingByUser && $existingByUser->email_verified_at)
-            || ($existingByEmail && $existingByEmail->email_verified_at))) {
-            throw ValidationException::withMessages([
-                'user' => 'Tên đăng nhập hoặc email đã được sử dụng.',
-            ]);
+        $username = trim((string) $request->user);
+        $email = strtolower(trim((string) $request->email));
+        $existingByUser = CustomerTable::query()->where('user', $username)->exists();
+        $existingByEmail = CustomerTable::query()->where('email', $email)->exists();
+        $duplicateErrors = [];
+
+        if ($existingByUser) {
+            $duplicateErrors['user'] = 'Tên người dùng đã tồn tại.';
         }
 
-        if ($existingByUser && $existingByEmail && $existingByUser->id !== $existingByEmail->id) {
-            throw ValidationException::withMessages([
-                'email' => 'Email đang thuộc về một tài khoản khác.',
-            ]);
+        if ($existingByEmail) {
+            $duplicateErrors['email'] = 'Email đã tồn tại.';
         }
+
+        if ($duplicateErrors !== []) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => implode(' ', array_values($duplicateErrors)),
+                    'errors' => array_map(fn ($message) => [$message], $duplicateErrors),
+                ], 422);
+            }
+
+            throw ValidationException::withMessages($duplicateErrors);
+        }
+
+        $request->merge(['user' => $username, 'email' => $email]);
+        $data['user'] = $username;
+        $data['email'] = $email;
 
         if (CustomerTable::hasColumn('city')) {
             $data['city'] = $city;
@@ -516,14 +531,7 @@ class AuthController extends Controller
         $data['email_verification_token'] = Hash::make($verificationToken);
         $data['email_verification_expires_at'] = now()->addMinutes(10);
 
-        $pendingUser = $existingByUser ?: $existingByEmail;
-
-        if ($pendingUser) {
-            CustomerTable::query()->where('id', $pendingUser->id)->update($data);
-            $id = $pendingUser->id;
-        } else {
-            $id = CustomerTable::query()->insertGetId($data);
-        }
+        $id = CustomerTable::query()->insertGetId($data);
 
         if ($verificationEnabled) {
             session(['verification_email' => $request->email]);
