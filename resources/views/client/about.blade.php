@@ -15,7 +15,7 @@
                     <h1 class="about-title">Công nghệ tốt hơn cho cuộc sống hiện đại</h1>
 
                     <p class="about-desc">
-                        Chào mừng bạn đến với <strong>AE Phoenic Store</strong> – cửa hàng
+                        Chào mừng bạn đến với <strong>MOBILE MART STORE</strong> – cửa hàng
                         chuyên cung cấp điện thoại, máy tính bảng và phụ kiện công nghệ
                         với trải nghiệm mua sắm tiện lợi, rõ ràng và an tâm.
                     </p>
@@ -75,7 +75,7 @@
                 <div class="about-image-box">
                     <img
                         src="{{ asset('image/about.jpg') }}"
-                        alt="AE Phoenic Store"
+                        alt="MOBILE MART STORE"
                         class="about-image"
                         onerror="this.onerror=null;this.src='{{ asset('image/ipad10_blue.jpg') }}';"
                     >
@@ -103,7 +103,7 @@
                     <i class="fa fa-star"></i> CAM KẾT CỦA CHÚNG TÔI
                 </span>
 
-                <h2 class="service-heading">TẠI SAO CHỌN AE PHOENIC STORE?</h2>
+                <h2 class="service-heading">TẠI SAO CHỌN MOBILE MART STORE?</h2>
 
                 <p class="service-heading-desc">
                     Không chỉ là nơi bán sản phẩm, chúng tôi muốn mang đến trải nghiệm

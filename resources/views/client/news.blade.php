@@ -70,7 +70,7 @@
 
                                 <span>
                                     <i class="fa fa-user"></i>
-                                    AE Phoenic Store
+                                    Mobile Mart Store
                                 </span>
                             </div>
 
@@ -565,48 +565,91 @@
     }
 
     .news-page {
-        background: #fff;
+        background: linear-gradient(180deg, #f7f8fc 0%, #ffffff 160px, #ffffff 100%);
+        color: #1f2430;
     }
 
-    /* Hero */
+    .news-page .container {
+        position: relative;
+    }
+
     .news-hero {
-        padding: 72px 0;
-        background: linear-gradient(135deg, #15161d, #2b2d42);
+        position: relative;
+        padding: 78px 0 64px;
+        background:
+            radial-gradient(circle at top left, rgba(209, 0, 36, 0.2), transparent 30%),
+            linear-gradient(135deg, #100f14 0%, #171b2a 42%, #21273a 100%);
         color: #fff;
+        overflow: hidden;
+    }
+
+    .news-hero::before,
+    .news-hero::after {
+        content: "";
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .news-hero::before {
+        width: 480px;
+        height: 480px;
+        right: -150px;
+        top: -180px;
+    }
+
+    .news-hero::after {
+        width: 260px;
+        height: 260px;
+        left: -60px;
+        bottom: -100px;
     }
 
     .news-hero-content {
-        max-width: 780px;
+        position: relative;
+        z-index: 1;
+        max-width: 820px;
         margin: 0 auto;
         text-align: center;
     }
 
     .news-hero-subtitle,
     .section-subtitle {
-        display: inline-block;
-        color: #d10024;
-        font-size: 13px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #ffdde3;
+        font-size: 12px;
         font-weight: 700;
-        letter-spacing: 1px;
-        margin-bottom: 14px;
+        letter-spacing: 1.4px;
+        margin-bottom: 18px;
+        text-transform: uppercase;
     }
 
     .news-hero-subtitle i,
     .section-subtitle i {
-        margin-right: 6px;
+        margin-right: 2px;
+        color: #ffd7de;
     }
 
     .news-hero h1 {
-        margin: 0 0 15px;
-        font-size: 40px;
-        font-weight: 700;
+        margin: 0 0 16px;
+        font-size: clamp(30px, 4vw, 52px);
+        line-height: 1.08;
+        font-weight: 800;
         color: #fff;
+        letter-spacing: -0.04em;
     }
 
     .news-hero p {
-        max-width: 650px;
+        max-width: 670px;
         margin: 0 auto;
-        color: #c8cad2;
+        color: rgba(255, 255, 255, 0.78);
         font-size: 16px;
         line-height: 1.8;
     }
@@ -615,40 +658,45 @@
         display: flex;
         justify-content: center;
         flex-wrap: wrap;
-        gap: 12px;
-        margin-top: 28px;
+        gap: 10px;
+        margin-top: 30px;
     }
 
     .news-category-nav a {
-        padding: 9px 16px;
+        padding: 10px 16px;
+        border-radius: 999px;
         border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 20px;
         color: #fff;
         font-size: 13px;
         font-weight: 600;
         text-decoration: none;
-        transition: 0.2s;
+        transition: all 0.2s ease;
+        background: rgba(255, 255, 255, 0.02);
     }
 
     .news-category-nav a:hover,
     .news-category-nav a.active {
+        background: linear-gradient(135deg, #d10024, #ef3857);
+        border-color: transparent;
         color: #fff;
-        border-color: #d10024;
-        background: #d10024;
+        box-shadow: 0 10px 24px rgba(209, 0, 36, 0.35);
     }
 
-    /* Tiêu đề section */
     .news-section-title {
         display: flex;
         align-items: flex-end;
         justify-content: space-between;
-        margin-bottom: 30px;
+        margin-bottom: 26px;
         border: 0;
     }
 
     .news-section-title .title {
         margin: 0;
-        color: #2b2d42;
+        color: #1a1d2b;
+        font-size: clamp(24px, 2vw, 34px);
+        line-height: 1.2;
+        font-weight: 800;
+        letter-spacing: -0.04em;
     }
 
     .news-view-all {
@@ -659,33 +707,39 @@
     }
 
     .news-view-all i {
-        margin-left: 5px;
+        margin-left: 6px;
     }
 
-    /* Tin nổi bật */
     .news-featured-section {
-        padding: 65px 0 30px;
+        padding: 72px 0 24px;
     }
 
     .featured-news-card {
         overflow: hidden;
-        border: 1px solid #e7e7e7;
-        border-radius: 8px;
+        border: 1px solid #eef0f5;
+        border-radius: 18px;
         background: #fff;
+        box-shadow: 0 14px 40px rgba(16, 20, 31, 0.06);
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .featured-news-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 18px 48px rgba(16, 20, 31, 0.12);
     }
 
     .featured-news-image {
         position: relative;
-        height: 350px;
+        height: 360px;
         overflow: hidden;
-        background: #f8f8f8;
+        background: #f5f6fa;
     }
 
     .featured-news-image img {
         width: 100%;
         height: 100%;
-        object-fit: contain;
-        transition: 0.35s;
+        object-fit: cover;
+        transition: transform 0.35s ease;
     }
 
     .featured-news-card:hover .featured-news-image img {
@@ -695,46 +749,50 @@
     .featured-news-tag,
     .news-card-tag {
         position: absolute;
-        top: 16px;
-        left: 16px;
-        padding: 6px 10px;
-        background: #d10024;
+        top: 18px;
+        left: 18px;
+        padding: 7px 12px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, #d10024, #ef3857);
         color: #fff;
-        font-size: 11px;
-        font-weight: 700;
-        letter-spacing: 0.5px;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
     }
 
     .featured-news-content {
-        padding: 25px;
+        padding: 26px 26px 24px;
     }
 
     .news-meta {
         display: flex;
         flex-wrap: wrap;
-        gap: 15px;
-        color: #8d99ae;
+        align-items: center;
+        gap: 14px;
+        color: #677084;
         font-size: 12px;
-        margin-bottom: 12px;
+        margin-bottom: 14px;
     }
 
     .news-meta i {
         color: #d10024;
-        margin-right: 4px;
+        margin-right: 5px;
     }
 
     .featured-news-content h2 {
         margin: 0 0 14px;
-        line-height: 1.4;
-        font-size: 25px;
+        line-height: 1.35;
+        font-size: clamp(22px, 2vw, 30px);
+        letter-spacing: -0.03em;
     }
 
     .featured-news-content h2 a,
     .news-card h3 a,
     .side-news-content h4 a {
-        color: #2b2d42;
+        color: #1d2230;
         text-decoration: none;
-        transition: 0.2s;
+        transition: color 0.2s ease;
     }
 
     .featured-news-content h2 a:hover,
@@ -744,8 +802,8 @@
     }
 
     .featured-news-content p {
-        margin-bottom: 18px;
-        color: #777;
+        margin-bottom: 20px;
+        color: #667084;
         line-height: 1.8;
     }
 
@@ -757,99 +815,109 @@
     }
 
     .news-read-more i {
-        margin-left: 5px;
+        margin-left: 6px;
     }
 
-    /* Tin bên phải */
     .news-side-list {
-        border: 1px solid #e7e7e7;
-        border-radius: 8px;
+        height: 100%;
+        border: 1px solid #edf0f6;
+        border-radius: 18px;
+        background: #fff;
+        box-shadow: 0 12px 28px rgba(16, 20, 31, 0.04);
         overflow: hidden;
     }
 
     .side-news-item {
         display: flex;
         gap: 15px;
-        padding: 18px;
-        border-bottom: 1px solid #eeeeee;
+        padding: 18px 18px 16px;
+        border-bottom: 1px solid #eef1f6;
+        transition: background 0.2s ease;
     }
 
     .side-news-item:last-child {
         border-bottom: none;
     }
 
+    .side-news-item:hover {
+        background: #fafbff;
+    }
+
     .side-news-image {
-        width: 110px;
-        min-width: 110px;
-        height: 95px;
+        width: 120px;
+        min-width: 120px;
+        height: 100px;
         overflow: hidden;
-        background: #f8f8f8;
+        border-radius: 12px;
+        background: #f5f6fa;
     }
 
     .side-news-image img {
         width: 100%;
         height: 100%;
-        object-fit: contain;
+        object-fit: cover;
     }
 
     .news-category-label {
         display: inline-block;
-        margin-bottom: 6px;
+        margin-bottom: 8px;
         color: #d10024;
         font-size: 10px;
-        font-weight: 700;
-        letter-spacing: 0.8px;
+        font-weight: 800;
+        letter-spacing: 1.2px;
+        text-transform: uppercase;
     }
 
     .side-news-content h4 {
         margin: 0 0 8px;
-        font-size: 15px;
+        font-size: 16px;
         line-height: 1.45;
     }
 
     .side-news-content p {
         margin: 0;
-        color: #8d99ae;
+        color: #7b8394;
         font-size: 12px;
+        font-weight: 600;
     }
 
     .side-news-content p i {
         color: #d10024;
-        margin-right: 4px;
+        margin-right: 5px;
     }
 
-    /* Danh sách tin */
     .news-list-section {
-        padding: 45px 0 65px;
+        padding: 48px 0 72px;
     }
 
     .news-card {
         height: 100%;
-        margin-bottom: 30px;
+        margin-bottom: 28px;
         overflow: hidden;
-        border: 1px solid #e7e7e7;
-        border-radius: 8px;
+        border: 1px solid #eef0f4;
+        border-radius: 18px;
         background: #fff;
-        transition: 0.25s;
+        box-shadow: 0 14px 32px rgba(18, 24, 35, 0.04);
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
     }
 
     .news-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 12px 28px rgba(43, 45, 66, 0.12);
+        box-shadow: 0 18px 42px rgba(18, 24, 35, 0.12);
     }
 
     .news-card-image {
         position: relative;
-        height: 210px;
+        height: 220px;
         overflow: hidden;
-        background: #f8f8f8;
+        background: #f5f6fa;
     }
 
     .news-card-image img {
         width: 100%;
         height: 100%;
-        object-fit: contain;
-        transition: 0.3s;
+        object-fit: cover;
+        transition: transform 0.3s ease;
     }
 
     .news-card:hover .news-card-image img {
@@ -857,58 +925,65 @@
     }
 
     .news-card-content {
-        padding: 20px;
+        padding: 20px 20px 22px;
     }
 
     .news-card h3 {
         min-height: 52px;
         margin: 0 0 12px;
-        font-size: 18px;
+        font-size: 20px;
         line-height: 1.45;
+        letter-spacing: -0.02em;
     }
 
     .news-card-content p {
-        min-height: 75px;
-        margin-bottom: 15px;
-        color: #777;
-        line-height: 1.7;
+        min-height: 78px;
+        margin-bottom: 16px;
+        color: #656f82;
+        line-height: 1.75;
     }
 
-    /* Sidebar */
     .news-sidebar {
-        padding-left: 15px;
+        padding-left: 12px;
     }
 
     .sidebar-widget {
-        margin-bottom: 28px;
-        padding: 24px;
-        border: 1px solid #e7e7e7;
-        border-radius: 8px;
+        margin-bottom: 26px;
+        padding: 22px 20px;
+        border: 1px solid #edf0f6;
+        border-radius: 18px;
         background: #fff;
+        box-shadow: 0 12px 28px rgba(16, 20, 31, 0.04);
     }
 
     .sidebar-title {
         margin: 0 0 18px;
-        color: #2b2d42;
-        font-size: 16px;
-        font-weight: 700;
+        color: #1a1d2b;
+        font-size: 17px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
     }
 
     .sidebar-title i {
-        margin-right: 7px;
+        margin-right: 8px;
         color: #d10024;
     }
 
     .news-search-box {
         display: flex;
+        overflow: hidden;
+        border-radius: 12px;
+        border: 1px solid #edf0f6;
+        background: #fff;
     }
 
     .news-search-box input {
         width: 100%;
-        height: 42px;
-        padding: 0 12px;
-        border: 1px solid #e7e7e7;
+        height: 44px;
+        padding: 0 14px;
+        border: 0;
         outline: none;
+        color: #1d2230;
     }
 
     .news-search-box input:focus {
@@ -916,10 +991,11 @@
     }
 
     .news-search-box button {
-        width: 45px;
+        width: 46px;
         border: 0;
-        background: #d10024;
+        background: linear-gradient(135deg, #d10024, #ef3857);
         color: #fff;
+        cursor: pointer;
     }
 
     .news-category-list {
@@ -929,7 +1005,7 @@
     }
 
     .news-category-list li {
-        border-bottom: 1px solid #eeeeee;
+        border-bottom: 1px solid #eef1f6;
     }
 
     .news-category-list li:last-child {
@@ -940,10 +1016,10 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 11px 0;
-        color: #666;
+        padding: 12px 0;
+        color: #5f6679;
         text-decoration: none;
-        transition: 0.2s;
+        transition: color 0.2s ease;
     }
 
     .news-category-list a:hover {
@@ -951,46 +1027,48 @@
     }
 
     .news-category-list span {
-        min-width: 25px;
-        padding: 2px 6px;
-        border-radius: 12px;
-        background: #f1f1f1;
-        color: #8d99ae;
+        min-width: 28px;
+        padding: 4px 8px;
+        border-radius: 999px;
+        background: #f4f5f8;
+        color: #677084;
         font-size: 11px;
         text-align: center;
+        font-weight: 700;
     }
 
     .newsletter-box {
         text-align: center;
-        border-top: 3px solid #d10024;
+        border-top: 4px solid #d10024;
     }
 
     .newsletter-box > i {
         display: inline-block;
         margin-bottom: 12px;
         color: #d10024;
-        font-size: 35px;
+        font-size: 36px;
     }
 
     .newsletter-box h3 {
         margin: 0 0 10px;
-        color: #2b2d42;
+        color: #1a1d2b;
         font-size: 18px;
-        font-weight: 700;
+        font-weight: 800;
     }
 
     .newsletter-box p {
-        color: #777;
+        color: #667084;
         line-height: 1.7;
         font-size: 14px;
     }
 
     .newsletter-box input {
         width: 100%;
-        height: 42px;
-        margin: 10px 0;
+        height: 44px;
+        margin: 12px 0 10px;
         padding: 0 12px;
-        border: 1px solid #e7e7e7;
+        border: 1px solid #edf0f6;
+        border-radius: 12px;
         outline: none;
     }
 
@@ -1001,22 +1079,19 @@
     .newsletter-box .primary-btn {
         width: 100%;
         border: 0;
+        border-radius: 12px;
     }
 
     @media (max-width: 991px) {
         .news-sidebar {
             padding-left: 0;
-            margin-top: 15px;
+            margin-top: 14px;
         }
     }
 
     @media (max-width: 767px) {
         .news-hero {
-            padding: 50px 0;
-        }
-
-        .news-hero h1 {
-            font-size: 30px;
+            padding: 58px 0 44px;
         }
 
         .news-section-title {
@@ -1029,7 +1104,7 @@
         }
 
         .featured-news-image {
-            height: 250px;
+            height: 240px;
         }
 
         .side-news-item {
@@ -1037,9 +1112,9 @@
         }
 
         .side-news-image {
-            width: 90px;
-            min-width: 90px;
-            height: 80px;
+            width: 94px;
+            min-width: 94px;
+            height: 82px;
         }
 
         .news-card-image {
@@ -1063,7 +1138,7 @@
             ['Giảm 15% phụ kiện công nghệ', 'Bảo vệ và nâng cấp thiết bị với phụ kiện chính hãng.'],
             ['iPad cho mùa học tập mới', 'Mua iPad kèm quà tặng thiết thực cho việc học.'],
             ['Miễn phí giao hàng toàn quốc', 'Đơn hàng từ 500.000đ được hỗ trợ phí vận chuyển.'],
-            ['Voucher thành viên AE Phoenic', 'Đăng nhập để nhận mã giảm giá dành riêng cho bạn.'],
+            ['Voucher thành viên Mobile Mart', 'Đăng nhập để nhận mã giảm giá dành riêng cho bạn.'],
             ['Điện thoại gập, trải nghiệm khác biệt', 'Khám phá các mẫu máy gập đang được yêu thích.'],
             ['Trả góp 0% lãi suất', 'Chia nhỏ chi phí, sở hữu sản phẩm bạn mong muốn.'],
             ['Flash sale công nghệ mỗi ngày', 'Cơ hội săn giá tốt với số lượng có hạn.']
