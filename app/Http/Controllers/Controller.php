@@ -64,3 +64,5 @@ abstract class Controller
         session()->forget('cart.guest');
     }
 }
+
+// Base controller comment 13:49:03
