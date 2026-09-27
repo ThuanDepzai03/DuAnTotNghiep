@@ -58,7 +58,17 @@ class ReturnRequestController extends Controller
 
         $orderItem = $order->items()->whereKey($data['order_item_id'])->with('imeis')->first();
         abort_unless($orderItem, 422);
-        abort_if($order->returnRequests()->whereNotIn('status', ['completed', 'request_rejected', 'rejected'])->whereHas('items', fn ($query) => $query->where('order_item_id', $orderItem->id))->exists(), 422, 'Sản phẩm này đã có yêu cầu trả hàng đang được xử lý.');
+        $existingRequest = $order->returnRequests()
+            ->whereNotIn('status', ['completed', 'request_rejected', 'rejected'])
+            ->whereHas('items', fn ($query) => $query->where('order_item_id', $orderItem->id))
+            ->latest()
+            ->first();
+
+        if ($existingRequest) {
+            return redirect()
+                ->route('orders.tracking.returns', $order)
+                ->with('error', 'Sản phẩm này đã có yêu cầu trả hàng #' . $existingRequest->id . ' đang được xử lý. Bạn có thể theo dõi tiến độ tại đây.');
+        }
         if (! empty($data['product_imei_id'])) {
             abort_unless($orderItem->imeis->contains('id', (int) $data['product_imei_id']), 422);
         }
