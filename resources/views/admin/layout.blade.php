@@ -382,7 +382,7 @@
     let adminNotificationsInitialized = false;
 
     function pollAdminNotifications() {
-        fetch('/admin/notification-summary', {
+        fetch('{{ route('admin.notifications.summary') }}', {
             headers: { 'Accept': 'application/json' }
         })
             .then(function (response) {
