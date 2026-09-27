@@ -54,13 +54,15 @@
                     <form method="POST" action="{{ route('admin.returns.update', $returnRequest) }}" class="border rounded p-3 bg-light mt-3" data-service-transition-form>
                         @csrf
                         @method('PUT')
-                        <label class="form-label" for="return-status-{{ $returnRequest->id }}">Chuyển sang bước</label>
+                            <label class="form-label" for="return-status-{{ $returnRequest->id }}">Chọn bước xử lý tiếp theo</label>
+                            <p class="small text-muted mb-2">Chọn trạng thái rồi nhấn nút xác nhận bên dưới để lưu thay đổi.</p>
                         <select id="return-status-{{ $returnRequest->id }}" name="status" class="form-select mb-3" data-status-select>
                             <option value="{{ $returnRequest->workflow_status }}">Giữ trạng thái: {{ \App\Support\ServiceWorkflow::label('return', $returnRequest->status) }}</option>
                             @foreach($returnRequest->next_workflow_statuses as $status)
                                 <option value="{{ $status }}">{{ $workflowSteps[$status]['label'] ?? $status }}</option>
                             @endforeach
                         </select>
+                            <div class="small text-danger mb-2" data-transition-feedback hidden>Trạng thái đã chọn chưa được lưu.</div>
 
                         <div class="row g-2" data-status-field="refund_approved,refunded">
                             <div class="col-md-6">
@@ -94,7 +96,7 @@
                             <label class="form-label">Ghi chú xử lý</label>
                             <textarea name="admin_note" class="form-control" rows="2" maxlength="2000" data-required-status="request_rejected">{{ old('admin_note', $returnRequest->admin_note) }}</textarea>
                         </div>
-                        <button class="btn btn-primary mt-3" type="submit">Lưu xử lý</button>
+                        <button class="btn btn-primary mt-3" type="submit" data-transition-submit>Lưu xử lý</button>
                     </form>
 
                     @if(!$returnRequest->warrantyClaim)
@@ -124,6 +126,9 @@
 <script>
     document.querySelectorAll('[data-service-transition-form]').forEach((form) => {
         const select = form.querySelector('[data-status-select]');
+        const submit = form.querySelector('[data-transition-submit]');
+        const feedback = form.querySelector('[data-transition-feedback]');
+        const originalLabel = submit.textContent.trim();
         const refreshFields = () => {
             const status = select.value;
             form.querySelectorAll('[data-status-field]').forEach((field) => {
@@ -133,6 +138,13 @@
             form.querySelectorAll('[data-required-status]').forEach((input) => {
                 input.required = input.dataset.requiredStatus.split(',').includes(status);
             });
+
+            const selectedOption = select.selectedOptions[0];
+            const isCurrentStatus = selectedOption?.textContent.trim().startsWith('Giữ trạng thái:');
+            feedback.hidden = isCurrentStatus;
+            submit.textContent = isCurrentStatus
+                ? originalLabel
+                : 'Xác nhận: ' + selectedOption.textContent.trim();
         };
         select.addEventListener('change', refreshFields);
         refreshFields();
