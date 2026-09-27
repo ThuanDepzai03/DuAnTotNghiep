@@ -70,7 +70,7 @@
 
                                 <span>
                                     <i class="fa fa-user"></i>
-                                    AE Phoenic Store
+                                    Mobile Mart
                                 </span>
                             </div>
 

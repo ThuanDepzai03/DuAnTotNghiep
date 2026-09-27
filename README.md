@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🔥 AE Phoenic Store
+# 🔥 Mobile Mart
 
 ### Nền tảng thương mại điện tử cho điện thoại, máy tính bảng và phụ kiện
 
@@ -20,7 +20,7 @@
 
 ### Tổng quan dự án
 
-AE Phoenic Store là hệ thống thương mại điện tử được xây dựng nhằm hỗ trợ quy trình mua sắm trực tuyến cho khách hàng và quản lý hoạt động bán hàng, tồn kho, đơn hàng, voucher và phản hồi cho quản trị viên. Dự án tập trung vào việc xây dựng một nền tảng bán hàng điện thoại, máy tính bảng và phụ kiện với trải nghiệm người dùng rõ ràng, giao diện thân thiện và luồng nghiệp vụ hoàn chỉnh từ lựa chọn sản phẩm đến thanh toán và theo dõi đơn hàng.
+Mobile Mart là hệ thống thương mại điện tử được xây dựng nhằm hỗ trợ quy trình mua sắm trực tuyến cho khách hàng và quản lý hoạt động bán hàng, tồn kho, đơn hàng, voucher và phản hồi cho quản trị viên. Dự án tập trung vào việc xây dựng một nền tảng bán hàng điện thoại, máy tính bảng và phụ kiện với trải nghiệm người dùng rõ ràng, giao diện thân thiện và luồng nghiệp vụ hoàn chỉnh từ lựa chọn sản phẩm đến thanh toán và theo dõi đơn hàng.
 
 > [!IMPORTANT]
 > Đây là dự án đồ án có đầy đủ luồng mua hàng, quản trị đơn hàng, voucher, thanh toán, chat và đánh giá sản phẩm.
@@ -931,16 +931,16 @@ Checklist kiểm thử chính:
 
 ## 15. Tác giả và dấu vết Git
 
-Đồ án tốt nghiệp - nhóm phát triển AE Phoenic Store. Bảng dưới đây dùng tên thành viên trong hồ sơ dự án và đối chiếu với author/email thực tế trong lịch sử Git.
+Đồ án tốt nghiệp - nhóm phát triển Mobile Mart. Bảng dưới đây dùng tên thành viên trong hồ sơ dự án và đối chiếu với author/email thực tế trong lịch sử Git.
 
 > **Cách đọc số liệu:** số commit là số lượng Git ghi nhận theo từng identity, có thể bao gồm commit merge. Đây là số liệu kiểm chứng hoạt động trong repository, không phải tỷ lệ phần trăm đóng góp.
 
 | Thành viên thực tế | Identity trong Git | Commit ghi nhận | Khu vực thay đổi nổi bật |
 |---|---|---:|---|
-| **Bùi Minh Thuận** `PP03513` - Trưởng nhóm | `Thuận`, `Thuandepzai03`, `thuanvillager243-dev`, `thuandz` | **168** | Tích hợp hệ thống, checkout, xác thực, địa chỉ, README, giao diện và migration |
-| **Đỗ Trung Hiếu** `PP03417` | `hieu` | **30** | Nghiệp vụ đơn hàng, checkout, thanh toán và controller backend |
-| **Lưu Đức Kiệt** `PP03363` | `duckiet863` | **43** | Banner, đánh giá, admin view, migration và kiểm thử |
-| **Bùi Quang Sơn** `PP03356` | `Sown11` | **23** | Sản phẩm, thương hiệu, seeder, migration và giao diện |
+| **Bùi Minh Thuận** `PP03513` - Trưởng nhóm | `Thuận`, `Thuandepzai03`, `thuanvillager243-dev`, `thuandz` | **236** | Tích hợp hệ thống, checkout, xác thực, địa chỉ, README, giao diện và migration |
+| **Đỗ Trung Hiếu** `PP03417` | `hieu` | **66** | Nghiệp vụ đơn hàng, checkout, thanh toán và controller backend |
+| **Lưu Đức Kiệt** `PP03363` | `duckiet863` | **70** | Banner, đánh giá, admin view, migration và kiểm thử |
+| **Bùi Quang Sơn** `PP03356` | `Sown11` | **38** | Sản phẩm, thương hiệu, seeder, migration và giao diện |
 | **Nguyễn Văn Trung** `PP03493` | `tun` | **36** | Seeder, dữ liệu sản phẩm, controller và giao diện |
 
 ### Quy đổi identity

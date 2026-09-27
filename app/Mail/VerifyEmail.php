@@ -19,7 +19,7 @@ class VerifyEmail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Xác thực email tài khoản AE Phoenic Store',
+            subject: 'Xác thực email tài khoản Mobile Mart',
         );
     }
 
