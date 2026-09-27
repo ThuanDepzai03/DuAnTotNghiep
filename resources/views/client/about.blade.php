@@ -167,7 +167,7 @@
         <div class="about-cta">
             <div>
                 <h3>Bạn cần tư vấn chọn sản phẩm?</h3>
-                <p>Liên hệ AE Phoenic Store để được hỗ trợ nhanh chóng.</p>
+                <p>Liên hệ MOBILE MART STORE để được hỗ trợ nhanh chóng.</p>
             </div>
 
             <a href="{{ route('contact') }}" class="about-cta-btn">
