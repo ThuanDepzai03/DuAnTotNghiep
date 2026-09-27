@@ -7,6 +7,7 @@
             <h2>Theo dõi bảo hành #{{ $warrantyClaim->id }}</h2>
             <p class="text-muted mb-0">{{ $warrantyClaim->imei?->variant?->product?->name ?? 'Thiết bị' }} · IMEI {{ $warrantyClaim->imei?->imei }}</p>
         </div>
+        <a class="btn btn-outline-secondary" href="{{ route('account.warranties.index') }}">Yêu cầu của tôi</a>
         <span class="badge {{ \App\Support\ServiceWorkflow::isFailure('warranty', $warrantyClaim->status) ? 'bg-danger' : ($warrantyClaim->status === 'completed' ? 'bg-success' : 'bg-warning text-dark') }}">
             {{ \App\Support\ServiceWorkflow::label('warranty', $warrantyClaim->status) }}
         </span>

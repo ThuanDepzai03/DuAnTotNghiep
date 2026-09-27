@@ -12,6 +12,37 @@ use Illuminate\Support\Facades\DB;
 
 class WarrantyController extends Controller
 {
+    public function index(Request $request)
+    {
+        $customer = $request->session()->get('customer');
+        abort_unless($customer, 403);
+
+        $email = strtolower(trim((string) ($customer['email'] ?? '')));
+        $phone = trim((string) ($customer['tel'] ?? ''));
+        $claims = WarrantyClaim::with(['imei.variant.product', 'reason', 'statusHistory'])
+            ->whereHas('order', function ($query) use ($email, $phone) {
+                $query->where(function ($owner) use ($email, $phone) {
+                    if ($email !== '') {
+                        $owner->whereRaw('LOWER(email) = ?', [$email]);
+                    }
+                    if ($phone !== '') {
+                        $email !== '' ? $owner->orWhere('phone', $phone) : $owner->where('phone', $phone);
+                    }
+                    if ($email === '' && $phone === '') {
+                        $owner->whereRaw('1 = 0');
+                    }
+                });
+            })
+            ->latest()
+            ->paginate(15);
+
+        foreach ($claims as $claim) {
+            $claim->workflow_timeline = ServiceWorkflow::timeline('warranty', $claim->status, $claim->statusHistory, $claim->created_at);
+        }
+
+        return view('client.orders.warranties-index', compact('claims'));
+    }
+
     public function lookup(Request $request)
     {
         $imei = null;

@@ -131,6 +131,8 @@ Route::post('/account/returns/{returnRequest}/confirm-received', [ReturnRequestC
     ->name('account.returns.confirm-received');
 Route::get('/account/warranties/{warrantyClaim}', [WarrantyController::class, 'show'])
     ->name('account.warranties.show');
+Route::get('/account/warranties', [WarrantyController::class, 'index'])
+    ->name('account.warranties.index');
 Route::post('/account/warranties/{warrantyClaim}/sent', [WarrantyController::class, 'markSent'])
     ->name('account.warranties.sent');
 Route::post('/account/warranties/{warrantyClaim}/confirm-received', [WarrantyController::class, 'confirmReceived'])
