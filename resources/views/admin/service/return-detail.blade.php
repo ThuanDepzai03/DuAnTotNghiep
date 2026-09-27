@@ -135,7 +135,11 @@
             const status = select.value;
             form.querySelectorAll('[data-status-field]').forEach((field) => {
                 const targets = field.dataset.statusField.split(',');
-                field.hidden = !targets.includes('default-note') && !targets.includes(status);
+                const visible = targets.includes('default-note') || targets.includes(status);
+                field.hidden = !visible;
+                field.querySelectorAll('input, select, textarea, button').forEach((control) => {
+                    control.disabled = !visible;
+                });
             });
             form.querySelectorAll('[data-required-status]').forEach((input) => {
                 input.required = input.dataset.requiredStatus.split(',').includes(status);
