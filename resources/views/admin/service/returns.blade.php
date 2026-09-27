@@ -14,7 +14,7 @@
         <article class="card shadow-sm mb-3">
             <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <strong>Yêu cầu #{{ $return->id }} · Đơn #{{ $return->order_id }}</strong>
-                <span class="badge {{ in_array($return->status, ['rejected', 'request_rejected', 'refund_rejected', 'return_failed']) ? 'bg-danger' : ($return->status === 'completed' ? 'bg-success' : 'bg-warning text-dark') }}">
+                <span class="badge {{ \App\Support\ServiceWorkflow::isFailure('return', $return->status) ? 'bg-danger' : ($return->status === 'completed' ? 'bg-success' : 'bg-warning text-dark') }}">
                     {{ \App\Support\ServiceWorkflow::label('return', $return->status) }}
                 </span>
             </div>

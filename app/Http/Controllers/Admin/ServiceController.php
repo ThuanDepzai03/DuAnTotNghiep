@@ -29,6 +29,7 @@ class ServiceController extends Controller
     public function convertReturnToWarranty(Request $request, ReturnRequest $returnRequest)
     {
         $data = $request->validate(['reason_id' => ['required', 'exists:service_reasons,id'], 'issue_description' => ['required', 'string', 'max:3000']]);
+        abort_unless(ServiceReason::for('warranty')->whereKey($data['reason_id'])->exists(), 422, 'Lý do bảo hành không còn khả dụng.');
         $item = $returnRequest->items()->with('imei', 'orderItem.imeis')->first();
         $imeiId = $item?->product_imei_id;
         if (! $imeiId && $item?->orderItem?->imeis?->count() === 1) {
@@ -60,7 +61,7 @@ class ServiceController extends Controller
     public function updateReturn(Request $request, ReturnRequest $returnRequest, ServiceRequestWorkflowService $workflow)
     {
         $data = $request->validate([
-            'status' => ['required', 'in:pending,approved,request_rejected,return_shipped,received,refund_approved,refunded,refund_rejected,return_prepared,return_shipping,customer_received,return_failed,completed'],
+            'status' => ['required', \Illuminate\Validation\Rule::in(ServiceWorkflow::adminStatusOptions('return'))],
             'refund_amount' => ['nullable', 'numeric', 'min:0'],
             'refund_method' => ['nullable', 'string', 'max:100'],
             'admin_note' => ['nullable', 'string', 'max:2000'],
@@ -128,7 +129,7 @@ class ServiceController extends Controller
     public function updateWarranty(Request $request, WarrantyClaim $warrantyClaim, ServiceRequestWorkflowService $workflow)
     {
         $data = $request->validate([
-            'status' => ['required', 'in:submitted,approved,customer_shipped,received,processing,repaired,rejected,return_prepared,shipping,customer_received,return_failed,completed'],
+            'status' => ['required', \Illuminate\Validation\Rule::in(ServiceWorkflow::adminStatusOptions('warranty'))],
             'technician_note' => ['nullable', 'string', 'max:2000'],
             'return_method' => ['nullable', 'string', 'max:100'],
             'rejection_reason' => ['nullable', 'string', 'max:2000'],
@@ -178,6 +179,7 @@ class ServiceController extends Controller
     public function convertWarrantyToReturn(Request $request, WarrantyClaim $warrantyClaim)
     {
         $data = $request->validate(['reason_id' => ['required', 'exists:service_reasons,id'], 'reason' => ['required', 'string', 'max:255']]);
+        abort_unless(ServiceReason::for('return')->whereKey($data['reason_id'])->exists(), 422, 'Lý do trả hàng không còn khả dụng.');
         abort_if($warrantyClaim->returnRequest()->exists(), 422, 'Yêu cầu đã liên kết trả hàng.');
         $orderItem = $warrantyClaim->imei?->orderItems()->first();
         abort_unless($orderItem, 422, 'Không tìm thấy sản phẩm trong đơn hàng để tạo yêu cầu trả hàng.');

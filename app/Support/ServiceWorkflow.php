@@ -99,13 +99,32 @@ final class ServiceWorkflow
         return self::CUSTOMER_TRANSITIONS[$type][self::legacyStatus($type, $status)] ?? null;
     }
 
+    public static function adminStatusOptions(string $type): array
+    {
+        return array_values(array_diff(array_keys(self::steps($type)), ['decision_pending']));
+    }
+
+    public static function activeStatuses(string $type): array
+    {
+        $terminal = $type === 'return'
+            ? ['completed', 'request_rejected', 'rejected', 'decision_pending']
+            : ['completed', 'returned'];
+
+        return array_values(array_diff(array_keys(self::steps($type)), $terminal));
+    }
+
+    public static function isFailure(string $type, string $status): bool
+    {
+        return in_array(self::legacyStatus($type, $status), ['request_rejected', 'refund_rejected', 'rejected', 'return_failed'], true);
+    }
+
     public static function timeline(string $type, string $status, iterable $history, $createdAt): array
     {
         $status = self::legacyStatus($type, $status);
         $history = collect($history);
         $statuses = $type === 'return'
             ? self::returnPath($status, $history)
-            : self::warrantyPath($status);
+            : self::warrantyPath($status, $history);
         $historyByStatus = $history->keyBy('new_status');
         $statusPosition = array_search($status, $statuses, true);
         $statusPosition = $statusPosition === false ? 0 : $statusPosition;
@@ -158,6 +177,10 @@ final class ServiceWorkflow
             return ['pending', 'request_rejected'];
         }
 
+        if (in_array($status, ['pending', 'approved', 'return_shipped', 'received'], true)) {
+            return ['pending', 'approved', 'return_shipped', 'received', 'decision_pending'];
+        }
+
         $refundRejected = $history->contains('new_status', 'refund_rejected');
         if ($refundRejected || in_array($status, ['refund_rejected', 'return_prepared', 'return_shipping', 'customer_received', 'return_failed'], true)) {
             $path = ['pending', 'approved', 'return_shipped', 'received', 'refund_rejected', 'return_prepared', 'return_shipping'];
@@ -175,18 +198,17 @@ final class ServiceWorkflow
             return $path;
         }
 
-        if ($status === 'received') {
-            return ['pending', 'approved', 'return_shipped', 'received', 'decision_pending'];
-        }
-
         return ['pending', 'approved', 'return_shipped', 'received', 'refund_approved', 'refunded', 'completed'];
     }
 
-    private static function warrantyPath(string $status): array
+    private static function warrantyPath(string $status, Collection $history): array
     {
-        if (in_array($status, ['rejected', 'return_prepared', 'return_failed'], true)) {
+        if ($history->contains('new_status', 'rejected') || in_array($status, ['rejected', 'return_prepared', 'return_failed'], true)) {
             $path = ['submitted', 'approved', 'customer_shipped', 'received', 'rejected', 'return_prepared', 'shipping'];
             $path[] = $status === 'return_failed' ? 'return_failed' : 'customer_received';
+            if ($status === 'completed') {
+                $path[] = 'completed';
+            }
 
             return $path;
         }

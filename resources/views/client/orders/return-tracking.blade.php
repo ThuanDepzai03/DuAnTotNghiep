@@ -19,7 +19,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
                         <h5 class="mb-1">Yêu cầu #{{ $return->id }}</h5>
-                        <span class="badge {{ in_array($return->status, ['rejected', 'request_rejected', 'refund_rejected', 'return_failed']) ? 'bg-danger' : (in_array($return->status, ['refunded', 'completed']) ? 'bg-success' : 'bg-warning text-dark') }}">
+                        <span class="badge {{ \App\Support\ServiceWorkflow::isFailure('return', $return->status) ? 'bg-danger' : (in_array($return->status, ['refunded', 'completed']) ? 'bg-success' : 'bg-warning text-dark') }}">
                             {{ \App\Support\ServiceWorkflow::label('return', $return->status) }}
                         </span>
                     </div>
@@ -64,6 +64,7 @@
                     @if($return->admin_note)
                         <div class="alert alert-light mt-3 mb-0"><strong>Ghi chú từ shop:</strong> {{ $return->admin_note }}</div>
                     @endif
+                    @include('shared.service-history', ['history' => $return->statusHistory, 'type' => 'return'])
                 </div>
             </article>
         @empty
