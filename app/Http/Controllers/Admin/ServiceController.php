@@ -99,7 +99,7 @@ class ServiceController extends Controller
             $attributes['shop_return_tracking_number'] = $data['shop_return_tracking_number'] ?? null;
         }
         if ($data['status'] === 'received') {
-            $attributes['shop_received_at'] = now();
+            $attributes['shop_received_at'] = $returnRequest->shop_received_at ?? now();
         }
 
         $reason = match ($data['status']) {
@@ -149,10 +149,10 @@ class ServiceController extends Controller
             'return_method' => $data['return_method'] ?? $warrantyClaim->return_method,
         ];
         if ($data['status'] === 'received') {
-            $attributes['received_at'] = now();
+            $attributes['received_at'] = $warrantyClaim->received_at ?? now();
         }
         if ($data['status'] === 'completed') {
-            $attributes['completed_at'] = now();
+            $attributes['completed_at'] = $warrantyClaim->completed_at ?? now();
         }
         if ($data['status'] === 'rejected') {
             $attributes['rejection_reason'] = $data['rejection_reason'];
