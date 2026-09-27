@@ -56,14 +56,16 @@
                         @method('PUT')
                             <label class="form-label" for="return-status-{{ $returnRequest->id }}">Chọn bước xử lý tiếp theo</label>
                             <p class="small text-muted mb-2">Chọn bước tiếp theo, kiểm tra thông tin rồi nhấn nút xác nhận để cập nhật.</p>
-                        <select id="return-status-{{ $returnRequest->id }}" name="status" class="form-select mb-3" data-status-select>
-                            <option value="{{ $returnRequest->workflow_status }}">Giữ trạng thái: {{ \App\Support\ServiceWorkflow::label('return', $returnRequest->status) }}</option>
-                            @foreach($returnRequest->next_workflow_statuses as $status)
-                                <option value="{{ $status }}">{{ $workflowSteps[$status]['label'] ?? $status }}</option>
-                            @endforeach
-                        </select>
-                            <div class="alert alert-info py-2 mb-2" role="status" data-transition-feedback hidden></div>
-                            <button class="btn btn-primary mb-3" type="submit" data-transition-submit>Lưu xử lý</button>
+                        <div class="d-flex flex-wrap align-items-start gap-2 mb-2">
+                            <select id="return-status-{{ $returnRequest->id }}" name="status" class="form-select flex-grow-1" data-status-select>
+                                <option value="{{ $returnRequest->workflow_status }}">Giữ trạng thái: {{ \App\Support\ServiceWorkflow::label('return', $returnRequest->status) }}</option>
+                                @foreach($returnRequest->next_workflow_statuses as $status)
+                                    <option value="{{ $status }}">{{ $workflowSteps[$status]['label'] ?? $status }}</option>
+                                @endforeach
+                            </select>
+                            <button class="btn btn-primary" type="submit" data-transition-submit>Lưu xử lý</button>
+                        </div>
+                        <div class="alert alert-info py-2 mb-3" role="status" data-transition-feedback hidden></div>
 
                         <div class="row g-2" data-status-field="refund_approved,refunded">
                             <div class="col-md-6">

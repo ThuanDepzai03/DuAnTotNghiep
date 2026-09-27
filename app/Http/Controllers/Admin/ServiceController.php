@@ -134,7 +134,7 @@ class ServiceController extends Controller
 
         return redirect()
             ->route('admin.returns.show', $returnRequest)
-            ->with('success', 'Đã cập nhật yêu cầu trả hàng.');
+            ->with('success', 'Cập nhật trạng thái thành công.');
     }
 
     public function warranties()

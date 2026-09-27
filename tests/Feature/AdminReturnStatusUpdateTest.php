@@ -77,7 +77,7 @@ class AdminReturnStatusUpdateTest extends TestCase
         ]);
 
         $response->assertRedirect(route('admin.returns.show', $returnRequest));
-        $response->assertSessionHas('success', 'Đã cập nhật yêu cầu trả hàng.');
+        $response->assertSessionHas('success', 'Cập nhật trạng thái thành công.');
 
         $this->assertDatabaseHas('return_requests', [
             'id' => $returnRequest->id,
