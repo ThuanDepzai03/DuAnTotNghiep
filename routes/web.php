@@ -125,6 +125,16 @@ Route::get('/orders/tracking/{id}', [App\Http\Controllers\Client\OrderTrackingCo
     ->name('orders.tracking.show');
 Route::get('/orders/tracking/{order}/returns', [ReturnRequestController::class, 'tracking'])
     ->name('orders.tracking.returns');
+Route::post('/account/returns/{returnRequest}/sent', [ReturnRequestController::class, 'markSent'])
+    ->name('account.returns.sent');
+Route::post('/account/returns/{returnRequest}/confirm-received', [ReturnRequestController::class, 'confirmReceived'])
+    ->name('account.returns.confirm-received');
+Route::get('/account/warranties/{warrantyClaim}', [WarrantyController::class, 'show'])
+    ->name('account.warranties.show');
+Route::post('/account/warranties/{warrantyClaim}/sent', [WarrantyController::class, 'markSent'])
+    ->name('account.warranties.sent');
+Route::post('/account/warranties/{warrantyClaim}/confirm-received', [WarrantyController::class, 'confirmReceived'])
+    ->name('account.warranties.confirm-received');
 Route::post('/orders/tracking/{id}/reviews', [App\Http\Controllers\Client\OrderTrackingController::class, 'submitReview'])
     ->name('orders.tracking.review');
 
