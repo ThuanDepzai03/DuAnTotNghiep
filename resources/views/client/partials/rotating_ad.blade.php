@@ -147,7 +147,7 @@
             ['Giảm 15% phụ kiện công nghệ', 'Bảo vệ và nâng cấp thiết bị với phụ kiện chính hãng.'],
             ['iPad cho mùa học tập mới', 'Mua iPad kèm quà tặng thiết thực cho việc học.'],
             ['Miễn phí giao hàng toàn quốc', 'Đơn hàng từ 500.000đ được hỗ trợ phí vận chuyển.'],
-            ['Voucher thành viên AE Phoenic', 'Đăng nhập để nhận mã giảm giá dành riêng cho bạn.'],
+            ['Voucher thành viên  Mobile Mart', 'Đăng nhập để nhận mã giảm giá dành riêng cho bạn.'],
             ['Điện thoại gập, trải nghiệm khác biệt', 'Khám phá các mẫu máy gập đang được yêu thích.'],
             ['Trả góp 0% lãi suất', 'Chia nhỏ chi phí, sở hữu sản phẩm bạn mong muốn.'],
             ['Flash sale công nghệ mỗi ngày', 'Cơ hội săn giá tốt với số lượng có hạn.']

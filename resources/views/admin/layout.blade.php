@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>AE Phoenic Store Admin</title>
+    <title>Mobile Mart Admin</title>
 
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800&display=swap" rel="stylesheet">
@@ -24,8 +24,8 @@
                 <div class="d-flex justify-content-between">
                     <div class="logo">
                         <a href="{{ route('admin.dashboard') }}" class="d-flex align-items-center text-decoration-none">
-                            <img src="{{ asset('img/logo.png') }}" alt="AE Phoenic" style="height: 42px; width: auto;">
-                            <span class="ms-2 fw-bold">AE PHOENIC</span>
+                            <img src="{{ asset('img/logo.png') }}" alt="Mobile Mart" style="height: 42px; width: auto;">
+                            <span class="ms-2 fw-bold">Mobile Mart</span>
                         </a>
                     </div>
                     <div class="toggler">
@@ -177,7 +177,7 @@
         <footer>
             <div class="footer clearfix mb-0 text-muted">
                 <div class="float-start">
-                    <p>2026 © AE Phoenic Store</p>
+                    <p>2026 © Mobile Mart</p>
                 </div>
                 <div class="float-end">
                     <p>REPO GIT<span class="text-danger"><i class="bi bi-heart"></i></span> : <a href="https://github.com/ThuanDepzai03/DuAnTotNghiep">Thuandepzai03</a></p>

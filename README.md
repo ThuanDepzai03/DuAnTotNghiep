@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🔥 AE Phoenic Store
+# 🔥 Mobile Mart Store
 
 ### Nền tảng thương mại điện tử cho điện thoại, máy tính bảng và phụ kiện
 
@@ -937,7 +937,7 @@ Checklist kiểm thử chính:
 
 ## 15. Tác giả và dấu vết Git
 
-Đồ án tốt nghiệp - nhóm phát triển AE Phoenic Store. Bảng dưới đây dùng tên thành viên trong hồ sơ dự án và đối chiếu với author/email thực tế trong lịch sử Git.
+Đồ án tốt nghiệp - nhóm phát triển Mobile Mart. Bảng dưới đây dùng tên thành viên trong hồ sơ dự án và đối chiếu với author/email thực tế trong lịch sử Git.
 
 > **Cách đọc số liệu:** số commit là số lượng Git ghi nhận theo từng identity, có thể bao gồm commit merge. Đây là số liệu kiểm chứng hoạt động trong repository, không phải tỷ lệ phần trăm đóng góp.
 

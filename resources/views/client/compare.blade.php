@@ -9,7 +9,7 @@
         So Sánh Mọi Loại Điện Thoại
       </h1>
       <p class="text-neutral-500 mt-2 text-sm md:text-base">
-        Nhập 2 dòng máy bất kỳ (cùng hãng hoặc khác hãng), AI của AE PHOENIC sẽ bóc tách chi tiết ưu - nhược điểm.
+        Nhập 2 dòng máy bất kỳ (cùng hãng hoặc khác hãng), AI của Mobile Mart sẽ bóc tách chi tiết ưu - nhược điểm.
       </p>
     </div>
 

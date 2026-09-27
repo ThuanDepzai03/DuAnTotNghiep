@@ -9,13 +9,13 @@
             <div class="col-md-6">
                 <div class="about-content">
                     <span class="about-subtitle">
-                        <i class="fa fa-heart"></i> AE PHOENIC STORE
+                        <i class="fa fa-heart"></i> MOBILE MART
                     </span>
 
                     <h1 class="about-title">Công nghệ tốt hơn cho cuộc sống hiện đại</h1>
 
                     <p class="about-desc">
-                        Chào mừng bạn đến với <strong>AE Phoenic Store</strong> – cửa hàng
+                        Chào mừng bạn đến với <strong>Mobile Mart</strong> – cửa hàng
                         chuyên cung cấp điện thoại, máy tính bảng và phụ kiện công nghệ
                         với trải nghiệm mua sắm tiện lợi, rõ ràng và an tâm.
                     </p>
@@ -75,7 +75,7 @@
                 <div class="about-image-box">
                     <img
                         src="{{ asset('image/about.jpg') }}"
-                        alt="AE Phoenic Store"
+                        alt="Mobile Mart"
                         class="about-image"
                         onerror="this.onerror=null;this.src='{{ asset('image/ipad10_blue.jpg') }}';"
                     >
@@ -103,7 +103,7 @@
                     <i class="fa fa-star"></i> CAM KẾT CỦA CHÚNG TÔI
                 </span>
 
-                <h2 class="service-heading">TẠI SAO CHỌN AE PHOENIC STORE?</h2>
+                <h2 class="service-heading">TẠI SAO CHỌN Mobile Mart?</h2>
 
                 <p class="service-heading-desc">
                     Không chỉ là nơi bán sản phẩm, chúng tôi muốn mang đến trải nghiệm
@@ -167,7 +167,7 @@
         <div class="about-cta">
             <div>
                 <h3>Bạn cần tư vấn chọn sản phẩm?</h3>
-                <p>Liên hệ AE Phoenic Store để được hỗ trợ nhanh chóng.</p>
+                <p>Liên hệ Mobile Mart để được hỗ trợ nhanh chóng.</p>
             </div>
 
             <a href="{{ route('contact') }}" class="about-cta-btn">

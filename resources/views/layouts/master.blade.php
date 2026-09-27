@@ -31,10 +31,10 @@
                 <div class="top-header-logo">
                     <a href="{{ route('home') }}"
                        class="brand-logo"
-                       aria-label="AE Phoenic Store">
+                       aria-label=" Mobile Mart">
 
                         <img src="{{ asset('img/logo.png') }}"
-                             alt="AE Phoenic"
+                             alt="Mobile Mart"
                              class="brand-logo__img">
 
                         <span class="brand-logo__text">
@@ -269,7 +269,7 @@
                         <h3 class="footer-title">VỀ CHÚNG TÔI</h3>
 
                         <p class="footer-about">
-                            AE Phoenic Store chuyên cung cấp điện thoại, máy tính bảng
+                            Mobile Mart chuyên cung cấp điện thoại, máy tính bảng
                             và phụ kiện chính hãng với giá tốt, bảo hành rõ ràng.
                         </p>
 
@@ -332,7 +332,7 @@
                         <h3 class="footer-title">KẾT NỐI VỚI CHÚNG TÔI</h3>
 
                         <p class="footer-about">
-                            Theo dõi AE Phoenic Store để nhận thông tin khuyến mãi
+                            Theo dõi Mobile Mart để nhận thông tin khuyến mãi
                             và sản phẩm mới sớm nhất.
                         </p>
 
@@ -372,7 +372,7 @@
             <div class="row">
                 <div class="col-md-12 text-center">
                     <span class="copyright">
-                        © {{ date('Y') }} AE Phoenic Store. Bản quyền thuộc về nhóm DATN.
+                        © {{ date('Y') }} Mobile Mart. Bản quyền thuộc về nhóm DATN.
                     </span>
                 </div>
             </div>

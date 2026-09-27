@@ -27,7 +27,7 @@
                         style="background-image: linear-gradient(90deg, rgba(21, 22, 29, .92) 0%, rgba(21, 22, 29, .45) 58%, rgba(21, 22, 29, .12) 100%), url('{{ asset($bannerImage) }}');"
                     >
                         <div class="hero-slide-content">
-                            <span class="hero-eyebrow"><i class="fa fa-bolt"></i> AE PHOENIX STORE</span>
+                            <span class="hero-eyebrow"><i class="fa fa-bolt"></i> Mobile Mart</span>
                             @if ($banner->title)
                                 <h1 style="font-size: {{ $banner->title_font_size ?? 37 }}px;">{{ $banner->title }}</h1>
                             @endif
@@ -54,7 +54,7 @@
                 {{-- Fallback Slide mặc định khi Admin chưa thêm banner động --}}
                 <article class="hero-slide hero-slide--apple is-active">
                     <div class="hero-slide-content">
-                        <span class="hero-eyebrow"><i class="fa fa-bolt"></i> AE PHOENIX STORE</span>
+                        <span class="hero-eyebrow"><i class="fa fa-bolt"></i> Mobile Mart</span>
                         <h1>CÔNG NGHỆ CHÍNH HÃNG<br>GIÁ TỐT MỖI NGÀY</h1>
                         <p>Khám phá iPhone, máy tính bảng và phụ kiện công nghệ phù hợp với nhu cầu của bạn.</p>
                         <div class="hero-benefits">

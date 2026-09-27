@@ -88,7 +88,7 @@ function loadCustomerMessages() {
                 box.innerHTML = `
                     <div style="display:flex; justify-content:flex-start; margin-bottom:10px;">
                         <div style="background:#e9ecef; color:#333; padding:8px 12px; border-radius:10px; max-width:80%; font-size:13px;">
-                            Xin chào! AE Phoenic Store có thể hỗ trợ gì cho bạn?
+                            Xin chào! Mobile Mart có thể hỗ trợ gì cho bạn?
                         </div>
                     </div>
                 `;

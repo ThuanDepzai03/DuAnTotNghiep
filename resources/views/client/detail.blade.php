@@ -654,7 +654,7 @@
         text-decoration: line-through;
     }
     /* =========================================
-   PRODUCT REVIEW - AE PHOENIC STORE
+   PRODUCT REVIEW - Mobile Mart
 ========================================= */
 
 .product-review-section {

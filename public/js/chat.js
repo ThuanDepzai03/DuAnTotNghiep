@@ -249,10 +249,10 @@ function loadCustomerMessages() {
             const lastMessage = messages[messages.length - 1];
 
             if (customerLastMessageCount && messages.length > customerLastMessageCount && lastMessage && lastMessage.sender_type === 'admin') {
-                showClientToast('Tin nhắn mới', 'Bạn nhận được phản hồi từ AE PHOENIC.');
+                showClientToast('Tin nhắn mới', 'Bạn nhận được phản hồi từ Mobile Mart.');
                 if ('Notification' in window && Notification.permission === 'granted') {
                     new Notification('Tin nhắn mới', {
-                        body: 'Bạn nhận được phản hồi từ AE PHOENIC.',
+                        body: 'Bạn nhận được phản hồi từ Mobile Mart.',
                         icon: '/img/logo.png'
                     });
                 }
@@ -282,7 +282,7 @@ function loadCustomerMessages() {
 
                 const welcomeBubble = document.createElement('div');
                 welcomeBubble.className = 'customer-chat-bubble';
-                welcomeBubble.textContent = 'Xin chào! AE Phoenix Store có thể hỗ trợ gì cho bạn?';
+                welcomeBubble.textContent = 'Xin chào! Mobile Mart có thể hỗ trợ gì cho bạn?';
 
                 welcomeRow.appendChild(welcomeBubble);
                 box.appendChild(welcomeRow);

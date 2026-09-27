@@ -8,7 +8,7 @@
         <div class="customer-chat__identity">
             <div class="customer-chat__avatar"><i class="fa fa-headphones" aria-hidden="true"></i></div>
             <div>
-                <strong>AE Phoenix Support</strong>
+                <strong>Mobile Mart Support</strong>
                 <span><i></i> Đang trực tuyến</span>
             </div>
         </div>
@@ -23,7 +23,7 @@
 
     <div id="chat-messages" class="customer-chat__messages" aria-live="polite">
         <div class="customer-chat-row customer-chat-row--admin">
-            <div class="customer-chat-bubble">Xin chào! AE Phoenix Store có thể hỗ trợ gì cho bạn?</div>
+            <div class="customer-chat-bubble">Xin chào! Mobile Mart có thể hỗ trợ gì cho bạn?</div>
         </div>
     </div>
 
@@ -31,7 +31,7 @@
         <input type="text" id="chat-message" placeholder="Viết tin nhắn..." onkeypress="handleChatEnter(event)" aria-label="Tin nhắn của bạn">
         <button type="button" onclick="sendMessage()" aria-label="Gửi tin nhắn"><i class="fa fa-paper-plane" aria-hidden="true"></i></button>
     </div>
-    <div class="customer-chat__footnote">AE Phoenix Store <span>•</span> Hỗ trợ trực tuyến</div>
+    <div class="customer-chat__footnote">Mobile Mart <span>•</span> Hỗ trợ trực tuyến</div>
 </section>
 
 <style>
