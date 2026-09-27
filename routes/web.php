@@ -125,6 +125,8 @@ Route::get('/orders/tracking/{id}', [App\Http\Controllers\Client\OrderTrackingCo
     ->name('orders.tracking.show');
 Route::get('/orders/tracking/{order}/returns', [ReturnRequestController::class, 'tracking'])
     ->name('orders.tracking.returns');
+Route::get('/account/service-requests', [ReturnRequestController::class, 'index'])
+    ->name('account.service-requests.index');
 Route::post('/account/returns/{returnRequest}/sent', [ReturnRequestController::class, 'markSent'])
     ->name('account.returns.sent');
 Route::post('/account/returns/{returnRequest}/confirm-received', [ReturnRequestController::class, 'confirmReceived'])

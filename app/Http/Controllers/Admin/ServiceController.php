@@ -33,6 +33,10 @@ class ServiceController extends Controller
             'statusHistory',
         ]);
 
+        $suggestedRefundAmount = $returnRequest->items->sum(function ($item) {
+            return (float) ($item->orderItem?->price ?? 0) * (int) $item->quantity;
+        });
+
         $returnRequest->workflow_timeline = ServiceWorkflow::timeline(
             'return',
             $returnRequest->status,
@@ -45,7 +49,7 @@ class ServiceController extends Controller
         $reasons = ServiceReason::for('warranty')->get();
         $workflowSteps = ServiceWorkflow::steps('return');
 
-        return view('admin.service.return-detail', compact('returnRequest', 'reasons', 'workflowSteps'));
+        return view('admin.service.return-detail', compact('returnRequest', 'reasons', 'workflowSteps', 'suggestedRefundAmount'));
     }
 
     public function convertReturnToWarranty(Request $request, ReturnRequest $returnRequest)

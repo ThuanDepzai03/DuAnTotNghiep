@@ -10,9 +10,75 @@ use App\Support\ServiceWorkflow;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class ReturnRequestController extends Controller
 {
+    public function index(Request $request)
+    {
+        $customer = $request->session()->get('customer');
+        abort_unless($customer, 403);
+
+        $email = strtolower(trim((string) ($customer['email'] ?? '')));
+        $phone = trim((string) ($customer['tel'] ?? ''));
+        abort_unless($email !== '' || $phone !== '', 403);
+
+        $type = $request->query('type', 'all');
+        $status = $request->query('status', '');
+        $validTypes = ['all', 'return', 'warranty'];
+        abort_unless(in_array($type, $validTypes, true), 404);
+
+        $returnQuery = DB::table('return_requests as rr')
+            ->join('orders as o', 'o.id', '=', 'rr.order_id')
+            ->leftJoin('service_reasons as sr', 'sr.id', '=', 'rr.reason_id')
+            ->selectRaw("'return' as request_type, rr.id as request_id, rr.order_id, o.customer_name, COALESCE(sr.name, rr.reason) as reason_label, rr.status, rr.created_at")
+            ->where(function ($query) use ($email, $phone) {
+                if ($email !== '') {
+                    $query->whereRaw('LOWER(o.email) = ?', [$email]);
+                }
+                if ($phone !== '') {
+                    $email !== '' ? $query->orWhere('o.phone', $phone) : $query->where('o.phone', $phone);
+                }
+            });
+
+        $warrantyQuery = DB::table('warranty_claims as wc')
+            ->join('orders as o', 'o.id', '=', 'wc.order_id')
+            ->leftJoin('service_reasons as sr', 'sr.id', '=', 'wc.reason_id')
+            ->selectRaw("'warranty' as request_type, wc.id as request_id, wc.order_id, o.customer_name, COALESCE(sr.name, wc.issue_description) as reason_label, wc.status, wc.created_at")
+            ->where(function ($query) use ($email, $phone) {
+                if ($email !== '') {
+                    $query->whereRaw('LOWER(o.email) = ?', [$email]);
+                }
+                if ($phone !== '') {
+                    $email !== '' ? $query->orWhere('o.phone', $phone) : $query->where('o.phone', $phone);
+                }
+            });
+
+        if ($type === 'return') {
+            $requestsQuery = $returnQuery;
+        } elseif ($type === 'warranty') {
+            $requestsQuery = $warrantyQuery;
+        } else {
+            $requestsQuery = $returnQuery->unionAll($warrantyQuery);
+        }
+
+        $requestsQuery = DB::query()->fromSub($requestsQuery, 'service_requests');
+
+        if ($status !== '') {
+            $requestsQuery->where('service_requests.status', $status);
+        }
+
+        $requestsQuery
+            ->orderByDesc('created_at')
+            ->orderByDesc('request_id');
+        $page = LengthAwarePaginator::resolveCurrentPage();
+        $perPage = 15;
+        $requests = $requestsQuery->paginate($perPage, ['*'], 'page', $page)
+            ->withQueryString();
+
+        return view('client.orders.service-requests-index', compact('requests', 'type', 'status'));
+    }
+
     public function create(Order $order)
     {
         $this->authorizeOrder($order);
