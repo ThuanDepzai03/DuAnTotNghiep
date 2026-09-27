@@ -13,7 +13,7 @@
         @endphp
 
         <section class="shop-heading" aria-label="Điều hướng cửa hàng">
-            <span class="shop-eyebrow"><i class="fa fa-shopping-bag"></i> AE Phoenix Store</span>
+            <span class="shop-eyebrow"><i class="fa fa-shopping-bag"></i> MOBILE MART STORE</span>
             <h1>Cửa hàng</h1>
             <p>Khám phá {{ strtolower($activeTitle) }} chính hãng, giá tốt và luôn được cập nhật.</p>
             <nav class="shop-main-tabs" aria-label="Nhóm sản phẩm">
