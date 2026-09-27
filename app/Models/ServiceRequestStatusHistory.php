@@ -15,6 +15,7 @@ class ServiceRequestStatusHistory extends Model
         'changed_by_type',
         'changed_by',
         'changed_by_name',
+        'changed_at',
     ];
 
     public function scopeForRequest($query, string $type, int $requestId)

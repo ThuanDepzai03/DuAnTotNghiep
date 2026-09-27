@@ -106,6 +106,7 @@ class ServiceRequestWorkflowService
             'changed_by_type' => $actorType,
             'changed_by' => $actorId,
             'changed_by_name' => $actorName,
+            'changed_at' => now(),
         ]);
     }
 }

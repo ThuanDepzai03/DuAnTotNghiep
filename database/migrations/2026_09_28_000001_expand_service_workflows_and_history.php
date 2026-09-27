@@ -58,6 +58,7 @@ return new class extends Migration
                 $table->string('changed_by_type', 20)->nullable();
                 $table->unsignedBigInteger('changed_by')->nullable();
                 $table->string('changed_by_name')->nullable();
+                $table->timestamp('changed_at')->nullable();
                 $table->timestamps();
                 $table->index(['request_type', 'request_id', 'id'], 'service_history_request_idx');
             });
@@ -79,6 +80,7 @@ return new class extends Migration
                         'reason' => 'Ghi nhận trạng thái hiện có khi triển khai lịch sử.',
                         'changed_by_type' => 'system',
                         'changed_by_name' => 'Hệ thống',
+                        'changed_at' => $request->created_at ?? now(),
                         'created_at' => $request->created_at ?? now(),
                         'updated_at' => $request->created_at ?? now(),
                     ]);
@@ -102,6 +104,7 @@ return new class extends Migration
                         'reason' => 'Ghi nhận trạng thái hiện có khi triển khai lịch sử.',
                         'changed_by_type' => 'system',
                         'changed_by_name' => 'Hệ thống',
+                        'changed_at' => $claim->created_at ?? now(),
                         'created_at' => $claim->created_at ?? now(),
                         'updated_at' => $claim->created_at ?? now(),
                     ]);

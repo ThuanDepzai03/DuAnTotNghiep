@@ -144,11 +144,17 @@ final class ServiceWorkflow
         return collect($statuses)->map(function (string $stepStatus, int $index) use ($type, $status, $statusPosition, $historyByStatus, $createdAt) {
             $definition = self::steps($type)[$stepStatus];
             $current = $stepStatus === $status || ($stepStatus === 'decision_pending' && $status === 'received');
+            if ($type === 'return' && $status === 'received' && $stepStatus === 'received') {
+                $current = false;
+            }
             $done = $stepStatus === 'decision_pending'
                 ? false
                 : ($statusPosition > $index || ($status === 'completed' && $stepStatus === 'completed'));
+            if ($type === 'return' && $status === 'received' && $stepStatus === 'received') {
+                $done = true;
+            }
             $entry = $historyByStatus->get($stepStatus);
-            $time = $entry?->created_at;
+            $time = $entry?->changed_at ?? $entry?->created_at;
 
             if ($stepStatus === 'pending' || $stepStatus === 'submitted') {
                 $time ??= $createdAt;
@@ -215,7 +221,11 @@ final class ServiceWorkflow
 
     private static function warrantyPath(string $status, Collection $history): array
     {
-        if ($history->contains('new_status', 'rejected') || in_array($status, ['rejected', 'return_prepared', 'return_failed'], true)) {
+        $rejectedBranch = $history->contains('new_status', 'rejected')
+            || $history->contains('new_status', 'return_prepared')
+            || in_array($status, ['rejected', 'return_prepared'], true);
+
+        if ($rejectedBranch) {
             $path = ['submitted', 'approved', 'customer_shipped', 'received', 'rejected', 'return_prepared', 'shipping'];
             $path[] = $status === 'return_failed' ? 'return_failed' : 'customer_received';
             if ($status === 'completed') {
@@ -225,6 +235,12 @@ final class ServiceWorkflow
             return $path;
         }
 
-        return ['submitted', 'approved', 'customer_shipped', 'received', 'processing', 'repaired', 'shipping', 'customer_received', 'completed'];
+        $path = ['submitted', 'approved', 'customer_shipped', 'received', 'processing', 'repaired', 'shipping'];
+        $path[] = $status === 'return_failed' ? 'return_failed' : 'customer_received';
+        if ($status !== 'return_failed') {
+            $path[] = 'completed';
+        }
+
+        return $path;
     }
 }
