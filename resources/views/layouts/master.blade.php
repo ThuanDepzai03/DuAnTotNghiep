@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>AE Phoenic Store</title>
+    <title>Mobile Mart</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="icon" type="image/png" href="{{ asset('img/logo.png') }}">
     <link rel="shortcut icon" type="image/png" href="{{ asset('img/logo.png') }}">
@@ -38,7 +38,7 @@
                              class="brand-logo__img">
 
                         <span class="brand-logo__text">
-                            AE PHOENIC
+                            Mobile Mart
                         </span>
                     </a>
                 </div>
