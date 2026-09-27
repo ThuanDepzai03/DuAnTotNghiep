@@ -31,10 +31,10 @@
                 <div class="top-header-logo">
                     <a href="{{ route('home') }}"
                        class="brand-logo"
-                       aria-label="AE Phoenic Store">
+                       aria-label=" MOBILE MART">
 
                         <img src="{{ asset('img/logo.png') }}"
-                             alt="AE Phoenic"
+                             alt=" MOBILE MART"
                              class="brand-logo__img">
 
                         <span class="brand-logo__text">
