@@ -8,7 +8,10 @@
             @if(session('success'))
                 <div class="alert alert-success">{{ session('success') }}</div>
             @endif
-            <p>Kiểm tra Gmail, lấy mã 6 số và nhập vào đây. Mã có hiệu lực trong 10 phút.</p>
+            @if(session('error'))
+                <div class="alert alert-danger">{{ session('error') }}</div>
+            @endif
+            <p>Kiểm tra email, lấy mã 6 số và nhập vào đây. Mã có hiệu lực trong 10 phút.</p>
 
             <form method="POST" action="{{ route('verification.code') }}">
                 @csrf

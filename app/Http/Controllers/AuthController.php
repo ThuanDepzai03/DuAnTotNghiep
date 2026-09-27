@@ -437,6 +437,24 @@ class AuthController extends Controller
             'tel' => 'nullable|string',
         ]);
 
+        $verificationEnabled = CustomerTable::hasColumn('email_verified_at')
+            && CustomerTable::hasColumn('email_verification_token')
+            && CustomerTable::hasColumn('email_verification_expires_at');
+
+        if (!$verificationEnabled) {
+            $message = 'Hệ thống chưa sẵn sàng xác thực OTP. Vui lòng chạy migration rồi thử lại.';
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $message,
+                    'errors' => ['email' => [$message]],
+                ], 503);
+            }
+
+            return back()->withInput()->withErrors(['email' => $message]);
+        }
+
         $city = trim((string) $request->city);
         $ward = trim((string) $request->ward);
         $addressDetail = trim((string) $request->address_detail);
@@ -459,8 +477,6 @@ class AuthController extends Controller
 
         $existingByUser = CustomerTable::query()->where('user', $request->user)->first();
         $existingByEmail = CustomerTable::query()->where('email', $request->email)->first();
-        $verificationEnabled = CustomerTable::hasColumn('email_verification_token');
-
         if ($verificationEnabled && (($existingByUser && $existingByUser->email_verified_at)
             || ($existingByEmail && $existingByEmail->email_verified_at))) {
             throw ValidationException::withMessages([
@@ -497,10 +513,8 @@ class AuthController extends Controller
 
         $verificationToken = (string) random_int(100000, 999999);
 
-        if ($verificationEnabled) {
-            $data['email_verification_token'] = Hash::make($verificationToken);
-            $data['email_verification_expires_at'] = now()->addMinutes(10);
-        }
+        $data['email_verification_token'] = Hash::make($verificationToken);
+        $data['email_verification_expires_at'] = now()->addMinutes(10);
 
         $pendingUser = $existingByUser ?: $existingByEmail;
 
@@ -512,8 +526,24 @@ class AuthController extends Controller
         }
 
         if ($verificationEnabled) {
-            Mail::to($request->email)->send(new VerifyEmail($verificationToken));
             session(['verification_email' => $request->email]);
+
+            try {
+                Mail::to($request->email)->send(new VerifyEmail($verificationToken));
+            } catch (\Throwable $exception) {
+                report($exception);
+                $message = 'Tài khoản đang chờ xác minh nhưng không gửi được mã OTP. Kiểm tra cấu hình email rồi chọn gửi lại mã.';
+
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $message,
+                        'redirect' => route('verification.notice'),
+                    ], 503);
+                }
+
+                return redirect()->route('verification.notice')->with('error', $message);
+            }
 
             if ($request->expectsJson()) {
                 return response()->json([
@@ -526,31 +556,7 @@ class AuthController extends Controller
             return redirect()->route('verification.notice');
         }
 
-        session(['customer' => [
-            'id' => $id,
-            'name' => trim($request->name),
-            'user' => $request->user,
-            'email' => $request->email,
-            'address' => $parsedAddress,
-            'city' => $city,
-            'district' => trim((string) $request->district),
-            'ward' => $ward,
-            'address_detail' => $addressDetail,
-            'tel' => $request->tel,
-            'role' => 0,
-        ]]);
-
-        $this->migrateGuestCartToCustomer();
-
-        if ($request->expectsJson()) {
-            return response()->json([
-                'success' => true,
-                'redirect' => route('account.profile'),
-                'message' => 'Đăng ký tài khoản thành công.',
-            ]);
-        }
-
-        return redirect()->route('account.profile');
+        return redirect()->route('verification.notice');
     }
 
     public function showVerificationNotice()
@@ -654,7 +660,13 @@ class AuthController extends Controller
                 'email_verification_expires_at' => now()->addMinutes(10),
             ]);
 
-            Mail::to($user->email)->send(new VerifyEmail($token));
+            try {
+                Mail::to($user->email)->send(new VerifyEmail($token));
+            } catch (\Throwable $exception) {
+                report($exception);
+
+                return back()->with('error', 'Không gửi được mã OTP. Vui lòng kiểm tra cấu hình email rồi thử lại.');
+            }
         }
 
         return back()->with('success', 'Nếu email tồn tại, liên kết xác thực mới đã được gửi.');

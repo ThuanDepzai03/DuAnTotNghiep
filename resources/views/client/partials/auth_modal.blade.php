@@ -430,6 +430,11 @@
                 .then(async (response) => {
                     const data = await response.json().catch(() => ({}));
                     if (!response.ok) {
+                        if (data.redirect) {
+                            window.location.href = data.redirect;
+                            return;
+                        }
+
                         const errors = data.errors || {};
                         const firstError = data.message || 'Có lỗi xảy ra.';
                         Object.keys(errors).forEach((key) => {
