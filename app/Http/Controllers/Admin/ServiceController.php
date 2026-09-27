@@ -45,6 +45,9 @@ class ServiceController extends Controller
         );
         $returnRequest->next_workflow_statuses = ServiceWorkflow::adminTransitions('return', $returnRequest->status);
         $returnRequest->workflow_status = ServiceWorkflow::legacyStatus('return', $returnRequest->status);
+        $returnRequest->is_converted_to_warranty = $returnRequest->warrantyClaim !== null;
+        $returnRequest->can_convert_to_warranty = !$returnRequest->is_converted_to_warranty
+            && !in_array($returnRequest->status, ['refund_approved', 'refunded', 'completed'], true);
 
         $reasons = ServiceReason::for('warranty')->get();
         $workflowSteps = ServiceWorkflow::steps('return');
@@ -54,6 +57,13 @@ class ServiceController extends Controller
 
     public function convertReturnToWarranty(Request $request, ReturnRequest $returnRequest)
     {
+        if ($returnRequest->warrantyClaim()->exists()) {
+            return back()->with('error', 'Yêu cầu này đã được chuyển sang bảo hành. Không thể tiếp tục xử lý hoàn tiền.');
+        }
+        if (in_array($returnRequest->status, ['refund_approved', 'refunded', 'completed'], true)) {
+            return back()->with('error', 'Yêu cầu đã vào luồng hoàn tiền nên không thể chuyển sang bảo hành.');
+        }
+
         $data = $request->validate(['reason_id' => ['required', 'exists:service_reasons,id'], 'issue_description' => ['required', 'string', 'max:3000']]);
         abort_unless(ServiceReason::for('warranty')->whereKey($data['reason_id'])->exists(), 422, 'Lý do bảo hành không còn khả dụng.');
         $item = $returnRequest->items()->with('imei', 'orderItem.imeis')->first();
@@ -86,6 +96,12 @@ class ServiceController extends Controller
 
     public function updateReturn(Request $request, ReturnRequest $returnRequest, ServiceRequestWorkflowService $workflow)
     {
+        if ($returnRequest->warrantyClaim()->exists()) {
+            return redirect()
+                ->route('admin.returns.show', $returnRequest)
+                ->with('error', 'Yêu cầu đã chuyển sang bảo hành; luồng trả hàng/hoàn tiền đã khóa.');
+        }
+
         $data = $request->validate([
             'status' => ['required', \Illuminate\Validation\Rule::in(ServiceWorkflow::adminStatusOptions('return'))],
             'refund_amount' => ['nullable', 'numeric', 'min:0'],

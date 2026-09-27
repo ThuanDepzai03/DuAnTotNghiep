@@ -16,11 +16,19 @@
     <article class="card shadow-sm mb-3">
         <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
             <strong>Yêu cầu #{{ $returnRequest->id }} · Đơn #{{ $returnRequest->order_id }}</strong>
-            <span class="badge {{ \App\Support\ServiceWorkflow::isFailure('return', $returnRequest->status) ? 'bg-danger' : (\App\Support\ServiceWorkflow::isSuccessful('return', $returnRequest->status) ? 'bg-success' : 'bg-warning text-dark') }}">
-                {{ \App\Support\ServiceWorkflow::label('return', $returnRequest->status) }}
+            <span class="badge {{ $returnRequest->is_converted_to_warranty ? 'bg-info text-dark' : (\App\Support\ServiceWorkflow::isFailure('return', $returnRequest->status) ? 'bg-danger' : (\App\Support\ServiceWorkflow::isSuccessful('return', $returnRequest->status) ? 'bg-success' : 'bg-warning text-dark')) }}">
+                {{ $returnRequest->is_converted_to_warranty ? 'Đã chuyển sang bảo hành' : \App\Support\ServiceWorkflow::label('return', $returnRequest->status) }}
             </span>
         </div>
         <div class="card-body">
+                    @if($returnRequest->is_converted_to_warranty)
+                        <div class="alert alert-info">
+                            Yêu cầu này đã chuyển sang bảo hành #{{ $returnRequest->warrantyClaim->id }}. Luồng trả hàng/hoàn tiền đã khóa.
+                            <a href="{{ route('admin.warranties.index') }}" class="alert-link">Mở quản lý bảo hành</a>
+                        </div>
+                    @elseif(in_array($returnRequest->status, ['refund_approved', 'refunded', 'completed'], true))
+                        <div class="alert alert-success">Yêu cầu đã vào luồng hoàn tiền; không thể chuyển sang bảo hành.</div>
+                    @endif
             <div class="row g-4">
                 <div class="col-lg-6">
                     <p><strong>Khách:</strong> {{ $returnRequest->order?->customer_name ?? 'Khách hàng' }} <small class="text-muted">{{ $returnRequest->order?->phone }}</small></p>
@@ -51,6 +59,7 @@
                     @include('shared.service-timeline', ['timeline' => $returnRequest->workflow_timeline])
                     @include('shared.service-history', ['history' => $returnRequest->statusHistory, 'type' => 'return'])
 
+                    @if(!$returnRequest->is_converted_to_warranty)
                     <form method="POST" action="{{ route('admin.returns.update', $returnRequest) }}" class="border rounded p-3 bg-light mt-3" data-service-transition-form>
                         @csrf
                         @method('PUT')
@@ -100,8 +109,9 @@
                             <textarea name="admin_note" class="form-control" rows="2" maxlength="2000" data-required-status="request_rejected">{{ old('admin_note', $returnRequest->admin_note) }}</textarea>
                         </div>
                     </form>
+                    @endif
 
-                    @if(!$returnRequest->warrantyClaim)
+                    @if($returnRequest->can_convert_to_warranty)
                         <form method="POST" action="{{ route('admin.returns.to-warranty', $returnRequest) }}" class="border rounded p-3 mt-3">
                             @csrf
                             <strong class="d-block mb-2">Chuyển sang bảo hành</strong>
@@ -114,7 +124,7 @@
                             <textarea name="issue_description" class="form-control mb-2" rows="2" maxlength="3000" placeholder="Mô tả lỗi" required></textarea>
                             <button class="btn btn-outline-primary" type="submit">Tạo yêu cầu bảo hành</button>
                         </form>
-                    @else
+                    @elseif($returnRequest->is_converted_to_warranty)
                         <p class="text-muted mt-3 mb-0">Đã liên kết yêu cầu bảo hành #{{ $returnRequest->warrantyClaim->id }}.</p>
                     @endif
                 </div>
