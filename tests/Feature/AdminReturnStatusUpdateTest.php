@@ -4,14 +4,11 @@ namespace Tests\Feature;
 
 use App\Models\ReturnRequest;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Foundation\Testing\TestCase;
 use Illuminate\Support\Facades\Schema;
-use Tests\CreatesApplication;
+use Tests\TestCase;
 
 class AdminReturnStatusUpdateTest extends TestCase
 {
-    use CreatesApplication;
-
     protected function setUp(): void
     {
         parent::setUp();
