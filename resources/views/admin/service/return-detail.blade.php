@@ -65,7 +65,7 @@
                         <div class="row g-2" data-status-field="refund_approved,refunded">
                             <div class="col-md-6">
                                 <label class="form-label">Tiền hoàn (₫)</label>
-                                <input type="number" name="refund_amount" min="1" value="old('refund_amount', $returnRequest->refund_amount)" class="form-control" data-required-status="refund_approved,refunded">
+                                <input type="number" name="refund_amount" min="1" value="{{ old('refund_amount', $returnRequest->refund_amount) }}" class="form-control" data-required-status="refund_approved,refunded">
                                 @error('refund_amount')<small class="text-danger">{{ $message }}</small>@enderror
                             </div>
                             <div class="col-md-6">
