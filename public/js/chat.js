@@ -277,24 +277,15 @@ function loadCustomerMessages() {
                 data.messages.length === 0
             ) {
 
-                box.innerHTML = `
-                    <div style="
-                        display:flex;
-                        justify-content:flex-start;
-                        margin-bottom:10px;
-                    ">
-                        <div style="
-                            background:#e9ecef;
-                            color:#333;
-                            padding:8px 12px;
-                            border-radius:10px;
-                            max-width:80%;
-                            font-size:13px;
-                        ">
-                            Xin chào! AE Phoenic Store có thể hỗ trợ gì cho bạn?
-                        </div>
-                    </div>
-                `;
+                const welcomeRow = document.createElement('div');
+                welcomeRow.className = 'customer-chat-row customer-chat-row--admin';
+
+                const welcomeBubble = document.createElement('div');
+                welcomeBubble.className = 'customer-chat-bubble';
+                welcomeBubble.textContent = 'Xin chào! AE Phoenix Store có thể hỗ trợ gì cho bạn?';
+
+                welcomeRow.appendChild(welcomeBubble);
+                box.appendChild(welcomeRow);
 
                 customerMessagesLoading = false;
 
@@ -307,8 +298,10 @@ function loadCustomerMessages() {
                 const wrapper =
                     document.createElement('div');
 
-                wrapper.style.display = 'flex';
-                wrapper.style.marginBottom = '10px';
+                wrapper.className = 'customer-chat-row ' +
+                    (message.sender_type === 'customer'
+                        ? 'customer-chat-row--customer'
+                        : 'customer-chat-row--admin');
 
 
                 const content =
@@ -317,60 +310,7 @@ function loadCustomerMessages() {
                 content.textContent =
                     message.message;
 
-                content.style.padding =
-                    '8px 12px';
-
-                content.style.borderRadius =
-                    '10px';
-
-                content.style.maxWidth =
-                    '80%';
-
-                content.style.fontSize =
-                    '13px';
-
-                content.style.wordBreak =
-                    'break-word';
-
-
-                /* =========================
-                   TIN KHÁCH
-                ========================= */
-
-                if (
-                    message.sender_type === 'customer'
-                ) {
-
-                    wrapper.style.justifyContent =
-                        'flex-end';
-
-                    content.style.background =
-                        '#0088ff';
-
-                    content.style.color =
-                        '#ffffff';
-
-                }
-
-
-                /* =========================
-                   TIN ADMIN
-                ========================= */
-
-                else if (
-                    message.sender_type === 'admin'
-                ) {
-
-                    wrapper.style.justifyContent =
-                        'flex-start';
-
-                    content.style.background =
-                        '#e9ecef';
-
-                    content.style.color =
-                        '#333333';
-
-                }
+                content.className = 'customer-chat-bubble';
 
 
                 wrapper.appendChild(content);
