@@ -141,9 +141,9 @@ GOOGLE_CLIENT_ID=your-client-id
 GOOGLE_CLIENT_SECRET=your-client-secret
 GOOGLE_REDIRECT_URI=http://127.0.0.1:8000/auth/google/callback
 ```
-
+🔥Link Download .env : 
 ```
- Link Download .env : https://docs.google.com/document/d/18ggXdlFbD0W8KULPNczOSkXoI3emzokmwmecFdFMIgM/edit?usp=sharing
+ https://docs.google.com/document/d/18ggXdlFbD0W8KULPNczOSkXoI3emzokmwmecFdFMIgM/edit?usp=sharing
 ```
 
 Khi chạy local, phải truy cập website bằng đúng host `http://127.0.0.1:8000`, không trộn với `http://localhost`. Sau khi thay đổi `.env` hoặc cấu hình OAuth, chạy:
