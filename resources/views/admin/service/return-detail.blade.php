@@ -63,6 +63,7 @@
                             @endforeach
                         </select>
                             <div class="small text-danger mb-2" data-transition-feedback hidden>Trạng thái đã chọn chưa được lưu.</div>
+                            <button class="btn btn-primary mb-3" type="submit" data-transition-submit>Lưu xử lý</button>
 
                         <div class="row g-2" data-status-field="refund_approved,refunded">
                             <div class="col-md-6">
@@ -96,7 +97,6 @@
                             <label class="form-label">Ghi chú xử lý</label>
                             <textarea name="admin_note" class="form-control" rows="2" maxlength="2000" data-required-status="request_rejected">{{ old('admin_note', $returnRequest->admin_note) }}</textarea>
                         </div>
-                        <button class="btn btn-primary mt-3" type="submit" data-transition-submit>Lưu xử lý</button>
                     </form>
 
                     @if(!$returnRequest->warrantyClaim)
