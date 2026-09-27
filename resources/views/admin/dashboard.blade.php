@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="page-heading">
-    <h3>Hệ thống AE STORE</h3>
+    <h3>Hệ thống Mobile Mart</h3>
     <p class="text-subtitle text-muted">Dashboard quản trị bán hàng</p>
 </div>
 
@@ -164,7 +164,7 @@
                             <img src="{{ asset('admin-assets/images/faces/1.jpg') }}" alt="avatar">
                         </div>
                         <div class="ms-3 name">
-                            <h5 class="font-bold">Admin AE Store</h5>
+                            <h5 class="font-bold">Admin Mobile Mart</h5>
                             <h6 class="text-muted mb-0">Quản trị hệ thống</h6>
                         </div>
                     </div>
