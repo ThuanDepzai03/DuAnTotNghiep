@@ -76,11 +76,21 @@ class ReturnRequestController extends Controller
         $requests = $requestsQuery->paginate($perPage, ['*'], 'page', $page)
             ->withQueryString();
 
-        $statusOptions = collect(ServiceWorkflow::steps('return'))
-            ->merge(ServiceWorkflow::steps('warranty'))
-            ->except('decision_pending')
-            ->map(fn ($step) => $step['label'])
-            ->all();
+        $statusOptions = [];
+        foreach (['return', 'warranty'] as $workflowType) {
+            foreach (ServiceWorkflow::steps($workflowType) as $statusCode => $step) {
+                if ($statusCode === 'decision_pending') {
+                    continue;
+                }
+
+                $label = ServiceWorkflow::label($workflowType, $statusCode);
+                if (isset($statusOptions[$statusCode]) && $statusOptions[$statusCode] !== $label) {
+                    $statusOptions[$statusCode] .= ' / ' . $label;
+                } else {
+                    $statusOptions[$statusCode] = $label;
+                }
+            }
+        }
 
         return view('client.orders.service-requests-index', compact('requests', 'type', 'status', 'statusOptions'));
     }
