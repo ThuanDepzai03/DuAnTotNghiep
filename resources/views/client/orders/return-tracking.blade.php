@@ -16,7 +16,7 @@
         @if($errors->any())<div class="alert alert-danger">{{ $errors->first() }}</div>@endif
 
         @forelse($order->returnRequests as $return)
-            <article class="card border-0 shadow-sm mb-3">
+            <article id="return-request-{{ $return->id }}" class="card border-0 shadow-sm mb-3">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
                         <h5 class="mb-1">Yêu cầu #{{ $return->id }}</h5>

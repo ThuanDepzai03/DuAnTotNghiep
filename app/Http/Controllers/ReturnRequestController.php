@@ -76,7 +76,13 @@ class ReturnRequestController extends Controller
         $requests = $requestsQuery->paginate($perPage, ['*'], 'page', $page)
             ->withQueryString();
 
-        return view('client.orders.service-requests-index', compact('requests', 'type', 'status'));
+        $statusOptions = collect(ServiceWorkflow::steps('return'))
+            ->merge(ServiceWorkflow::steps('warranty'))
+            ->except('decision_pending')
+            ->map(fn ($step) => $step['label'])
+            ->all();
+
+        return view('client.orders.service-requests-index', compact('requests', 'type', 'status', 'statusOptions'));
     }
 
     public function create(Order $order)
