@@ -92,7 +92,7 @@
         display: none;
         align-items: center;
         justify-content: center;
-        z-index: 2000;
+        z-index: 10000000;
     }
 
     .auth-modal.is-open {
@@ -110,6 +110,9 @@
     .auth-modal__card {
         position: relative;
         width: min(100%, 480px);
+        max-height: calc(100vh - 24px);
+        max-height: calc(100dvh - 24px);
+        overflow-y: auto;
         background: #fff;
         border-radius: 16px;
         box-shadow: 0 20px 60px rgba(15, 23, 42, 0.25);
@@ -219,6 +222,14 @@
         display: flex;
         flex-direction: column;
         gap: 16px;
+    }
+
+    #client-register-form {
+        gap: 10px;
+    }
+
+    #client-register-form .auth-form__group {
+        gap: 5px;
     }
 
     .auth-form__group {
