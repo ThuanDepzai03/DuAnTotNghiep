@@ -55,14 +55,14 @@
                         @csrf
                         @method('PUT')
                             <label class="form-label" for="return-status-{{ $returnRequest->id }}">Chọn bước xử lý tiếp theo</label>
-                            <p class="small text-muted mb-2">Chọn trạng thái rồi nhấn nút xác nhận bên dưới để lưu thay đổi.</p>
+                            <p class="small text-muted mb-2">Chọn bước tiếp theo, kiểm tra thông tin rồi nhấn nút xác nhận để cập nhật.</p>
                         <select id="return-status-{{ $returnRequest->id }}" name="status" class="form-select mb-3" data-status-select>
                             <option value="{{ $returnRequest->workflow_status }}">Giữ trạng thái: {{ \App\Support\ServiceWorkflow::label('return', $returnRequest->status) }}</option>
                             @foreach($returnRequest->next_workflow_statuses as $status)
                                 <option value="{{ $status }}">{{ $workflowSteps[$status]['label'] ?? $status }}</option>
                             @endforeach
                         </select>
-                            <div class="small text-danger mb-2" data-transition-feedback hidden>Trạng thái đã chọn chưa được lưu.</div>
+                            <div class="alert alert-info py-2 mb-2" role="status" data-transition-feedback hidden></div>
                             <button class="btn btn-primary mb-3" type="submit" data-transition-submit>Lưu xử lý</button>
 
                         <div class="row g-2" data-status-field="refund_approved,refunded">
@@ -145,6 +145,9 @@
             submit.textContent = isCurrentStatus
                 ? originalLabel
                 : 'Xác nhận: ' + selectedOption.textContent.trim();
+            feedback.textContent = isCurrentStatus
+                ? ''
+                : 'Bạn đã chọn bước này nhưng chưa lưu. Nhấn nút "' + submit.textContent + '" ngay bên dưới.';
         };
         select.addEventListener('change', refreshFields);
         refreshFields();
