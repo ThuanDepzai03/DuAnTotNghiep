@@ -269,6 +269,19 @@
                         >
                             Tiến hành thanh toán
                         </a>
+
+                        <div style="display: flex; justify-content: flex-end; margin-top: 12px; width: 100%;">
+                            <a
+                                href="{{ route('account.profile') }}"
+                                class="btn btn-outline-secondary d-flex flex-column align-items-center justify-content-center px-2 py-2"
+                                style="border-radius: 12px; min-width: 72px; max-width: 72px; height: 74px; padding-top: 8px; padding-bottom: 8px;"
+                            >
+                                <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-light text-secondary" style="width: 32px; height: 32px; line-height: 1;">
+                                    <i class="fa fa-user" style="font-size: 18px;"></i>
+                                </span>
+                                <span style="font-size: 12px; font-weight: 600; line-height: 1.2; margin-top: 4px;">Tôi</span>
+                            </a>
+                        </div>
                     </div>
                 </div>
             @else
@@ -279,6 +292,7 @@
                         <a href="{{ route('shop') }}" class="primary-btn">
                             Đi mua sắm ngay
                         </a>
+
                     </div>
                 </div>
             @endif

@@ -14,7 +14,6 @@ class Order extends Model
         'address_detail',
         'city',
         'ward',
-        'voucher_id',
         'voucher_code',
         'discount_amount',
         'shipping_fee',
@@ -27,10 +26,24 @@ class Order extends Model
         'bank_code',
         'paid_at',
         'completed_at',
+        'refund_status',
+        'refund_reason',
+        'refund_requested_at',
+        'refund_processed_at',
     ];
 
     public function items()
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function returnRequests()
+    {
+        return $this->hasMany(ReturnRequest::class);
+    }
+
+    public function warrantyClaims()
+    {
+        return $this->hasMany(WarrantyClaim::class);
     }
 }

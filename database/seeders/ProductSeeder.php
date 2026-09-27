@@ -4401,6 +4401,454 @@ class ProductSeeder extends Seeder
                     ],
                 ],
             ],
+            [
+                'data' => array (
+  'category_id' => 10,
+  'brand_id' => 2,
+  'name' => 'ASUS ROG Zephyrus G14 2025',
+  'slug' => 'asus-rog-zephyrus-g14-2025',
+  'sku' => 'ASUSROGZEPHYRUSG142025-DEMO',
+  'description' => 'Sản phẩm chính hãng, hình ảnh thực tế và thông tin tham khảo từ nhà sản xuất.',
+  'thumbnail' => 'image/products/asus-rog-zephyrus-g14-2025.jpg',
+  'status' => 1,
+),
+                'variants' => [
+                    [
+                        'data' => array (
+  'sku' => 'ASUSROGZEPHYRUSG142025-V1',
+  'price' => '42990000.00',
+  'sale_price' => '40990000.00',
+  'stock' => 18,
+  'image' => 'image/products/asus-rog-zephyrus-g14-2025.jpg',
+  'status' => 1,
+),
+                        'attribute_value_ids' => array (
+  0 => 1,
+),
+                    ],
+                ],
+            ],
+            [
+                'data' => array (
+  'category_id' => 10,
+  'brand_id' => 1,
+  'name' => 'Apple MacBook Air M3 13 inch',
+  'slug' => 'apple-macbook-air-m3-13-inch',
+  'sku' => 'APPLEMACBOOKAIRM313INCH-DEMO',
+  'description' => 'Sản phẩm chính hãng, hình ảnh thực tế và thông tin tham khảo từ nhà sản xuất.',
+  'thumbnail' => 'image/products/apple-macbook-air-m3-13-inch.jpg',
+  'status' => 1,
+),
+                'variants' => [
+                    [
+                        'data' => array (
+  'sku' => 'APPLEMACBOOKAIRM313INCH-V1',
+  'price' => '27990000.00',
+  'sale_price' => '26490000.00',
+  'stock' => 24,
+  'image' => 'image/products/apple-macbook-air-m3-13-inch.jpg',
+  'status' => 1,
+),
+                        'attribute_value_ids' => array (
+  0 => 1,
+),
+                    ],
+                ],
+            ],
+            [
+                'data' => array (
+  'category_id' => 3,
+  'brand_id' => 1,
+  'name' => 'Apple Watch Series 9',
+  'slug' => 'apple-watch-series-9',
+  'sku' => 'APPLEWATCHSERIES9-DEMO',
+  'description' => 'Sản phẩm chính hãng, hình ảnh thực tế và thông tin tham khảo từ nhà sản xuất.',
+  'thumbnail' => 'image/products/apple-watch-series-9.jpg',
+  'status' => 1,
+),
+                'variants' => [
+                    [
+                        'data' => array (
+  'sku' => 'APPLEWATCHSERIES9-V1',
+  'price' => '10990000.00',
+  'sale_price' => '9990000.00',
+  'stock' => 20,
+  'image' => 'image/products/apple-watch-series-9.jpg',
+  'status' => 1,
+),
+                        'attribute_value_ids' => array (
+  0 => 1,
+),
+                    ],
+                ],
+            ],
+            [
+                'data' => array (
+  'category_id' => 3,
+  'brand_id' => 9,
+  'name' => 'Samsung Galaxy Watch6 Classic',
+  'slug' => 'samsung-galaxy-watch6-classic',
+  'sku' => 'SAMSUNGGALAXYWATCH6CLASSIC-DEMO',
+  'description' => 'Sản phẩm chính hãng, hình ảnh thực tế và thông tin tham khảo từ nhà sản xuất.',
+  'thumbnail' => 'image/products/samsung-galaxy-watch6-classic.jpg',
+  'status' => 1,
+),
+                'variants' => [
+                    [
+                        'data' => array (
+  'sku' => 'SAMSUNGGALAXYWATCH6CLASSIC-V1',
+  'price' => '7490000.00',
+  'sale_price' => '6490000.00',
+  'stock' => 16,
+  'image' => 'image/products/samsung-galaxy-watch6-classic.jpg',
+  'status' => 1,
+),
+                        'attribute_value_ids' => array (
+  0 => 1,
+),
+                    ],
+                ],
+            ],
+            [
+                'data' => array (
+  'category_id' => 2,
+  'brand_id' => 1,
+  'name' => 'Apple AirPods Pro 2',
+  'slug' => 'apple-airpods-pro-2',
+  'sku' => 'APPLEAIRPODSPRO2-DEMO',
+  'description' => 'Sản phẩm chính hãng, hình ảnh thực tế và thông tin tham khảo từ nhà sản xuất.',
+  'thumbnail' => 'image/products/apple-airpods-pro-2.jpg',
+  'status' => 1,
+),
+                'variants' => [
+                    [
+                        'data' => array (
+  'sku' => 'APPLEAIRPODSPRO2-V1',
+  'price' => '6490000.00',
+  'sale_price' => '5990000.00',
+  'stock' => 35,
+  'image' => 'image/products/apple-airpods-pro-2.jpg',
+  'status' => 1,
+),
+                        'attribute_value_ids' => array (
+  0 => 1,
+),
+                    ],
+                ],
+            ],
+            [
+                'data' => array (
+  'category_id' => 2,
+  'brand_id' => 9,
+  'name' => 'Samsung Galaxy Buds2 Pro',
+  'slug' => 'samsung-galaxy-buds2-pro',
+  'sku' => 'SAMSUNGGALAXYBUDS2PRO-DEMO',
+  'description' => 'Sản phẩm chính hãng, hình ảnh thực tế và thông tin tham khảo từ nhà sản xuất.',
+  'thumbnail' => 'image/products/samsung-galaxy-buds2-pro.jpg',
+  'status' => 1,
+),
+                'variants' => [
+                    [
+                        'data' => array (
+  'sku' => 'SAMSUNGGALAXYBUDS2PRO-V1',
+  'price' => '4990000.00',
+  'sale_price' => '3990000.00',
+  'stock' => 28,
+  'image' => 'image/products/samsung-galaxy-buds2-pro.jpg',
+  'status' => 1,
+),
+                        'attribute_value_ids' => array (
+  0 => 1,
+),
+                    ],
+                ],
+            ],
+            [
+                'data' => array (
+  'category_id' => 5,
+  'brand_id' => 11,
+  'name' => 'Xiaomi 67W GaN Charger',
+  'slug' => 'xiaomi-67w-charger',
+  'sku' => 'XIAOMI67WCHARGER-DEMO',
+  'description' => 'Sản phẩm chính hãng, hình ảnh thực tế và thông tin tham khảo từ nhà sản xuất.',
+  'thumbnail' => 'image/products/xiaomi-67w-charger.jpg',
+  'status' => 1,
+),
+                'variants' => [
+                    [
+                        'data' => array (
+  'sku' => 'XIAOMI67WCHARGER-V1',
+  'price' => '1190000.00',
+  'sale_price' => '990000.00',
+  'stock' => 45,
+  'image' => 'image/products/xiaomi-67w-charger.jpg',
+  'status' => 1,
+),
+                        'attribute_value_ids' => array (
+  0 => 1,
+),
+                    ],
+                ],
+            ],
+            [
+                'data' => array (
+  'category_id' => 4,
+  'brand_id' => 1,
+  'name' => 'Apple Clear Case with MagSafe',
+  'slug' => 'apple-clear-case-magsafe',
+  'sku' => 'APPLECLEARCASEMAGSAFE-DEMO',
+  'description' => 'Sản phẩm chính hãng, hình ảnh thực tế và thông tin tham khảo từ nhà sản xuất.',
+  'thumbnail' => 'image/products/apple-clear-case-magsafe.jpg',
+  'status' => 1,
+),
+                'variants' => [
+                    [
+                        'data' => array (
+  'sku' => 'APPLECLEARCASEMAGSAFE-V1',
+  'price' => '1490000.00',
+  'sale_price' => '1290000.00',
+  'stock' => 40,
+  'image' => 'image/products/apple-clear-case-magsafe.jpg',
+  'status' => 1,
+),
+                        'attribute_value_ids' => array (
+  0 => 1,
+),
+                    ],
+                ],
+            ],
+            [
+                'data' => array (
+  'category_id' => 2,
+  'brand_id' => 1,
+  'name' => 'Apple AirPods Max',
+  'slug' => 'apple-airpods-max',
+  'sku' => 'APPLEAIRPODSMAX-DEMO',
+  'description' => 'Sản phẩm chính hãng, hình ảnh thực tế và thông tin tham khảo từ nhà sản xuất.',
+  'thumbnail' => 'image/products/apple-airpods-max.jpg',
+  'status' => 1,
+),
+                'variants' => [
+                    [
+                        'data' => array (
+  'sku' => 'APPLEAIRPODSMAX-V1',
+  'price' => '13490000.00',
+  'sale_price' => '12490000.00',
+  'stock' => 12,
+  'image' => 'image/products/apple-airpods-max.jpg',
+  'status' => 1,
+),
+                        'attribute_value_ids' => array (
+  0 => 1,
+),
+                    ],
+                ],
+            ],
+            [
+                'data' => array (
+  'category_id' => 3,
+  'brand_id' => 11,
+  'name' => 'Xiaomi Watch S3',
+  'slug' => 'xiaomi-watch-s3',
+  'sku' => 'XIAOMIWATCHS3-DEMO',
+  'description' => 'Sản phẩm chính hãng, hình ảnh thực tế và thông tin tham khảo từ nhà sản xuất.',
+  'thumbnail' => 'image/products/xiaomi-watch-s3.jpg',
+  'status' => 1,
+),
+                'variants' => [
+                    [
+                        'data' => array (
+  'sku' => 'XIAOMIWATCHS3-V1',
+  'price' => '3990000.00',
+  'sale_price' => '3490000.00',
+  'stock' => 22,
+  'image' => 'image/products/xiaomi-watch-s3.jpg',
+  'status' => 1,
+),
+                        'attribute_value_ids' => array (
+  0 => 1,
+),
+                    ],
+                ],
+            ],
+            [
+                'data' => array (
+  'category_id' => 6,
+  'brand_id' => 9,
+  'name' => 'Samsung 25W Power Adapter',
+  'slug' => 'samsung-25w-power-adapter',
+  'sku' => 'SAMSUNG25WPOWERADAPTER-DEMO',
+  'description' => 'Sản phẩm chính hãng, hình ảnh thực tế và thông tin tham khảo từ nhà sản xuất.',
+  'thumbnail' => 'image/products/samsung-25w-power-adapter.jpg',
+  'status' => 1,
+),
+                'variants' => [
+                    [
+                        'data' => array (
+  'sku' => 'SAMSUNG25WPOWERADAPTER-V1',
+  'price' => '490000.00',
+  'sale_price' => '390000.00',
+  'stock' => 60,
+  'image' => 'image/products/samsung-25w-power-adapter.jpg',
+  'status' => 1,
+),
+                        'attribute_value_ids' => array (
+  0 => 1,
+),
+                    ],
+                ],
+            ],
+            [
+                'data' => array (
+  'category_id' => 7,
+  'brand_id' => 11,
+  'name' => 'Xiaomi USB-C Fast Charge Cable',
+  'slug' => 'xiaomi-usb-c-fast-charge-cable',
+  'sku' => 'XIAOMIUSBCFASTCHARGECABLE-DEMO',
+  'description' => 'Sản phẩm chính hãng, hình ảnh thực tế và thông tin tham khảo từ nhà sản xuất.',
+  'thumbnail' => 'image/products/xiaomi-usb-c-fast-charge-cable.jpg',
+  'status' => 1,
+),
+                'variants' => [
+                    [
+                        'data' => array (
+  'sku' => 'XIAOMIUSBCFASTCHARGECABLE-V1',
+  'price' => '250000.00',
+  'sale_price' => '190000.00',
+  'stock' => 80,
+  'image' => 'image/products/xiaomi-usb-c-fast-charge-cable.jpg',
+  'status' => 1,
+),
+                        'attribute_value_ids' => array (
+  0 => 1,
+),
+                    ],
+                ],
+            ],
+            [
+                'data' => array (
+  'category_id' => 4,
+  'brand_id' => 9,
+  'name' => 'Samsung Galaxy S24 Silicone Case',
+  'slug' => 'samsung-galaxy-s24-silicone-case',
+  'sku' => 'SAMSUNGGALAXYS24SILICONECASE-DEMO',
+  'description' => 'Sản phẩm chính hãng, hình ảnh thực tế và thông tin tham khảo từ nhà sản xuất.',
+  'thumbnail' => 'image/products/samsung-galaxy-s24-silicone-case.jpg',
+  'status' => 1,
+),
+                'variants' => [
+                    [
+                        'data' => array (
+  'sku' => 'SAMSUNGGALAXYS24SILICONECASE-V1',
+  'price' => '790000.00',
+  'sale_price' => '590000.00',
+  'stock' => 45,
+  'image' => 'image/products/samsung-galaxy-s24-silicone-case.jpg',
+  'status' => 1,
+),
+                        'attribute_value_ids' => array (
+  0 => 1,
+),
+                    ],
+                ],
+            ],
+            [
+                'data' => array (
+  'category_id' => 8,
+  'brand_id' => 11,
+  'name' => 'Xiaomi Tempered Glass Protector',
+  'slug' => 'xiaomi-tempered-glass-protector',
+  'sku' => 'XIAOMITEMPEREDGLASSPROTECTOR-DEMO',
+  'description' => 'Sản phẩm chính hãng, hình ảnh thực tế và thông tin tham khảo từ nhà sản xuất.',
+  'thumbnail' => 'image/products/xiaomi-tempered-glass-protector.jpg',
+  'status' => 1,
+),
+                'variants' => [
+                    [
+                        'data' => array (
+  'sku' => 'XIAOMITEMPEREDGLASSPROTECTOR-V1',
+  'price' => '180000.00',
+  'sale_price' => '120000.00',
+  'stock' => 100,
+  'image' => 'image/products/xiaomi-tempered-glass-protector.jpg',
+  'status' => 1,
+),
+                        'attribute_value_ids' => array (
+  0 => 1,
+),
+                    ],
+                ],
+            ],
+            [
+                'data' => array (
+  'category_id' => 9,
+  'brand_id' => 2,
+  'name' => 'Asus',
+  'slug' => 'asus-2',
+  'sku' => 'ASUS-QN4B',
+  'description' => '<img src="http://127.0.0.1:8000/image/products/description/1788487552-eqHXFsdD86Jl.png" alt="realme-logo.png" class="description-image" draggable="true" style="max-width: 100%; height: auto; display: block; margin: 15px 0px;"><p><br></p>',
+  'thumbnail' => 'image/products/1788487583-8Zv893Lo.png',
+  'status' => 1,
+),
+                'variants' => [
+                    [
+                        'data' => array (
+  'sku' => 'ASUS-QN4B-00HV',
+  'price' => '24990000.00',
+  'sale_price' => NULL,
+  'stock' => 0,
+  'image' => 'image/variants/1788487583-OV354f3Z.png',
+  'status' => 1,
+),
+                        'attribute_value_ids' => array (
+  0 => 6,
+  1 => 18,
+  2 => 23,
+),
+                    ],
+                    [
+                        'data' => array (
+  'sku' => 'ASUS-QN4B-8SGH',
+  'price' => '249000.00',
+  'sale_price' => NULL,
+  'stock' => 10,
+  'image' => 'image/variants/20260904090718-fXotBHkr.png',
+  'status' => 1,
+),
+                        'attribute_value_ids' => array (
+  0 => 2,
+  1 => 19,
+  2 => 23,
+),
+                    ],
+                ],
+            ],
+            [
+                'data' => array (
+  'category_id' => 5,
+  'brand_id' => 1,
+  'name' => 'TEST',
+  'slug' => 'test',
+  'sku' => 'TEST-BT6W',
+  'description' => NULL,
+  'thumbnail' => NULL,
+  'status' => 1,
+),
+                'variants' => [
+                    [
+                        'data' => array (
+  'sku' => 'TEST-BT6W-FOFL',
+  'price' => '1000.00',
+  'sale_price' => NULL,
+  'stock' => 1,
+  'image' => NULL,
+  'status' => 1,
+),
+                        'attribute_value_ids' => array (
+),
+                    ],
+                ],
+            ],
         ];
 
         foreach ($products as $productData) {

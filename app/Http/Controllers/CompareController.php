@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
@@ -10,7 +11,27 @@ class CompareController extends Controller
     // Hiển thị trang so sánh
     public function index()
     {
-        return view('client.compare');
+        $products = Product::with(['variants' => fn ($query) => $query->where('status', 1)])
+            ->where('status', 1)
+            ->whereHas('variants', fn ($query) => $query->where('status', 1)->where('stock', '>', 0))
+            ->orderBy('name')
+            ->get()
+            ->map(function (Product $product) {
+                $variant = $product->variants->sortBy(fn ($item) => $item->sale_price ?? $item->price)->first();
+
+                return [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'price' => (float) ($variant->sale_price ?? $variant->price),
+                    'priceLabel' => number_format($variant->sale_price ?? $variant->price, 0, ',', '.') . ' ₫',
+                ];
+            })
+            ->values();
+
+        return view('client.compare', [
+            'compareProducts' => $products,
+            'selectedProductId' => (int) request('product_id'),
+        ]);
     }
 
     // Backend gọi trực tiếp Google Gemini AI

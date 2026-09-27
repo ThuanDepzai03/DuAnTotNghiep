@@ -454,9 +454,48 @@ class HomeController extends Controller
     {
         $keyword = $request->query('keyword', '');
 
-        // Nếu keyword trống, trả về danh sách rỗng
+        $formatProduct = function ($product) {
+            $variant = $product->variants
+                ->where('status', 1)
+                ->where('stock', '>', 0)
+                ->sortBy(fn ($item) => $item->sale_price ?? $item->price)
+                ->first();
+            $image = $product->thumbnail ?? 'img/product01.png';
+
+            return [
+                'id' => $product->id,
+                'name' => $product->name,
+                'image' => asset($image),
+                'price' => $variant?->sale_price ?? $variant?->price ?? 0,
+                'url' => route('product.detail', ['id' => $product->id]),
+            ];
+        };
+
         if (empty(trim($keyword))) {
-            return response()->json([]);
+            $featured = Product::with('variants')
+                ->where('status', 1)
+                ->whereHas('variants', fn ($query) => $query->where('status', 1)->where('stock', '>', 0))
+                ->latest()
+                ->limit(4)
+                ->get()
+                ->map($formatProduct)
+                ->values();
+
+            $popular = Product::withCount('clicks')
+                ->with('variants')
+                ->where('status', 1)
+                ->whereHas('variants', fn ($query) => $query->where('status', 1)->where('stock', '>', 0))
+                ->orderByDesc('clicks_count')
+                ->latest()
+                ->limit(4)
+                ->get()
+                ->map($formatProduct)
+                ->values();
+
+            return response()->json([
+                'featured' => $featured,
+                'popular' => $popular,
+            ]);
         }
 
         // Tìm kiếm sản phẩm theo tên hoặc SKU với ưu tiên những cái bắt đầu bằng keyword
@@ -465,6 +504,7 @@ class HomeController extends Controller
                 $query->where('name', 'like', '%' . $keyword . '%')
                     ->orWhere('sku', 'like', '%' . $keyword . '%');
             })
+            ->whereHas('variants', fn ($query) => $query->where('status', 1)->where('stock', '>', 0))
             ->orderByRaw("CASE
                 WHEN name LIKE ? THEN 0
                 WHEN name LIKE ? THEN 1
@@ -475,18 +515,7 @@ class HomeController extends Controller
             ->with('category', 'brand', 'variants')
             ->limit(8)
             ->get()
-            ->map(function ($product) {
-                $price = $product->variants->first()?->price ?? $product->variants->first()?->sale_price ?? 0;
-                $image = $product->thumbnail ?? 'img/product01.png';
-
-                return [
-                    'id' => $product->id,
-                    'name' => $product->name,
-                    'image' => asset($image),
-                    'price' => $price,
-                    'url' => route('product.detail', ['id' => $product->id]),
-                ];
-            });
+            ->map($formatProduct);
 
         return response()->json($products);
     }

@@ -56,6 +56,81 @@ function closeChat() {
 ========================= */
 
 let customerMessagesLoading = false;
+let customerLastMessageCount = 0;
+
+let clientAudioContext = null;
+
+function ensureClientAudio() {
+    const AudioCtor = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtor) return null;
+
+    if (!clientAudioContext) {
+        clientAudioContext = new AudioCtor();
+    }
+
+    if (clientAudioContext.state === 'suspended') {
+        clientAudioContext.resume().catch(function () {});
+    }
+
+    return clientAudioContext;
+}
+
+function unlockClientAudio() {
+    ensureClientAudio();
+}
+
+document.addEventListener('pointerdown', unlockClientAudio, { once: true });
+document.addEventListener('keydown', unlockClientAudio, { once: true });
+
+function playClientNotificationTone() {
+    try {
+        const audioContext = ensureClientAudio();
+        if (!audioContext) return;
+
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        const now = audioContext.currentTime;
+
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(620, now);
+        oscillator.frequency.exponentialRampToValueAtTime(440, now + 0.18);
+
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(0.06, now + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+
+        oscillator.connect(gain);
+        gain.connect(audioContext.destination);
+        oscillator.start(now);
+        oscillator.stop(now + 0.22);
+    } catch (error) {
+        console.log('Không phát âm thanh chat:', error);
+    }
+}
+
+function showClientToast(title, message) {
+    let container = document.getElementById('client-toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'client-toast-container';
+        container.style.cssText = 'position:fixed;right:20px;bottom:90px;z-index:999999;display:flex;flex-direction:column;gap:10px;';
+        document.body.appendChild(container);
+    }
+
+    const toast = document.createElement('div');
+    toast.style.cssText = 'min-width:260px;max-width:320px;padding:12px 14px;border-radius:12px;background:#0f172a;color:#fff;box-shadow:0 12px 30px rgba(0,0,0,.18);border-left:4px solid #22c55e;';
+    toast.innerHTML = '<div style="font-weight:700;font-size:14px;">' + title + '</div><div style="font-size:12px;color:#dcfce7;margin-top:4px;">' + message + '</div>';
+    container.appendChild(toast);
+
+    setTimeout(function () {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(10px)';
+        toast.style.transition = 'all 0.25s ease';
+        setTimeout(function () { toast.remove(); }, 250);
+    }, 3500);
+
+    playClientNotificationTone();
+}
 
 function sendMessage() {
 
@@ -169,6 +244,21 @@ function loadCustomerMessages() {
         })
 
         .then(data => {
+
+            const messages = Array.isArray(data.messages) ? data.messages : [];
+            const lastMessage = messages[messages.length - 1];
+
+            if (customerLastMessageCount && messages.length > customerLastMessageCount && lastMessage && lastMessage.sender_type === 'admin') {
+                showClientToast('Tin nhắn mới', 'Bạn nhận được phản hồi từ AE PHOENIC.');
+                if ('Notification' in window && Notification.permission === 'granted') {
+                    new Notification('Tin nhắn mới', {
+                        body: 'Bạn nhận được phản hồi từ AE PHOENIC.',
+                        icon: '/img/logo.png'
+                    });
+                }
+            }
+
+            customerLastMessageCount = messages.length;
 
             const box =
                 document.getElementById('chat-messages');
@@ -314,6 +404,10 @@ function loadCustomerMessages() {
    TỰ ĐỘNG NHẬN TIN ADMIN
    MỖI 2 GIÂY
 ========================= */
+
+if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission().catch(function () {});
+}
 
 setInterval(function () {
 

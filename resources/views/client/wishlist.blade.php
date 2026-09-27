@@ -29,6 +29,11 @@
                             <p class="product-category">{{ $product->category?->name ?? 'Sản phẩm' }}</p>
                             <h3 class="product-name"><a href="{{ route('product.detail', $product->id) }}">{{ $product->name }}</a></h3>
                             <h4 class="product-price">{{ number_format($variant?->sale_price ?? $variant?->price ?? 0, 0, ',', '.') }} ₫</h4>
+                            <form action="{{ route('cart.add') }}" method="POST" class="mb-2">
+                                @csrf
+                                <input type="hidden" name="product_variant_id" value="{{ $variant?->id }}">
+                                <button type="submit" class="btn btn-primary" @disabled(!$variant || $variant->stock < 1)>Thêm vào giỏ</button>
+                            </form>
                             <form action="{{ route('wishlist.toggle') }}" method="POST">
                                 @csrf
                                 <input type="hidden" name="product_id" value="{{ $product->id }}">

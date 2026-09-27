@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\ProductVariant;
+use App\Models\Voucher;
+use App\Services\InventoryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -16,10 +18,10 @@ class OrderController extends Controller
         // Get total counts for statistics (before pagination)
         $baseQuery = Order::whereNotIn('status', ['pending_payment']);
         $totalOrders = $baseQuery->count();
-        $pendingCount = $baseQuery->where('status', 'pending')->count();
-        $confirmedCount = $baseQuery->where('status', 'confirmed')->count();
-        $shippingCount = $baseQuery->where('status', 'shipping')->count();
-        $completedCount = $baseQuery->where('status', 'completed')->count();
+        $pendingCount = (clone $baseQuery)->where('status', 'pending')->count();
+        $confirmedCount = (clone $baseQuery)->where('status', 'confirmed')->count();
+        $shippingCount = (clone $baseQuery)->where('status', 'shipping')->count();
+        $completedCount = (clone $baseQuery)->where('status', 'completed')->count();
 
         $query = Order::withCount('items');
 
@@ -28,7 +30,11 @@ class OrderController extends Controller
 
         // Lọc theo trạng thái nếu người dùng có chọn trên giao diện
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            if ($request->status === 'refunded') {
+                $query->where('status', 'completed')->where('refund_status', 'approved');
+            } else {
+                $query->where('status', $request->status);
+            }
         }
 
         $orders = $query
@@ -46,7 +52,7 @@ class OrderController extends Controller
             // Paginate with 10 items per page
             ->paginate(10);
 
-        return view('admin.orders.index', compact('orders', 'pendingCount', 'confirmedCount', 'shippingCount', 'completedCount', 'totalOrders'));
+        return view('admin.orders.index', compact('orders', 'pendingCount', 'confirmedCount', 'shippingCount', 'completedCount', 'refundedCount', 'totalOrders'));
     }
 
     public function show($id)
@@ -54,6 +60,7 @@ class OrderController extends Controller
         $order = Order::with([
             'items.variant.product',
             'items.variant.attributeValues.attribute',
+            'items.imeis',
         ])->findOrFail($id);
 
         return view('admin.orders.show', compact('order'));
@@ -75,7 +82,7 @@ class OrderController extends Controller
 
         // Define allowed status transitions (only forward, no reverting)
         $allowedTransitions = [
-            'pending' => ['confirmed', 'shipping', 'completed', 'cancelled'],
+            'pending' => ['confirmed', 'cancelled'],
             'pending_payment' => ['pending', 'cancelled'], // VNPay waiting for payment
             'confirmed' => ['shipping', 'completed', 'cancelled'],
             'shipping' => ['completed', 'cancelled'],
@@ -95,9 +102,15 @@ class OrderController extends Controller
 
         // Deduct stock when admin confirms the order (status: pending -> confirmed)
         if ($currentStatus === 'pending' && $newStatus === 'confirmed') {
-            foreach ($order->items as $item) {
-                $item->variant()->decrement('stock', $item->quantity);
-            }
+            app(InventoryService::class)->markOrderSold($order);
+        }
+
+        if ($currentStatus === 'pending_payment' && $newStatus === 'cancelled') {
+            app(InventoryService::class)->releaseOrder($order);
+        }
+
+        if (in_array($currentStatus, ['confirmed', 'shipping'], true) && $newStatus === 'cancelled') {
+            app(InventoryService::class)->restoreSoldOrder($order);
         }
 
         // Set completed_at timestamp when order is completed
@@ -111,6 +124,35 @@ class OrderController extends Controller
         return redirect()
             ->route('admin.orders.show', $order->id)
             ->with('success', 'Cập nhật trạng thái đơn hàng thành công.');
+    }
+
+    public function updateRefundStatus(Request $request, $id)
+    {
+        $request->validate([
+            'refund_status' => ['required', 'in:approved,rejected'],
+        ]);
+
+        $order = Order::findOrFail($id);
+
+        if ($order->status !== 'completed') {
+            return redirect()->route('admin.orders.show', $order->id)
+                ->with('error', 'Chỉ có thể xử lý hoàn tiền cho đơn hàng đã hoàn thành.');
+        }
+
+        if ($order->refund_status !== 'requested') {
+            return redirect()->route('admin.orders.show', $order->id)
+                ->with('error', 'Đơn hàng này không có yêu cầu hoàn tiền đang chờ xử lý.');
+        }
+
+        $order->update([
+            'refund_status' => $request->refund_status,
+            'refund_processed_at' => now(),
+        ]);
+
+        $label = $request->refund_status === 'approved' ? 'chấp nhận' : 'từ chối';
+
+        return redirect()->route('admin.orders.show', $order->id)
+            ->with('success', 'Đã ' . $label . ' yêu cầu hoàn tiền cho đơn hàng.');
     }
 
     public function revenue(Request $request)
@@ -131,7 +173,7 @@ class OrderController extends Controller
 
         $orders = $ordersQuery->orderByDesc('created_at')->get();
 
-        $totalRevenue = $orders->sum('total_price');
+        $totalRevenue = $orders->sum(fn ($order) => $order->final_price ?? $order->total_price);
         $totalOrders = $orders->count();
 
         $bestSellingProducts = OrderItem::selectRaw('product_variant_id, SUM(quantity) as total_sold')

@@ -15,9 +15,11 @@ class DatabaseSeeder extends Seeder
             CategorySeeder::class,
             BrandSeeder::class,
             AttributeSeeder::class,
+            CategoryAttributeSeeder::class,
             BannerSeeder::class,
             ProductSeeder::class,
             AdditionalCatalogSeeder::class,
+            ProductImeiSeeder::class,
             DemoCustomerOrderSeeder::class,
             ReviewSeeder::class,
             AdminSeeder::class,
@@ -26,3 +28,5 @@ class DatabaseSeeder extends Seeder
         ]);
     }
 }
+
+// Seeder comment 13:49:14

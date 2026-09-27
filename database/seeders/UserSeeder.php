@@ -21,7 +21,7 @@ class UserSeeder extends Seeder
         ];
 
         foreach ($users as $user) {
-            DB::table('nguoidung')->updateOrInsert(
+            DB::table('users')->updateOrInsert(
                 ['email' => $user['email']],
                 $user
             );

@@ -82,6 +82,13 @@
                                 <h6 class="mb-2">{{ $product->name ?? 'Sản phẩm không tồn tại' }}</h6>
                                 <p class="mb-1 small text-muted"><strong>SKU:</strong> {{ $variant->sku ?? 'Không có' }}</p>
                                 <p class="mb-1 small text-muted"><strong>Số lượng:</strong> {{ $item->quantity }}</p>
+                                @if($item->imeis->isNotEmpty())
+                                    <p class="mb-1 small"><strong>IMEI:</strong>
+                                        @foreach($item->imeis as $imei)
+                                            <code class="me-2">{{ $imei->imei }}</code>
+                                        @endforeach
+                                    </p>
+                                @endif
                                 <p class="mb-1 small text-muted"><strong>Đơn giá:</strong> {{ number_format($item->price, 0, ',', '.') }} ₫</p>
                                 <p class="mb-0"><strong>Thành tiền:</strong> <span class="text-danger">{{ number_format($lineTotal, 0, ',', '.') }} ₫</span></p>
                             </div>
@@ -94,7 +101,7 @@
                         <h5>
                             Tổng tiền:
                             <strong class="text-danger">
-                                {{ number_format($order->total_price, 0, ',', '.') }} ₫
+                                {{ number_format($order->final_price ?? $order->total_price, 0, ',', '.') }} ₫
                             </strong>
                         </h5>
                     </div>
@@ -151,10 +158,22 @@
                 </div>
 
                 <div class="card-body">
+                    @php
+                        $adminCurrentStatus = $order->status;
+                        $adminStatusLabel = 'Hoàn thành';
+                        $adminStatusClass = 'bg-success';
+
+                        if ($order->refund_status === 'approved') {
+                            $adminCurrentStatus = 'refunded';
+                            $adminStatusLabel = 'Đã hoàn tiền';
+                            $adminStatusClass = 'bg-dark';
+                        }
+                    @endphp
+
                     <p>
                         <strong>Trạng thái hiện tại:</strong>
 
-                        @switch($order->status)
+                        @switch($adminCurrentStatus)
                             @case('pending')
                                 <span class="badge bg-warning">Nhận đơn</span>
                                 @break
@@ -171,6 +190,10 @@
                                 <span class="badge bg-success">Hoàn thành</span>
                                 @break
 
+                            @case('refunded')
+                                <span class="badge {{ $adminStatusClass }}">{{ $adminStatusLabel }}</span>
+                                @break
+
                             @case('cancelled')
                                 <span class="badge bg-danger">Đã hủy</span>
                                 @break
@@ -179,6 +202,38 @@
                                 <span class="badge bg-secondary">{{ $order->status }}</span>
                         @endswitch
                     </p>
+
+                    @if($order->status === 'completed')
+                        <div class="mb-3 p-3 border rounded bg-light">
+                            <div class="fw-bold mb-2">Yêu cầu hoàn tiền</div>
+
+                            @if($order->refund_status === 'requested')
+                                <div class="alert alert-warning mb-2">
+                                    Khách hàng đã gửi yêu cầu hoàn tiền.
+                                </div>
+                                <div class="mb-2">
+                                    <strong>Lý do:</strong>
+                                    <div class="text-muted">{{ $order->refund_reason ?: 'Không có ghi chú' }}</div>
+                                </div>
+
+                                <form method="POST" action="{{ route('admin.orders.updateRefund', $order->id) }}" class="d-flex gap-2 mt-3">
+                                    @csrf
+                                    <button type="submit" name="refund_status" value="approved" class="btn btn-success btn-sm">
+                                        Chấp nhận hoàn tiền
+                                    </button>
+                                    <button type="submit" name="refund_status" value="rejected" class="btn btn-danger btn-sm">
+                                        Từ chối
+                                    </button>
+                                </form>
+                            @elseif($order->refund_status === 'approved')
+                                <div class="alert alert-success mb-0">Đã chấp nhận hoàn tiền.</div>
+                            @elseif($order->refund_status === 'rejected')
+                                <div class="alert alert-danger mb-0">Đã từ chối yêu cầu hoàn tiền.</div>
+                            @else
+                                <div class="text-muted mb-0">Không có yêu cầu hoàn tiền.</div>
+                            @endif
+                        </div>
+                    @endif
 
                     <form method="POST" action="{{ route('admin.orders.updateStatus', $order->id) }}">
                         @csrf

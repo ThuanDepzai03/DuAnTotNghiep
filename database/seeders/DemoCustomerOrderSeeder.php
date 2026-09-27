@@ -43,7 +43,7 @@ class DemoCustomerOrderSeeder extends Seeder
                     : $this->randomDate($faker, $startDate, $endDate->copy()->subDays(30));
                 $customerName = $faker->name();
 
-                DB::table('nguoidung')->updateOrInsert(
+                DB::table('users')->updateOrInsert(
                     ['user' => $username],
                     [
                         'name' => $customerName,

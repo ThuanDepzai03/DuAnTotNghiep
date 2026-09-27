@@ -14,6 +14,16 @@
 
         <div class="card-body">
 
+            @if ($errors->any())
+                <div class="alert alert-danger">
+                    <ul class="mb-0">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             <form action="{{ route('admin.vouchers.update', $voucher->id) }}"
                   method="POST">
 
@@ -223,7 +233,7 @@
             const startValue = startInput.value;
             if (startValue) {
                 endInput.min = startValue;
-                if (endInput.value && endInput.value <= startValue) {
+                if (endInput.value && endInput.value < startValue) {
                     endInput.value = '';
                 }
             } else {
@@ -233,8 +243,8 @@
 
         startInput.addEventListener('change', syncEndDate);
         endInput.addEventListener('change', function () {
-            if (startInput.value && endInput.value && endInput.value <= startInput.value) {
-                endInput.setCustomValidity('Ngày kết thúc phải lớn hơn ngày bắt đầu.');
+            if (startInput.value && endInput.value && endInput.value < startInput.value) {
+                endInput.setCustomValidity('Ngày kết thúc phải từ ngày bắt đầu trở đi.');
             } else {
                 endInput.setCustomValidity('');
             }

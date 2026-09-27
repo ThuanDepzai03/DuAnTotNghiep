@@ -5,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>AE Phoenic Store</title>
-<link rel="icon" type="image/png" href="{{ asset('img/logo.png') }}">
-<link rel="shortcut icon" type="image/png" href="{{ asset('img/logo.png') }}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="{{ asset('img/logo.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ asset('img/logo.png') }}">
     <link href="https://fonts.googleapis.com/css?family=Montserrat:400,500,700" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}" />
     <link rel="stylesheet" href="{{ asset('css/slick.css') }}" />
@@ -84,10 +85,25 @@
                     @endphp
 
                     {{-- GIỎ HÀNG --}}
+                    @php
+                        $headerCartKey = $customer['id'] ?? 'guest';
+                        $headerCart = session('cart.' . $headerCartKey, []);
+                        $headerCartQuantity = collect($headerCart)->sum('quantity');
+                    @endphp
                     <a href="{{ route('cart.index') }}"
-                       class="header-action">
+                       class="header-action header-cart-action"
+                       aria-label="Giỏ hàng, {{ $headerCartQuantity }} sản phẩm">
                         <i class="fa fa-shopping-cart"></i>
                         <span>Giỏ hàng</span>
+                        <span class="cart-count {{ $headerCartQuantity ? '' : 'is-empty' }}"
+                              aria-live="polite">{{ $headerCartQuantity }}</span>
+                    </a>
+
+                    <a href="{{ route('wishlist.index') }}"
+                       class="header-action"
+                       aria-label="Sản phẩm yêu thích">
+                        <i class="fa fa-heart-o"></i>
+                        <span>Yêu thích</span>
                     </a>
 
 
@@ -217,6 +233,13 @@
                         <li>
                             <a href="{{ route('admin.dashboard') }}">
                                 Admin
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="{{ route('account.profile') }}" class="nav-user-link">
+                                <i class="fa fa-user"></i>
+                                <span>Tôi</span>
                             </a>
                         </li>
                     @endif
@@ -367,6 +390,8 @@
     <script src="{{ asset('js/main.js') }}"></script>
     <script src="{{ asset('js/app-interactions.js') }}?v={{ filemtime(public_path('js/app-interactions.js')) }}"></script>
 
+    @stack('scripts')
+
     <!-- Search Suggestions CSS -->
     <style>
     .search-input {
@@ -440,6 +465,43 @@
 
     .suggestion-item:hover {
         background-color: #f9f9f9;
+    }
+
+    .suggestion-group {
+        padding: 8px 0;
+    }
+
+    .suggestion-group + .suggestion-group {
+        border-top: 1px solid #eef0f3;
+    }
+
+    .suggestion-group-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 15px 6px;
+        color: #252a34;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+    }
+
+    .suggestion-group-title i {
+        color: #d10024;
+        font-size: 13px;
+    }
+
+    .suggestion-arrow {
+        margin-left: auto;
+        color: #b4bac4;
+        font-size: 11px;
+        transition: transform .2s ease, color .2s ease;
+    }
+
+    .suggestion-item:hover .suggestion-arrow {
+        color: #d10024;
+        transform: translateX(3px);
     }
 
     .suggestion-item:last-child {
@@ -599,6 +661,13 @@ body {
     padding-top: 0 !important;
 }
 
+.container {
+    width: min(75vw, 1280px) !important;
+    max-width: min(75vw, 1280px) !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
 .site-header {
     margin-top: 0 !important;
     padding-top: 0 !important;
@@ -618,15 +687,13 @@ body {
             const suggestionsContainer = document.getElementById('search-suggestions');
             let debounceTimer;
 
+            searchInput.addEventListener('focus', function() {
+                fetchSuggestions(this.value.trim());
+            });
+
             searchInput.addEventListener('input', function() {
                 clearTimeout(debounceTimer);
                 const keyword = this.value.trim();
-
-                if (keyword.length === 0) {
-                    suggestionsContainer.classList.remove('active');
-                    suggestionsContainer.innerHTML = '';
-                    return;
-                }
 
                 debounceTimer = setTimeout(function() {
                     fetchSuggestions(keyword);
@@ -652,6 +719,11 @@ body {
             }
 
             function displaySuggestions(products) {
+                if (!Array.isArray(products)) {
+                    displaySuggestionGroups(products);
+                    return;
+                }
+
                 if (products.length === 0) {
                     suggestionsContainer.innerHTML = '<div class="suggestion-empty">Không tìm thấy sản phẩm</div>';
                     suggestionsContainer.classList.add('active');
@@ -668,6 +740,36 @@ body {
                     </a>
                 `).join('');
                 suggestionsContainer.classList.add('active');
+            }
+
+            function displaySuggestionGroups(groups) {
+                const sections = [
+                    { title: 'Sản phẩm nổi bật', icon: 'fa-star', items: groups.featured || [] },
+                    { title: 'Sản phẩm bán chạy', icon: 'fa-fire', items: groups.popular || [] },
+                ].filter(section => section.items.length);
+
+                suggestionsContainer.innerHTML = sections.length
+                    ? sections.map(section => `
+                        <section class="suggestion-group">
+                            <div class="suggestion-group-title"><i class="fa ${section.icon}"></i>${section.title}</div>
+                            ${section.items.map(product => suggestionMarkup(product)).join('')}
+                        </section>
+                    `).join('')
+                    : '<div class="suggestion-empty">Chưa có sản phẩm gợi ý</div>';
+                suggestionsContainer.classList.add('active');
+            }
+
+            function suggestionMarkup(product) {
+                return `
+                    <a href="${product.url}" class="suggestion-item">
+                        <img src="${product.image}" alt="${product.name}" class="suggestion-image">
+                        <div class="suggestion-content">
+                            <div class="suggestion-name">${product.name}</div>
+                            <div class="suggestion-price">${formatPrice(product.price)}</div>
+                        </div>
+                        <i class="fa fa-arrow-right suggestion-arrow"></i>
+                    </a>
+                `;
             }
 
             function formatPrice(price) {

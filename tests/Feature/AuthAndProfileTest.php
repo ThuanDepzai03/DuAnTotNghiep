@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Support\CustomerTable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
@@ -48,7 +49,7 @@ class AuthAndProfileTest extends TestCase
             });
         }
 
-        DB::table('nguoidung')->delete();
+        CustomerTable::query()->delete();
         DB::table('admins')->delete();
         DB::table('hoadon')->delete();
     }
@@ -132,6 +133,28 @@ class AuthAndProfileTest extends TestCase
 
         $response->assertStatus(200)
             ->assertSee('Giỏ hàng');
+    }
+
+    public function test_customer_cancel_order_does_not_crash_when_session_missing_contact_fields(): void
+    {
+        session(['customer' => [
+            'id' => 1,
+            'user' => 'khachhang1',
+            'role' => 0,
+        ]]);
+
+        $order = \App\Models\Order::create([
+            'customer_name' => 'Khách hàng 1',
+            'phone' => '0909123456',
+            'email' => 'khachhang1@example.com',
+            'status' => 'pending',
+            'total_price' => 100000,
+            'final_price' => 100000,
+        ]);
+
+        $response = $this->put('/account/orders/' . $order->id . '/cancel');
+
+        $response->assertStatus(403);
     }
 
     public function test_checkout_prefills_customer_info_for_logged_in_customer(): void

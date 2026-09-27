@@ -370,7 +370,7 @@ PHP;
             return;
         }
 
-        $users = DB::table('nguoidung')->orderBy('id')->get();
+        $users = \App\Support\CustomerTable::query()->orderBy('id')->get();
 
         $content = <<<'PHP'
 <?php
@@ -403,7 +403,7 @@ PHP;
         ];
 
         foreach ($users as $user) {
-            DB::table('nguoidung')->updateOrInsert(
+            \App\Support\CustomerTable::query()->updateOrInsert(
                 ['email' => $user['email']],
                 $user
             );

@@ -6,6 +6,9 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Models\ProductAttribute;
+use App\Models\ProductAttributeValue;
+use App\Models\VariantAttributeValue;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -59,15 +62,18 @@ class ProductController extends Controller
             ->get();
 
         $attributes = Attribute::with('values')
-            ->orderBy('id')
+            ->where('is_active', true)
+            ->orderBy('sort_order')
             ->get()
             ->unique('name')
             ->values();
+        $selectedCustomAttributeValues = [];
 
         return view('admin.products.form', compact(
             'categories',
             'brands',
-            'attributes'
+            'attributes',
+            'selectedCustomAttributeValues'
         ));
     }
 
@@ -78,6 +84,9 @@ class ProductController extends Controller
             'brand_id' => ['nullable', 'exists:brands,id'],
             'attribute_value_ids' => ['nullable', 'array'],
             'attribute_value_ids.*' => ['nullable', 'integer', 'exists:attribute_values,id'],
+            'attribute_custom_values' => ['nullable', 'array'],
+            'attribute_custom_values.*' => ['nullable', 'string', 'max:255'],
+            'product_attributes_payload' => ['nullable', 'json', 'max:50000'],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'thumbnail' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
@@ -99,14 +108,33 @@ class ProductController extends Controller
             'sale_price.lte' => 'Giá khuyến mãi phải nhỏ hơn hoặc bằng giá gốc.',
             'stock.required' => 'Vui lòng nhập số lượng tồn kho.',
         ]);
-        $attributeValueIds = collect($data['attribute_value_ids'] ?? [])
-            ->filter()
-            ->map(fn ($id) => (int) $id)
-            ->unique()
-            ->values()
-            ->all();
+        $customAttributeValues = $request->input('attribute_custom_values', []);
+        $productAttributeRows = $this->parseProductAttributePayload($request->input('product_attributes_payload'));
+        $attributeValueIds = [];
+        if ($productAttributeRows !== null) {
+            $attributeValueIdsFromRows = collect($productAttributeRows)
+                ->where('attribute_type', 'variation')
+                ->flatMap(fn ($row) => $row['values'])
+                ->unique()
+                ->values()
+                ->all();
+            $attributeValueIds = $attributeValueIdsFromRows;
+            $customAttributeValues = collect($productAttributeRows)
+                ->where('attribute_type', 'information')
+                ->filter(fn ($row) => $row['custom_value'] !== '')
+                ->mapWithKeys(fn ($row) => [$row['attribute_id'] => $row['custom_value']])
+                ->all();
+        }
+        if ($productAttributeRows === null) {
+            $attributeValueIds = collect($data['attribute_value_ids'] ?? [])
+                ->filter()
+                ->map(fn ($id) => (int) $id)
+                ->unique()
+                ->values()
+                ->all();
+        }
 
-       DB::transaction(function () use ($request, $data, $attributeValueIds) {
+    DB::transaction(function () use ($request, $data, $attributeValueIds, $customAttributeValues, $productAttributeRows) {
             $thumbnailPath = null;
             $variantImagePath = null;
 
@@ -135,6 +163,12 @@ class ProductController extends Controller
                 'status' => (int) $data['status'],
             ]);
 
+            if ($productAttributeRows !== null) {
+                $this->syncProductAttributeRows($product, $productAttributeRows);
+            } else {
+                $this->syncProductAttributes($product, $attributeValueIds, $customAttributeValues);
+            }
+
             $variant = ProductVariant::create([
                 'product_id' => $product->id,
                 'sku' => $this->generateVariantSku($product, $attributeValueIds),
@@ -145,6 +179,8 @@ class ProductController extends Controller
                 'status' => (int) $data['status'],
             ]);
             $variant->attributeValues()->sync($attributeValueIds);
+            $this->saveAttributeEntries($variant, $attributeValueIds, $customAttributeValues);
+
         });
 
         \App\Services\SeederSyncService::syncProducts();
@@ -161,7 +197,7 @@ class ProductController extends Controller
 
     public function edit(Product $product)
     {
-        $product->load(['variants', 'category', 'brand']);
+        $product->load(['variants', 'category', 'brand', 'attributes.values.attributeValue']);
 
         $categories = Category::where('status', 1)
             ->orderBy('name')
@@ -174,10 +210,13 @@ class ProductController extends Controller
         $firstVariant = $product->variants->first();
 
         $attributes = Attribute::with('values')
-            ->orderBy('id')
-            ->get()
-            ->unique('name')
-            ->values();
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+        $selectedCustomAttributeValues = $firstVariant
+            ? $firstVariant->attributeEntries->whereNotNull('custom_value')->pluck('custom_value', 'attribute_id')->all()
+            : [];
 
         $selectedAttributeValueIds = $firstVariant
             ? $firstVariant->attributeValues()
@@ -191,13 +230,87 @@ class ProductController extends Controller
             'brands',
             'firstVariant',
             'attributes',
-            'selectedAttributeValueIds'
+            'selectedAttributeValueIds',
+            'selectedCustomAttributeValues'
         ));
+    }
+
+    public function saveAttributes(Request $request, Product $product)
+    {
+        $data = $request->validate([
+            'attributes' => ['nullable', 'array'],
+            'attributes.*.attribute_id' => ['required', 'integer', 'exists:attributes,id'],
+            'attributes.*.values' => ['nullable', 'array'],
+            'attributes.*.values.*' => ['integer', 'exists:attribute_values,id'],
+            'attributes.*.custom_value' => ['nullable', 'string', 'max:2000'],
+            'attributes.*.attribute_type' => ['required', Rule::in(['variation', 'information'])],
+            'attributes.*.show_on_product' => ['nullable', 'boolean'],
+        ]);
+
+        $rows = $data['attributes'] ?? [];
+        $attributeIds = collect($rows)->pluck('attribute_id')->map(fn ($id) => (int) $id);
+        abort_if($attributeIds->duplicates()->isNotEmpty(), 422, 'Không được chọn trùng thuộc tính.');
+
+        $attributes = Attribute::with('values')
+            ->whereIn('id', $attributeIds)
+            ->where('is_active', true)
+            ->get()
+            ->keyBy('id');
+
+        abort_if($attributes->count() !== $attributeIds->unique()->count(), 422, 'Thuộc tính không hợp lệ.');
+
+        DB::transaction(function () use ($product, $rows, $attributes): void {
+            $product->attributes()->with('values')->get()->each(function (ProductAttribute $productAttribute): void {
+                $productAttribute->values()->delete();
+                $productAttribute->delete();
+            });
+
+            foreach ($rows as $row) {
+                $attribute = $attributes->get((int) $row['attribute_id']);
+                $selectedValues = collect($row['values'] ?? [])->map(fn ($id) => (int) $id)->unique();
+
+                abort_if(
+                    $selectedValues->diff($attribute->values->pluck('id'))->isNotEmpty(),
+                    422,
+                    'Giá trị thuộc tính không hợp lệ.'
+                );
+
+                $productAttribute = $product->attributes()->create([
+                    'attribute_id' => $attribute->id,
+                    'name' => $attribute->name,
+                    'slug' => $attribute->slug,
+                    'display_type' => $attribute->display_type,
+                    'attribute_type' => $row['attribute_type'],
+                    'show_on_product' => (bool) ($row['show_on_product'] ?? false),
+                    'is_filterable' => $attribute->is_filterable,
+                    'sort_order' => $attribute->sort_order,
+                ]);
+
+                foreach ($selectedValues as $valueId) {
+                    $value = $attribute->values->firstWhere('id', $valueId);
+                    $productAttribute->values()->create([
+                        'attribute_value_id' => $value->id,
+                        'color_hex' => $value->color_hex,
+                        'sort_order' => $value->sort_order,
+                    ]);
+                }
+
+                $customValue = trim((string) ($row['custom_value'] ?? ''));
+                if ($customValue !== '') {
+                    $productAttribute->values()->create(['custom_value' => $customValue]);
+                }
+            }
+        });
+
+        return response()->json([
+            'message' => 'Đã lưu thuộc tính sản phẩm.',
+            'product_id' => $product->id,
+        ]);
     }
 
     public function update(Request $request, Product $product)
     {
-        $firstVariant = $product->variants()->first();
+        $firstVariant = ProductVariant::where('product_id', $product->id)->first();
 
         $data = $request->validate([
             'category_id' => ['required', 'exists:categories,id'],
@@ -205,6 +318,8 @@ class ProductController extends Controller
 
             'attribute_value_ids' => ['nullable', 'array'],
             'attribute_value_ids.*' => ['nullable', 'integer', 'exists:attribute_values,id'],
+            'attribute_custom_values' => ['nullable', 'array'],
+            'attribute_custom_values.*' => ['nullable', 'string', 'max:255'],
 
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
@@ -217,6 +332,7 @@ class ProductController extends Controller
             'variant_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ]);
 
+        $customAttributeValues = $request->input('attribute_custom_values', []);
         $attributeValueIds = collect($data['attribute_value_ids'] ?? [])
             ->filter()
             ->map(fn ($id) => (int) $id)
@@ -229,7 +345,8 @@ class ProductController extends Controller
                 $product,
                 $firstVariant,
                 $data,
-                $attributeValueIds) {
+                $attributeValueIds,
+                $customAttributeValues) {
             $thumbnailPath = $product->thumbnail;
             $variantImagePath = $firstVariant?->image;
 
@@ -257,6 +374,8 @@ class ProductController extends Controller
                 'status' => (int) $data['status'],
             ]);
 
+            $this->syncProductAttributes($product, $attributeValueIds, $customAttributeValues);
+
             if ($firstVariant) {
                 $firstVariant->update([
                     'price' => $data['price'],
@@ -280,6 +399,7 @@ class ProductController extends Controller
             }
 
             $variant->attributeValues()->sync($attributeValueIds);
+            $this->saveAttributeEntries($variant, $attributeValueIds, $customAttributeValues);
         });
 
         \App\Services\SeederSyncService::syncProducts();
@@ -288,6 +408,163 @@ class ProductController extends Controller
             ->route('admin.products.index')
             ->with('success', 'Cập nhật sản phẩm thành công.');
     }
+
+    private function saveAttributeEntries(ProductVariant $variant, array $attributeValueIds, array $customValues): void
+    {
+        VariantAttributeValue::where('product_variant_id', $variant->id)->delete();
+
+        foreach ($attributeValueIds as $attributeValueId) {
+            $value = \App\Models\AttributeValue::find($attributeValueId);
+            if ($value) {
+                VariantAttributeValue::create([
+                    'product_variant_id' => $variant->id,
+                    'attribute_id' => $value->attribute_id,
+                    'attribute_value_id' => $value->id,
+                ]);
+            }
+        }
+
+        foreach ($customValues as $attributeId => $customValue) {
+            if (trim((string) $customValue) !== '') {
+                VariantAttributeValue::create([
+                    'product_variant_id' => $variant->id,
+                    'attribute_id' => (int) $attributeId,
+                    'custom_value' => trim($customValue),
+                ]);
+            }
+        }
+    }
+
+    private function syncProductAttributes(Product $product, array $attributeValueIds, array $customValues): void
+    {
+        $valueModels = \App\Models\AttributeValue::with('attribute')
+            ->whereIn('id', $attributeValueIds)
+            ->get()
+            ->keyBy('id');
+
+        $attributeIds = $valueModels->pluck('attribute_id')
+            ->merge(collect($customValues)->keys()->map(fn ($id) => (int) $id))
+            ->unique()
+            ->values();
+
+        $product->attributes()
+            ->whereNotIn('attribute_id', $attributeIds->all() ?: [-1])
+            ->get()
+            ->each(function (ProductAttribute $productAttribute): void {
+                $productAttribute->values()->delete();
+                $productAttribute->delete();
+            });
+
+        foreach ($attributeIds as $attributeId) {
+            $attribute = Attribute::whereKey($attributeId)->where('is_active', true)->first();
+            if (!$attribute) {
+                continue;
+            }
+
+            $productAttribute = ProductAttribute::updateOrCreate(
+                ['product_id' => $product->id, 'attribute_id' => $attribute->id],
+                [
+                    'name' => $attribute->name,
+                    'slug' => $attribute->slug,
+                    'display_type' => $attribute->display_type,
+                    'attribute_type' => $attribute->attribute_type,
+                    'is_filterable' => $attribute->is_filterable,
+                    'sort_order' => $attribute->sort_order,
+                ]
+            );
+
+            $productAttribute->values()->delete();
+
+            foreach ($valueModels->where('attribute_id', $attribute->id) as $value) {
+                ProductAttributeValue::create([
+                    'product_attribute_id' => $productAttribute->id,
+                    'attribute_value_id' => $value->id,
+                    'color_hex' => $value->color_hex,
+                    'sort_order' => $value->sort_order,
+                ]);
+            }
+
+            $customValue = trim((string) ($customValues[$attribute->id] ?? ''));
+            if ($customValue !== '') {
+                ProductAttributeValue::create([
+                    'product_attribute_id' => $productAttribute->id,
+                    'custom_value' => $customValue,
+                ]);
+            }
+        }
+    }
+
+    private function parseProductAttributePayload(?string $payload): ?array
+    {
+        if ($payload === null || trim($payload) === '') {
+            return null;
+        }
+
+        $rows = json_decode($payload, true);
+        abort_if(!is_array($rows), 422, 'Dữ liệu thuộc tính sản phẩm không hợp lệ.');
+
+        return collect($rows)->map(function ($row) {
+            abort_if(!is_array($row), 422, 'Dòng thuộc tính không hợp lệ.');
+
+            $attributeId = filter_var($row['attribute_id'] ?? null, FILTER_VALIDATE_INT);
+            abort_if(!$attributeId, 422, 'Thuộc tính không hợp lệ.');
+
+            return [
+                'attribute_id' => $attributeId,
+                'values' => collect($row['values'] ?? [])->map(fn ($id) => (int) $id)->filter()->unique()->values()->all(),
+                'custom_value' => trim((string) ($row['custom_value'] ?? '')),
+                'attribute_type' => in_array($row['attribute_type'] ?? '', ['variation', 'information'], true)
+                    ? $row['attribute_type']
+                    : 'information',
+                'show_on_product' => (bool) ($row['show_on_product'] ?? false),
+            ];
+        })->values()->all();
+    }
+
+    private function syncProductAttributeRows(Product $product, array $rows): void
+    {
+        $attributeIds = collect($rows)->pluck('attribute_id');
+        abort_if($attributeIds->duplicates()->isNotEmpty(), 422, 'Không được chọn trùng thuộc tính.');
+
+        $attributes = Attribute::with('values')
+            ->whereIn('id', $attributeIds)
+            ->where('is_active', true)
+            ->get()
+            ->keyBy('id');
+
+        abort_if($attributes->count() !== $attributeIds->unique()->count(), 422, 'Thuộc tính không tồn tại hoặc đã bị tắt.');
+
+        foreach ($rows as $row) {
+            $attribute = $attributes->get($row['attribute_id']);
+            $selectedValues = collect($row['values']);
+            abort_if($selectedValues->diff($attribute->values->pluck('id'))->isNotEmpty(), 422, 'Giá trị thuộc tính không hợp lệ.');
+
+            $productAttribute = $product->attributes()->create([
+                'attribute_id' => $attribute->id,
+                'name' => $attribute->name,
+                'slug' => $attribute->slug,
+                'display_type' => $attribute->display_type,
+                'attribute_type' => $row['attribute_type'],
+                'show_on_product' => $row['show_on_product'],
+                'is_filterable' => $attribute->is_filterable,
+                'sort_order' => $attribute->sort_order,
+            ]);
+
+            foreach ($selectedValues as $valueId) {
+                $value = $attribute->values->firstWhere('id', $valueId);
+                $productAttribute->values()->create([
+                    'attribute_value_id' => $value->id,
+                    'color_hex' => $value->color_hex,
+                    'sort_order' => $value->sort_order,
+                ]);
+            }
+
+            if ($row['custom_value'] !== '') {
+                $productAttribute->values()->create(['custom_value' => $row['custom_value']]);
+            }
+        }
+    }
+
 
     // Ẩn sản phẩm, không xóa dữ liệu
     public function destroy(Product $product)

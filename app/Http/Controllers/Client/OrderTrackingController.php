@@ -18,10 +18,7 @@ class OrderTrackingController extends Controller
         }
 
         $orders = Order::with(['items.variant.product'])
-            ->where(function ($query) use ($customer) {
-                $query->where('phone', $customer['tel'] ?? '')
-                    ->orWhere('email', $customer['email'] ?? '');
-            })
+            ->where($this->ownerFilter($customer))
             ->orderByDesc('created_at')
             ->get();
 
@@ -40,12 +37,9 @@ class OrderTrackingController extends Controller
             return redirect()->route('login');
         }
 
-        $order = Order::with(['items.variant.product'])
+        $order = Order::with(['items.variant.product', 'returnRequests.items.orderItem.variant.product', 'returnRequests.items.imei'])
             ->where('id', $id)
-            ->where(function ($query) use ($customer) {
-                $query->where('phone', $customer['tel'] ?? '')
-                    ->orWhere('email', $customer['email'] ?? '');
-            })
+            ->where($this->ownerFilter($customer))
             ->firstOrFail();
 
         $this->applyStatusTimeline($order);
@@ -74,10 +68,9 @@ class OrderTrackingController extends Controller
 
         $order = Order::with('items.variant')
             ->where('id', $id)
-            ->where(function ($query) use ($customer) {
-                $query->where('phone', $customer['tel'] ?? '')
-                    ->orWhere('email', $customer['email'] ?? '');
-            })->firstOrFail();
+            ->where($this->ownerFilter($customer))->firstOrFail();
+
+        abort_unless($order->status === 'completed', 422, 'Chỉ được đánh giá sau khi đơn hoàn tất.');
 
         $hasProduct = $order->items->contains(fn ($item) =>
             (int) ($item->variant?->product_id) === (int) $data['product_id']
@@ -91,14 +84,14 @@ class OrderTrackingController extends Controller
                 'customer_name' => $customer['user'] ?? 'Khách hàng',
                 'rating' => $data['rating'],
                 'comment' => $data['comment'],
-                'status' => 'approved',
+                'status' => 'pending',
             ]
         );
 
         return back()->with('success', 'Đã lưu đánh giá sản phẩm.');
     }
 
-    protected function applyStatusTimeline(Order $order): void
+    protected function applyStatusTimeline(object $order): void
     {
         $statusOrder = ['pending', 'confirmed', 'shipping', 'completed', 'cancelled'];
         $currentIndex = array_search($order->status, $statusOrder, true);
@@ -114,19 +107,30 @@ class OrderTrackingController extends Controller
             ];
         }
 
-        if ($order->status === 'pending' && $order->created_at) {
-            $createdAt = $order->created_at->copy()->addMinutes(2);
-            if (now()->gte($createdAt)) {
-                $order->status = 'confirmed';
-                $order->save();
-                $timeline = $this->buildTimeline($order->fresh());
-            }
-        }
-
         $order->tracking_timeline = $timeline;
     }
 
-    protected function buildTimeline(Order $order): array
+    private function ownerFilter(array $customer): \Closure
+    {
+        $phone = trim((string) ($customer['tel'] ?? ''));
+        $email = strtolower(trim((string) ($customer['email'] ?? '')));
+
+        return function ($query) use ($phone, $email) {
+            $query->where(function ($owner) use ($phone, $email) {
+                if ($phone !== '') {
+                    $owner->where('phone', $phone);
+                }
+                if ($email !== '') {
+                    $phone === '' ? $owner->where('email', $email) : $owner->orWhere('email', $email);
+                }
+                if ($phone === '' && $email === '') {
+                    $owner->whereRaw('1 = 0');
+                }
+            });
+        };
+    }
+
+    protected function buildTimeline(object $order): array
     {
         $statusOrder = ['pending', 'confirmed', 'shipping', 'completed', 'cancelled'];
         $currentIndex = array_search($order->status, $statusOrder, true);

@@ -10,34 +10,88 @@ class CategorySeeder extends Seeder
 {
     public function run(): void
     {
-        $categories = [
-            ['name' => 'Điện thoại', 'parent' => null],
-            ['name' => 'Laptop', 'parent' => null],
-            ['name' => 'Máy tính bảng', 'parent' => 'dien-thoai'],
-            ['name' => 'Đồng hồ', 'parent' => 'phu-kien'],
-            ['name' => 'Tai nghe', 'parent' => 'phu-kien'],
-            ['name' => 'Phụ kiện', 'parent' => null],
-            ['name' => 'Ốp lưng', 'parent' => 'phu-kien'],
-            ['name' => 'Bộ sạc', 'parent' => 'phu-kien'],
-            ['name' => 'Củ sạc', 'parent' => 'bo-sac'],
-            ['name' => 'Dây sạc', 'parent' => 'bo-sac'],
-            ['name' => 'Kính cường lực', 'parent' => 'phu-kien'],
+        $categories = [            [
+                'name' => 'Bộ sạc',
+                'slug' => 'bo-sac',
+                'parent_slug' => 'dien-thoai',
+                'status' => 1,
+            ],
+            [
+                'name' => 'Củ sạc',
+                'slug' => 'cu-sac',
+                'parent_slug' => 'bo-sac',
+                'status' => 1,
+            ],
+            [
+                'name' => 'Dây sạc',
+                'slug' => 'day-sac',
+                'parent_slug' => 'bo-sac',
+                'status' => 1,
+            ],
+            [
+                'name' => 'Điện thoại',
+                'slug' => 'dien-thoai',
+                'parent_slug' => null,
+                'status' => 1,
+            ],
+            [
+                'name' => 'Đồng hồ',
+                'slug' => 'dong-ho',
+                'parent_slug' => 'phu-kien',
+                'status' => 1,
+            ],
+            [
+                'name' => 'Kính cường lực',
+                'slug' => 'kinh-cuong-luc',
+                'parent_slug' => 'phu-kien',
+                'status' => 1,
+            ],
+            [
+                'name' => 'Laptop',
+                'slug' => 'laptop',
+                'parent_slug' => null,
+                'status' => 1,
+            ],
+            [
+                'name' => 'Máy tính bảng',
+                'slug' => 'may-tinh-bang',
+                'parent_slug' => 'dien-thoai',
+                'status' => 1,
+            ],
+            [
+                'name' => 'Ốp lưng',
+                'slug' => 'op-lung',
+                'parent_slug' => 'phu-kien',
+                'status' => 1,
+            ],
+            [
+                'name' => 'Phụ kiện',
+                'slug' => 'phu-kien',
+                'parent_slug' => null,
+                'status' => 1,
+            ],
+            [
+                'name' => 'Tai nghe',
+                'slug' => 'tai-nghe',
+                'parent_slug' => 'phu-kien',
+                'status' => 1,
+            ],
         ];
 
         foreach ($categories as $category) {
             Category::updateOrCreate(
-                ['slug' => Str::slug($category['name'])],
+                ['slug' => $category['slug']],
                 [
                     'name' => $category['name'],
-                    'status' => 1,
+                    'status' => $category['status'],
                 ]
             );
         }
 
         foreach ($categories as $category) {
-            Category::where('slug', Str::slug($category['name']))->update([
-                'parent_id' => $category['parent']
-                    ? Category::where('slug', $category['parent'])->value('id')
+            Category::where('slug', $category['slug'])->update([
+                'parent_id' => $category['parent_slug']
+                    ? Category::where('slug', $category['parent_slug'])->value('id')
                     : null,
             ]);
         }

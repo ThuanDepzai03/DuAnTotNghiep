@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Order;
+use App\Services\InventoryService;
 use Illuminate\Console\Command;
 
 class CleanupAbandonedOrders extends Command
@@ -35,6 +36,7 @@ class CleanupAbandonedOrders extends Command
 
         $count = 0;
         foreach ($abandonedOrders as $order) {
+            app(InventoryService::class)->releaseOrder($order);
             // Delete related items first
             $order->items()->delete();
             // Then delete the order

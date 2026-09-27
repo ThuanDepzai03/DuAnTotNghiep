@@ -70,6 +70,7 @@ class AdminDashboardTest extends TestCase
             });
         }
     }
+
     public function test_admin_dashboard_page_is_accessible(): void
     {
         session(['customer' => ['id' => 1, 'user' => 'admin', 'role' => 1]]);

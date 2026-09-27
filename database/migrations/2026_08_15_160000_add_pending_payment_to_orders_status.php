@@ -13,7 +13,9 @@ return new class extends Migration
     public function up(): void
     {
         // Add 'pending_payment' to the status ENUM
-        DB::statement("ALTER TABLE orders MODIFY status ENUM('pending', 'pending_payment', 'confirmed', 'shipping', 'completed', 'cancelled') NOT NULL DEFAULT 'pending'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE orders MODIFY status ENUM('pending', 'pending_payment', 'confirmed', 'shipping', 'completed', 'cancelled') NOT NULL DEFAULT 'pending'");
+        }
     }
 
     /**
@@ -22,6 +24,8 @@ return new class extends Migration
     public function down(): void
     {
         // Remove 'pending_payment' from the status ENUM
-        DB::statement("ALTER TABLE orders MODIFY status ENUM('pending', 'confirmed', 'shipping', 'completed', 'cancelled') NOT NULL DEFAULT 'pending'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE orders MODIFY status ENUM('pending', 'confirmed', 'shipping', 'completed', 'cancelled') NOT NULL DEFAULT 'pending'");
+        }
     }
 };

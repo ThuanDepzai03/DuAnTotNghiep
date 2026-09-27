@@ -70,8 +70,14 @@ class ProductController extends Controller
     $phoneCategoryIds = $this->categoryTreeIds($phoneCategory);
     $accessoryCategoryIds = $this->categoryTreeIds($accessoryCategory);
     $selectedGroup = $request->input('group');
+
+    $phoneHasProducts = !empty($phoneCategoryIds)
+        && Product::where('status', 1)
+            ->whereIn('category_id', $phoneCategoryIds)
+            ->exists();
+
     $groupCategoryIds = match ($selectedGroup) {
-        'phone' => $phoneCategoryIds,
+        'phone' => $phoneHasProducts ? $phoneCategoryIds : [],
         'accessories' => $accessoryCategoryIds,
         default => [],
     };
@@ -288,6 +294,7 @@ class ProductController extends Controller
     $product = Product::with([
         'category',
         'brand',
+        'attributes.values.attributeValue',
         'variants.attributeValues.attribute',
         'reviews' => fn ($query) => $query->where('status', 'approved')->latest(),
     ])
