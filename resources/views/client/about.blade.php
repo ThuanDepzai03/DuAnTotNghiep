@@ -9,7 +9,7 @@
             <div class="col-md-6">
                 <div class="about-content">
                     <span class="about-subtitle">
-                        <i class="fa fa-heart"></i> AE PHOENIC STORE
+                        <i class="fa fa-heart"></i> MOBILE MART STORE
                     </span>
 
                     <h1 class="about-title">Công nghệ tốt hơn cho cuộc sống hiện đại</h1>
