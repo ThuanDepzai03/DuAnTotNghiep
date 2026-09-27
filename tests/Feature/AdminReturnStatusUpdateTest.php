@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\ReturnRequest;
+use App\Support\ServiceWorkflow;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
@@ -68,14 +69,15 @@ class AdminReturnStatusUpdateTest extends TestCase
             'refund_amount' => 0,
         ]);
 
-        $response = $this->withSession([
+        $response = $this->from(route('admin.returns.show', $returnRequest))
+            ->withSession([
             'admin' => ['id' => 9, 'name' => 'Admin test'],
         ])->put(route('admin.returns.update', $returnRequest), [
             'status' => 'approved',
             'admin_note' => 'Đã kiểm tra và chấp nhận gửi trả.',
         ]);
 
-        $response->assertRedirect();
+        $response->assertRedirect(route('admin.returns.show', $returnRequest));
         $response->assertSessionHas('success', 'Đã cập nhật yêu cầu trả hàng.');
 
         $this->assertDatabaseHas('return_requests', [
@@ -92,5 +94,16 @@ class AdminReturnStatusUpdateTest extends TestCase
             'changed_by_type' => 'admin',
             'changed_by' => 9,
         ]);
+
+        $updatedRequest = ReturnRequest::with('statusHistory')->findOrFail($returnRequest->id);
+        $timeline = ServiceWorkflow::timeline(
+            'return',
+            $updatedRequest->status,
+            $updatedRequest->statusHistory,
+            $updatedRequest->created_at
+        );
+
+        $approvedStep = collect($timeline)->firstWhere('status', 'approved');
+        $this->assertTrue($approvedStep['current']);
     }
 }
