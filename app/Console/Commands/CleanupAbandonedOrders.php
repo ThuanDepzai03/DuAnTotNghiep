@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Order;
 use App\Services\InventoryService;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 
 class CleanupAbandonedOrders extends Command
 {
@@ -36,12 +37,20 @@ class CleanupAbandonedOrders extends Command
 
         $count = 0;
         foreach ($abandonedOrders as $order) {
-            app(InventoryService::class)->releaseOrder($order);
-            // Delete related items first
-            $order->items()->delete();
-            // Then delete the order
-            $order->delete();
-            $count++;
+            $deleted = DB::transaction(function () use ($order, $twentyFourHoursAgo): bool {
+                $lockedOrder = Order::query()->lockForUpdate()->find($order->id);
+                if (!$lockedOrder || $lockedOrder->status !== 'pending_payment' || $lockedOrder->created_at >= $twentyFourHoursAgo) {
+                    return false;
+                }
+
+                app(InventoryService::class)->releaseOrder($lockedOrder);
+                $lockedOrder->items()->delete();
+                $lockedOrder->delete();
+
+                return true;
+            }, 3);
+
+            $count += (int) $deleted;
         }
 
         $this->info("Đã xóa $count đơn hàng chưa thanh toán cũ.");

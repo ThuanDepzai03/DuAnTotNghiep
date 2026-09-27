@@ -78,8 +78,6 @@ class OrderController extends Controller
             'status' => 'required|in:pending,confirmed,shipping,completed,cancelled',
         ]);
 
-        $order = Order::with('items.variant')->findOrFail($id);
-
         // Define allowed status transitions (only forward, no reverting)
         $allowedTransitions = [
             'pending' => ['confirmed', 'cancelled'],
@@ -90,39 +88,45 @@ class OrderController extends Controller
             'cancelled' => [], // Final state, can't change
         ];
 
-        $currentStatus = $order->status;
         $newStatus = $statusInput;
 
-        // Check if transition is allowed
-        if (!isset($allowedTransitions[$currentStatus]) || !in_array($newStatus, $allowedTransitions[$currentStatus])) {
+        $transitionError = DB::transaction(function () use ($id, $newStatus, $allowedTransitions) {
+            $order = Order::query()->lockForUpdate()->findOrFail($id);
+            $currentStatus = $order->status;
+
+            if (!isset($allowedTransitions[$currentStatus]) || !in_array($newStatus, $allowedTransitions[$currentStatus], true)) {
+                return "Không thể chuyển từ trạng thái '{$currentStatus}' sang '{$newStatus}'.";
+            }
+
+            if ($currentStatus === 'pending' && $newStatus === 'confirmed') {
+                app(InventoryService::class)->markOrderSold($order);
+            }
+
+            if (in_array($currentStatus, ['pending', 'pending_payment'], true) && $newStatus === 'cancelled') {
+                app(InventoryService::class)->releaseOrder($order);
+            }
+
+            if ($currentStatus === 'confirmed' && $newStatus === 'cancelled') {
+                app(InventoryService::class)->restoreSoldOrder($order);
+            }
+
+            $updateData = ['status' => $newStatus];
+            if ($newStatus === 'completed') {
+                $updateData['completed_at'] = now();
+            }
+            $order->update($updateData);
+
+            return null;
+        }, 3);
+
+        if ($transitionError !== null) {
             return redirect()
-                ->route('admin.orders.show', $order->id)
-                ->with('error', "Không thể chuyển từ trạng thái '{$currentStatus}' sang '{$newStatus}'.");
+                ->route('admin.orders.show', $id)
+                ->with('error', $transitionError);
         }
-
-        // Deduct stock when admin confirms the order (status: pending -> confirmed)
-        if ($currentStatus === 'pending' && $newStatus === 'confirmed') {
-            app(InventoryService::class)->markOrderSold($order);
-        }
-
-        if ($currentStatus === 'pending_payment' && $newStatus === 'cancelled') {
-            app(InventoryService::class)->releaseOrder($order);
-        }
-
-        if (in_array($currentStatus, ['confirmed', 'shipping'], true) && $newStatus === 'cancelled') {
-            app(InventoryService::class)->restoreSoldOrder($order);
-        }
-
-        // Set completed_at timestamp when order is completed
-        $updateData = ['status' => $newStatus];
-        if ($newStatus === 'completed') {
-            $updateData['completed_at'] = now();
-        }
-
-        $order->update($updateData);
 
         return redirect()
-            ->route('admin.orders.show', $order->id)
+            ->route('admin.orders.show', $id)
             ->with('success', 'Cập nhật trạng thái đơn hàng thành công.');
     }
 

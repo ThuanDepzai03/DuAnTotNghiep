@@ -566,6 +566,8 @@ class CheckoutController extends Controller
                 ->with('error', 'Giỏ hàng đang trống!');
         }
 
+            uasort($cart, fn ($left, $right) => (int) $left['variant_id'] <=> (int) $right['variant_id']);
+
 
         // ==============================
         // VALIDATE
@@ -701,7 +703,13 @@ class CheckoutController extends Controller
                     foreach ($imeis as $imei) {
                         $orderItem->imeis()->attach($imei->id);
                         $imei->update(['status' => 'reserved']);
-                        $variant->decrement('stock');
+                        $updatedRows = ProductVariant::whereKey($variant->id)
+                            ->where('stock', '>=', 1)
+                            ->decrement('stock');
+                        if ($updatedRows !== 1) {
+                            throw new \RuntimeException('Tồn kho sản phẩm vừa thay đổi, vui lòng thử lại.');
+                        }
+
                         InventoryTransaction::create([
                             'product_variant_id' => $item['variant_id'],
                             'product_imei_id' => $imei->id,
@@ -713,7 +721,13 @@ class CheckoutController extends Controller
                         ]);
                     }
                 } else {
-                    $variant->decrement('stock', $quantity);
+                    $updatedRows = ProductVariant::whereKey($variant->id)
+                        ->where('stock', '>=', $quantity)
+                        ->decrement('stock', $quantity);
+                    if ($updatedRows !== 1) {
+                        throw new \RuntimeException('Tồn kho sản phẩm vừa thay đổi, vui lòng thử lại.');
+                    }
+
                     InventoryTransaction::create([
                         'product_variant_id' => $variant->id,
                         'order_id' => $order->id,

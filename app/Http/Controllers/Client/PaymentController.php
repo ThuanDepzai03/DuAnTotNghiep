@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\Voucher;
 use App\Services\InventoryService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PaymentController extends Controller
 {
@@ -93,38 +94,55 @@ class PaymentController extends Controller
             $validReference = $order && preg_match('/^' . preg_quote((string) $order->id, '/') . '_\d+$/', $txnRef);
             $validAmount = $order && (int) $request->vnp_Amount === $expectedAmount;
 
-            if ($order && $request->vnp_ResponseCode === '00' && $request->vnp_TransactionStatus === '00') {
-                if ($order->status === 'confirmed') {
-                    return redirect()->route('checkout.success');
+            if (!$validReference || !$validAmount) {
+                return redirect()->route('checkout.show')->with('error', 'Thông tin giao dịch không khớp với đơn hàng.');
+            }
+
+            $paymentSucceeded = $request->vnp_ResponseCode === '00'
+                && $request->vnp_TransactionStatus === '00';
+            $result = DB::transaction(function () use ($order, $request, $paymentSucceeded) {
+                $lockedOrder = Order::query()->lockForUpdate()->find($order->id);
+                if (!$lockedOrder) {
+                    return false;
                 }
 
-                if ($order->status === 'pending_payment') {
-                    $order->update([
+                if ($paymentSucceeded && $lockedOrder->status === 'confirmed') {
+                    return true;
+                }
+
+                if ($lockedOrder->status !== 'pending_payment') {
+                    return false;
+                }
+
+                if ($paymentSucceeded) {
+                    app(InventoryService::class)->markOrderSold($lockedOrder);
+                    $lockedOrder->update([
                         'status' => 'confirmed',
                         'transaction_no' => $request->vnp_TransactionNo,
                         'bank_code' => $request->vnp_BankCode,
                         'paid_at' => now(),
                     ]);
 
-                    app(InventoryService::class)->markOrderSold($order);
-
-                    $voucherCodes = array_filter(array_map('trim', explode(',', (string) $order->voucher_code)));
+                    $voucherCodes = array_filter(array_map('trim', explode(',', (string) $lockedOrder->voucher_code)));
                     if ($voucherCodes !== []) {
                         Voucher::whereIn('code', $voucherCodes)->increment('used_quantity');
                     }
+
+                    return true;
                 }
 
-                $this->clearCartItems();
+                app(InventoryService::class)->releaseOrder($lockedOrder);
+                $lockedOrder->update(['status' => 'cancelled']);
 
+                return false;
+            }, 3);
+
+            if ($paymentSucceeded && $result) {
+                $this->clearCartItems();
                 return redirect()->route('checkout.success');
             }
 
-            if ($order && $order->status === 'pending_payment') {
-                app(InventoryService::class)->releaseOrder($order);
-                $order->update(['status' => 'cancelled']);
-            }
-
-            return redirect()->route('checkout.show')->with('error', 'Thanh toán thất bại.');
+            return redirect()->route('checkout.show')->with('error', 'Thanh toán thất bại hoặc đơn hàng đã được xử lý.');
         }
 
         return redirect()->route('checkout.show')->with('error', 'Chữ ký không hợp lệ.');

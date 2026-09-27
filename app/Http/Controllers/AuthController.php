@@ -841,13 +841,21 @@ class AuthController extends Controller
             abort(403);
         }
 
-        if ($order->status != 'pending') {
+        $cancelled = DB::transaction(function () use ($id) {
+            $order = Order::query()->lockForUpdate()->findOrFail($id);
+            if ($order->status !== 'pending') {
+                return false;
+            }
+
+            app(InventoryService::class)->releaseOrder($order);
+            $order->update(['status' => 'cancelled']);
+
+            return true;
+        }, 3);
+
+        if (! $cancelled) {
             return back()->with('error', 'Đơn hàng đã được xử lý, không thể hủy.');
         }
-
-        $order->update([
-            'status' => 'cancelled',
-        ]);
 
         return back()->with('success', 'Đã hủy đơn hàng thành công.');
     }
@@ -874,18 +882,31 @@ class AuthController extends Controller
             'refund_reason' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        if ($order->status === 'pending_payment') {
-            app(InventoryService::class)->releaseOrder($order);
-        }
-
-        if ($order->payment_method === 'cod') {
-            $codes = array_filter(array_map('trim', explode(',', (string) ($order->voucher_code ?? ''))));
-            if (!empty($codes)) {
-                Voucher::whereIn('code', $codes)->where('used_quantity', '>', 0)->decrement('used_quantity');
+        $cancelled = DB::transaction(function () use ($id) {
+            $order = Order::query()->lockForUpdate()->findOrFail($id);
+            if (!in_array($order->status, ['pending', 'pending_payment', 'completed'], true)) {
+                return false;
             }
-        }
 
-        $order->update(['status' => 'cancelled']);
+            if (in_array($order->status, ['pending', 'pending_payment'], true)) {
+                app(InventoryService::class)->releaseOrder($order);
+            }
+
+            if ($order->payment_method === 'cod') {
+                $codes = array_filter(array_map('trim', explode(',', (string) ($order->voucher_code ?? ''))));
+                if ($codes !== []) {
+                    Voucher::whereIn('code', $codes)->where('used_quantity', '>', 0)->decrement('used_quantity');
+                }
+            }
+
+            $order->update(['status' => 'cancelled']);
+
+            return true;
+        }, 3);
+
+        if (! $cancelled) {
+            return back()->with('error', 'Trạng thái đơn hàng đã thay đổi, vui lòng tải lại trang.');
+        }
 
         return back()->with('success', 'Đã hủy đơn hàng thành công.');
     }
