@@ -9,7 +9,7 @@
         So Sánh Mọi Loại Điện Thoại
       </h1>
       <p class="text-neutral-500 mt-2 text-sm md:text-base">
-        Nhập 2 dòng máy bất kỳ (cùng hãng hoặc khác hãng), AI của AE PHOENIC sẽ bóc tách chi tiết ưu - nhược điểm.
+        Nhập 2 dòng máy bất kỳ (cùng hãng hoặc khác hãng), AI của MOBILE MART sẽ bóc tách chi tiết ưu - nhược điểm.
       </p>
     </div>
 
@@ -22,7 +22,7 @@
             <i class="fa-solid fa-mobile-screen text-red-600 mr-1"></i> Sản phẩm thứ nhất
           </label>
           <div class="relative">
-            <input id="phone1" type="text" autocomplete="off" placeholder="Tìm sản phẩm trong cửa hàng..." 
+            <input id="phone1" type="text" autocomplete="off" placeholder="Tìm sản phẩm trong cửa hàng..."
               class="w-full pl-10 pr-4 py-3 bg-neutral-50 border border-neutral-300 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-red-600 focus:bg-white transition" />
             <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-neutral-400 text-sm"></i>
           </div>
@@ -42,7 +42,7 @@
             <i class="fa-solid fa-mobile-screen text-red-600 mr-1"></i> Sản phẩm thứ hai
           </label>
           <div class="relative">
-            <input id="phone2" type="text" autocomplete="off" placeholder="Tìm sản phẩm trong cửa hàng..." 
+            <input id="phone2" type="text" autocomplete="off" placeholder="Tìm sản phẩm trong cửa hàng..."
               class="w-full pl-10 pr-4 py-3 bg-neutral-50 border border-neutral-300 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-red-600 focus:bg-white transition" />
             <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-neutral-400 text-sm"></i>
           </div>

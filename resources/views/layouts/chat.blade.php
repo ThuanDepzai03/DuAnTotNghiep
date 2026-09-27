@@ -8,13 +8,13 @@
     <!-- Khung Chat Pop-up -->
     <div id="chat-box" style="display: none; position: fixed !important; bottom: 90px !important; right: 20px !important; width: 320px !important; height: 400px !important; background-color: #ffffff !important; border-radius: 12px !important; box-shadow: 0 5px 25px rgba(0,0,0,0.25) !important; z-index: 999999 !important; flex-direction: column !important; overflow: hidden !important; font-family: Arial, sans-serif !important;">
         <div style="background-color: #0088FF; color: white; padding: 12px 15px; font-weight: bold; display: flex; justify-content: space-between; align-items: center;">
-            <span>Hỗ trợ AE PHOENIC</span>
+            <span>Hỗ trợ MOBILE MART</span>
             <button onclick="closeChat()" style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;">&times;</button>
         </div>
         <div id="chat-messages" style="flex: 1; padding: 15px; overflow-y: auto; background-color: #f8f9fa;">
             <div style="display: flex; justify-content: flex-start; margin-bottom: 10px;">
                 <div style="background-color: #e9ecef; color: #333; padding: 8px 12px; border-radius: 10px; max-width: 80%; font-size: 13px;">
-                    Xin chào! AE Phoenic Store có thể hỗ trợ gì cho bạn?
+                    Xin chào! MOBILE MART STORE có thể hỗ trợ gì cho bạn?
                 </div>
             </div>
         </div>

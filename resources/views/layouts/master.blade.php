@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>AE Phoenic Store</title>
+    <title>MOBILE MART STORE</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="icon" type="image/png" href="{{ asset('img/logo.png') }}">
     <link rel="shortcut icon" type="image/png" href="{{ asset('img/logo.png') }}">
@@ -31,14 +31,14 @@
                 <div class="top-header-logo">
                     <a href="{{ route('home') }}"
                        class="brand-logo"
-                       aria-label="AE Phoenic Store">
+                       aria-label=" MOBILE MART">
 
                         <img src="{{ asset('img/logo.png') }}"
-                             alt="AE Phoenic"
+                             alt=" MOBILE MART"
                              class="brand-logo__img">
 
                         <span class="brand-logo__text">
-                            AE PHOENIC
+                            MOBILE MART
                         </span>
                     </a>
                 </div>
@@ -269,7 +269,7 @@
                         <h3 class="footer-title">VỀ CHÚNG TÔI</h3>
 
                         <p class="footer-about">
-                            AE Phoenic Store chuyên cung cấp điện thoại, máy tính bảng
+                            MOBILE MART STORE chuyên cung cấp điện thoại, máy tính bảng
                             và phụ kiện chính hãng với giá tốt, bảo hành rõ ràng.
                         </p>
 
@@ -332,7 +332,7 @@
                         <h3 class="footer-title">KẾT NỐI VỚI CHÚNG TÔI</h3>
 
                         <p class="footer-about">
-                            Theo dõi AE Phoenic Store để nhận thông tin khuyến mãi
+                            Theo dõi MOBILE MART Store để nhận thông tin khuyến mãi
                             và sản phẩm mới sớm nhất.
                         </p>
 
@@ -372,7 +372,7 @@
             <div class="row">
                 <div class="col-md-12 text-center">
                     <span class="copyright">
-                        © {{ date('Y') }} AE Phoenic Store. Bản quyền thuộc về nhóm DATN.
+                        © {{ date('Y') }} MOBILE MART Store. Bản quyền thuộc về nhóm DATN.
                     </span>
                 </div>
             </div>

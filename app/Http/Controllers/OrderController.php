@@ -22,6 +22,10 @@ class OrderController extends Controller
         $confirmedCount = (clone $baseQuery)->where('status', 'confirmed')->count();
         $shippingCount = (clone $baseQuery)->where('status', 'shipping')->count();
         $completedCount = (clone $baseQuery)->where('status', 'completed')->count();
+        $refundedCount = (clone $baseQuery)
+            ->where('status', 'completed')
+            ->where('refund_status', 'approved')
+            ->count();
 
         $query = Order::withCount('items');
 
@@ -39,7 +43,7 @@ class OrderController extends Controller
 
         $orders = $query
             // Sort by status priority: pending → confirmed → shipping → completed → cancelled
-            ->orderByRaw("CASE 
+            ->orderByRaw("CASE
                 WHEN status = 'pending' THEN 1
                 WHEN status = 'confirmed' THEN 2
                 WHEN status = 'shipping' THEN 3

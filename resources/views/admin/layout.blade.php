@@ -25,7 +25,7 @@
                     <div class="logo">
                         <a href="{{ route('admin.dashboard') }}" class="d-flex align-items-center text-decoration-none">
                             <img src="{{ asset('img/logo.png') }}" alt="AE Phoenic" style="height: 42px; width: auto;">
-                            <span class="ms-2 fw-bold">AE PHOENIC</span>
+                            <span class="ms-2 fw-bold">Mobile Mart</span>
                         </a>
                     </div>
                     <div class="toggler">

@@ -8,7 +8,7 @@
             <div class="col-md-12">
                 <div class="contact-heading text-center">
                     <span class="contact-subtitle">
-                        <i class="fa fa-headphones"></i> AE PHOENIC STORE
+                        <i class="fa fa-headphones"></i> MOBILE MART STORE
                     </span>
 
                     <h2>LIÊN HỆ VỚI CHÚNG TÔI</h2>
@@ -29,7 +29,7 @@
                         <i class="fa fa-mobile"></i>
                     </div>
 
-                    <h3>AE PHOENIC STORE</h3>
+                    <h3>MOBILE MART STORE</h3>
 
                     <p class="contact-intro">
                         Liên hệ với chúng tôi để được tư vấn điện thoại,
@@ -188,7 +188,7 @@
                                 <i class="fa fa-map-marker"></i> VỊ TRÍ CỬA HÀNG
                             </span>
 
-                            <h3>AE PHOENIC STORE TẠI HẢI PHÒNG</h3>
+                            <h3>MOBILE MART STORE TẠI HẢI PHÒNG</h3>
 
                             <p>
                                 Bản đồ khu vực Hải Phòng. Bạn có thể bấm “Chỉ đường”

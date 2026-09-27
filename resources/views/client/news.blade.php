@@ -9,7 +9,7 @@
             <div class="news-hero-content">
                 <span class="news-hero-subtitle">
                     <i class="fa fa-newspaper-o"></i>
-                    AE PHOENIC STORE
+                    MOBILE MART STORE
                 </span>
 
                 <h1>TIN TỨC CÔNG NGHỆ</h1>

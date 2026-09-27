@@ -1,7 +1,7 @@
 <?php include_once("views/layouts/header.php"); ?>
 
 <div class="page-heading">
-    <h3 class="mb-4">Hệ thống AE STORE</h3>
+    <h3 class="mb-4">Hệ thống Mobile Mart</h3>
 </div>
 
 <div class="page-content">
