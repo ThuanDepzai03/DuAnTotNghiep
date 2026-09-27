@@ -18,6 +18,10 @@
 
 </div>
 
+### Tổng quan dự án
+
+AE Phoenic Store là hệ thống thương mại điện tử được xây dựng nhằm hỗ trợ quy trình mua sắm trực tuyến cho khách hàng và quản lý hoạt động bán hàng, tồn kho, đơn hàng, voucher và phản hồi cho quản trị viên. Dự án tập trung vào việc xây dựng một nền tảng bán hàng điện thoại, máy tính bảng và phụ kiện với trải nghiệm người dùng rõ ràng, giao diện thân thiện và luồng nghiệp vụ hoàn chỉnh từ lựa chọn sản phẩm đến thanh toán và theo dõi đơn hàng.
+
 > [!IMPORTANT]
 > Đây là dự án đồ án có đầy đủ luồng mua hàng, quản trị đơn hàng, voucher, thanh toán, chat và đánh giá sản phẩm.
 
@@ -38,7 +42,7 @@
 
 </details>
 
-Website thương mại điện tử bán điện thoại, máy tính bảng và phụ kiện. Dự án có khu vực khách hàng và trang quản trị riêng.
+Dự án xây dựng hệ thống thương mại điện tử chuyên bán điện thoại, máy tính bảng và phụ kiện, với hai phân hệ chính: khu vực khách hàng để trải nghiệm mua sắm, đặt hàng và theo dõi đơn hàng; và khu vực quản trị để quản lý sản phẩm, danh mục, voucher, banner, đơn hàng và phản hồi người dùng.
 
 ## 1. Mục tiêu dự án
 
@@ -70,8 +74,6 @@ Website thương mại điện tử bán điện thoại, máy tính bảng và 
 </div>
 
 ## 3. Cài đặt và chạy dự án trên máy khác
-
-Download evn https://docs.google.com/document/d/1WTROMSZGyiQrerM0kYiHL5741OwnXjZr6yuRSwcW3t0/edit?usp=sharing
 
 ### Yêu cầu
 
@@ -697,62 +699,51 @@ flowchart TD
 - `GET /shop` gọi `Client\ProductController@index`, lọc sản phẩm đang hoạt động theo nhóm, danh mục, thương hiệu, từ khóa, giá và thuộc tính biến thể; kết quả được phân trang tại `client/shop.blade.php`.
 - `GET /detail/{id}` gọi `Client\ProductController@show`, eager-load sản phẩm, biến thể, thuộc tính, ảnh và đánh giá; JavaScript trên Blade chọn tổ hợp variant và cập nhật giá/tồn kho.
 - `POST /cart/add` gọi `Client\CartController@add`, kiểm tra sản phẩm, variant và tồn kho rồi lưu vào session `cart.guest` hoặc `cart.{customer_id}`.
-- `GET /cart`, `POST /cart/update` và `POST /cart/remove` đọc/cập nhật session giỏ hàng và tính lại tổng tiền.
+- `GET /cart`, `POST /cart/update` và `POST /cart/remove` đọc/cập nhật session giỏ hàng và tính lại
 
 ### 8.3. Luồng đăng ký và đăng nhập
 
-<<<<<<< HEAD
-- Tài khoản khách hàng được lưu trong bảng `users`.
-- `POST /register` kiểm tra họ tên, username, email, mật khẩu, số điện thoại và địa chỉ; tài khoản khách có `role = 0`.
-- Nếu bật xác thực email, mã/link được xử lý qua `verifyEmail` hoặc `verifyEmailCode`. Sau khi thành công, hệ thống tạo session `customer`.
-- `POST /login` kiểm tra username/email và mật khẩu trong `users`, sau đó đưa thông tin tài khoản vào session.
-- Đăng nhập Google đi theo luồng `GET /auth/google/redirect` -> Google -> `GET /auth/google/callback`. Callback tìm tài khoản theo `google_id` hoặc email; nếu chưa có thì tạo tài khoản khách hàng `role = 0`, `status = 1` và đánh dấu email đã xác thực.
-- Sau khi đăng nhập Google thành công, callback ghi `session('customer')` rồi redirect về `/`. Header và modal xác định trạng thái đăng nhập bằng session này, không dùng `Auth::check()` cho khách hàng.
-- Tài khoản có `role = 1` được chuyển đến admin; tài khoản có `role = 0` tiếp tục ở luồng khách hàng.
-- Đổi mật khẩu cập nhật cột `pass` trong `users` thông qua token lưu tại `password_reset_tokens`.
-=======
 - Tài khoản khách hàng được lưu trong bảng `nguoidung`, không sử dụng bảng `users` mặc định.
 - `POST /register` kiểm tra họ tên, username, email, mật khẩu, số điện thoại và địa chỉ; tài khoản khách có `role = 0`.
 - Nếu bật xác thực email, mã/link được xử lý qua `verifyEmail` hoặc `verifyEmailCode`. Sau khi thành công, hệ thống tạo session `customer`.
 - `POST /login` kiểm tra username/email và mật khẩu trong `nguoidung`, sau đó đưa thông tin tài khoản vào session.
 - Đăng nhập Google đi theo luồng `GET /auth/google/redirect` -> Google -> `GET /auth/google/callback`. Callback tìm tài khoản theo `google_id` hoặc email; nếu chưa có thì tạo tài khoản khách hàng `role = 0`, `status = 1` và đánh dấu email đã xác thực.
-- Sau khi đăng nhập Google thành công, callback ghi `session('customer')` rồi redirect về `/`. Header và modal xác định trạng thái đăng nhập bằng session này, không dùng `Auth::check()` cho khách hàng.
-- Tài khoản có `role = 1` được chuyển đến admin; tài khoản có `role = 0` tiếp tục ở luồng khách hàng.
+- Sau khi đăng nhập Google thành công, callback ghi `session('customer')` rồi redirect về `/`. Header và modal xác định trạng thái đăn bằng session này, không dùng `Auth::check()` cho khách hàng.
+- Tài khoản có `role = 1` được chuyển đến admin; tài khoản có `role = 0` tiếp tục ở luồng
 - Đổi mật khẩu cập nhật cột `pass` trong `nguoidung` thông qua token lưu tại `password_reset_tokens`.
->>>>>>> d67f1ad (Initial commit)
 
 ```mermaid
 sequenceDiagram
         actor Customer as Khách hàng
-        participant Browser as Trình duyệt
-        participant Laravel as Laravel
-        participant Google as Google OAuth
-        participant DB as MySQL nguoidung
+        participant Browser as 
+        participant Laravel as
+        participant Google as GoogleAu
+        participant DB as MySQL
 
-        Customer->>Browser: Chọn Đăng nhập bằng Google
-        Browser->>Laravel: GET /auth/google/redirect
-        Laravel->>Browser: Redirect đến Google
+        Customer->>Browser: Chọn Đăng
+        Browser->>Laravel: GET /auth/google
+        Laravel->>Browser: Redirect đến Goo
         Browser->>Google: Xác nhận quyền truy cập
-        Google->>Laravel: GET /auth/google/callback?code=...
+        Google->>Laravel: GET /auth/google/callback?
         Laravel->>Google: Đổi code lấy thông tin tài khoản
         Google-->>Laravel: google_id, email, tên và ảnh hồ sơ
-        Laravel->>DB: Tìm theo google_id hoặc email
+        Laravel->>DB: Tìm theo google_id hoặc
         alt Chưa có tài khoản
-                Laravel->>DB: Tạo nguoidung role=0, status=1
-        else Đã có tài khoản
-                Laravel->>DB: Liên kết google_id nếu còn thiếu
+                Laravel->>DB: Tạo nguoidung role=0, s
+        else Đã có
+                Laravel->>DB: Liên kết google_id nếu
         end
-        Laravel->>Laravel: Ghi session customer
+        Laravel->>Laravel: Ghi session custom
         Laravel-->>Browser: Redirect /
-        Browser->>Laravel: GET /
-        Laravel-->>Browser: Header tài khoản, không mở modal login
+        Browser->>Laravel
+        Laravel-->>Browser: Header tài khoản
 ```
 
 ### 8.4. Luồng checkout và tạo đơn
 
-1. `GET /checkout` yêu cầu khách đã đăng nhập và giỏ hàng không rỗng.
+1. `GET /checkout` yêu cầu khách đã đăng nhập và giỏ.
 2. `CheckoutController@index` đọc thông tin khách, giỏ hàng, voucher và tính tiền hàng.
-3. Route `GET /checkout/address-options` gọi backend Laravel; backend gọi API địa chỉ bên ngoài rồi trả dữ liệu tỉnh/thành phố và phường/xã.
+3. Route `GET /checkout/address-options` gọi backend Laravel; backend gọi API địa chỉ bên ngoài rồi trả dữ liệu tỉnh/thành phố và
 4. Hệ thống kiểm tra voucher, phí vận chuyển, giảm giá và tổng thanh toán cuối cùng.
 5. `POST /checkout/submit` tạo bản ghi `orders` và các dòng `order_items` cho phương thức COD.
 6. Với VNPay, `PaymentController@vnpay` tạo URL thanh toán và VNPay gọi `vnpayReturn` khi hoàn tất.
@@ -762,11 +753,11 @@ sequenceDiagram
 
 ### 8.5. Luồng đơn hàng và tương tác
 
-- Admin cập nhật trạng thái đơn qua `PUT /admin/orders/{id}/status` theo các chuyển trạng thái được cho phép.
-- Khách xem lịch sử/chi tiết đơn qua `/account/orders/{id}` và theo dõi đơn qua `/orders/tracking`.
+- Admin cập nhật trạng thái đơn qua `PUT /admin/orders/{id}/status` theo các chuyển trạng thái được
+- Khách xem lịch sử/chi tiết đơn qua `/account/orders/{id}` và theo dõi đơn qua `/orders/tracking`
 - Đánh giá sản phẩm lưu trong `reviews`; sản phẩm yêu thích được xử lý qua `WishlistController`.
-- Chat khách hàng/admin dùng các route `/chat/*`, lưu hội thoại trong `conversations` và tin nhắn trong `messages`.
-- Lượt xem được ghi trong `product_clicks` và dùng để xếp hạng sản phẩm nổi bật trên Shop.
+- Chat khách hàng/admin dùng các route `/chat/*`, lưu hội thoại trong `conversations` và tin nhắn trong `messages`
+- Lượt xem được ghi trong `product_clicks` và dùng để xếp hạng sản phẩm nổi bật trên Shop
 
 ### 8.6. Luồng quản trị
 
@@ -885,7 +876,6 @@ php artisan serve --host=127.0.0.1 --port=8000
 Mở `http://127.0.0.1:8000` trên trình duyệt.
 
 ## 11. Cấu hình thanh toán và email
-Download evn https://docs.google.com/document/d/1WTROMSZGyiQrerM0kYiHL5741OwnXjZr6yuRSwcW3t0/edit?usp=sharing
 
 - VNPay đang dùng môi trường sandbox; không dùng thông tin này cho production.
 - Có thể dùng `MAIL_MAILER=log` khi phát triển để kiểm tra email trong log.
