@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class ServiceRequestStatusHistory extends Model
 {
+    protected $casts = ['changed_at' => 'datetime'];
+
     protected $fillable = [
         'request_type',
         'request_id',

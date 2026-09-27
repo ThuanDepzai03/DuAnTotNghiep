@@ -51,6 +51,32 @@ class ServiceWorkflowTest extends TestCase
         $this->assertSame('completed', end($statuses));
     }
 
+    public function test_return_review_is_a_timeline_milestone_not_a_persisted_admin_status(): void
+    {
+        $statuses = ServiceWorkflow::adminStatusOptions('return');
+
+        $this->assertNotContains('decision_pending', $statuses);
+        $this->assertContains('refund_approved', $statuses);
+        $this->assertContains('refund_rejected', $statuses);
+    }
+
+    public function test_completed_warranty_timeline_preserves_the_rejection_return_branch(): void
+    {
+        $history = [
+            (object) ['new_status' => 'rejected', 'changed_at' => Carbon::parse('2026-09-29 10:00:00'), 'created_at' => null],
+            (object) ['new_status' => 'return_prepared', 'changed_at' => Carbon::parse('2026-09-30 10:00:00'), 'created_at' => null],
+        ];
+
+        $timeline = ServiceWorkflow::timeline('warranty', 'completed', $history, Carbon::parse('2026-09-28 10:00:00'));
+        $statuses = array_column($timeline, 'status');
+
+        $this->assertContains('rejected', $statuses);
+        $this->assertContains('return_prepared', $statuses);
+        $this->assertContains('shipping', $statuses);
+        $this->assertNotContains('processing', $statuses);
+        $this->assertSame('completed', end($statuses));
+    }
+
     public function test_legacy_statuses_map_to_the_new_workflow_without_losing_existing_records(): void
     {
         $this->assertSame('request_rejected', ServiceWorkflow::legacyStatus('return', 'rejected'));
