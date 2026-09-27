@@ -1,12 +1,12 @@
 <button id="chat-button" class="customer-chat-launcher" type="button" onclick="toggleChat()" aria-label="Mở chat hỗ trợ">
-    <i class="bi bi-chat-dots-fill" aria-hidden="true"></i>
+    <i class="fa fa-comments" aria-hidden="true"></i>
     <span class="customer-chat-launcher__dot"></span>
 </button>
 
 <section id="chat-box" class="customer-chat" aria-label="Chat hỗ trợ khách hàng" aria-live="polite">
     <header class="customer-chat__header">
         <div class="customer-chat__identity">
-            <div class="customer-chat__avatar"><i class="bi bi-headset" aria-hidden="true"></i></div>
+            <div class="customer-chat__avatar"><i class="fa fa-headphones" aria-hidden="true"></i></div>
             <div>
                 <strong>AE Phoenix Support</strong>
                 <span><i></i> Đang trực tuyến</span>
@@ -29,7 +29,7 @@
 
     <div class="customer-chat__composer">
         <input type="text" id="chat-message" placeholder="Viết tin nhắn..." onkeypress="handleChatEnter(event)" aria-label="Tin nhắn của bạn">
-        <button type="button" onclick="sendMessage()" aria-label="Gửi tin nhắn"><i class="bi bi-send-fill" aria-hidden="true"></i></button>
+        <button type="button" onclick="sendMessage()" aria-label="Gửi tin nhắn"><i class="fa fa-paper-plane" aria-hidden="true"></i></button>
     </div>
     <div class="customer-chat__footnote">AE Phoenix Store <span>•</span> Hỗ trợ trực tuyến</div>
 </section>
