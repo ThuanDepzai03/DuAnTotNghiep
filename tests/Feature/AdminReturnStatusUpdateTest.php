@@ -69,8 +69,7 @@ class AdminReturnStatusUpdateTest extends TestCase
             'refund_amount' => 0,
         ]);
 
-        $response = $this->from(route('admin.returns.show', $returnRequest))
-            ->withSession([
+        $response = $this->withSession([
             'admin' => ['id' => 9, 'name' => 'Admin test'],
         ])->put(route('admin.returns.update', $returnRequest), [
             'status' => 'approved',

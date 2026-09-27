@@ -150,6 +150,10 @@
                 : 'Bạn đã chọn bước này nhưng chưa lưu. Nhấn nút "' + submit.textContent + '" ngay bên dưới.';
         };
         select.addEventListener('change', refreshFields);
+        form.addEventListener('submit', function () {
+            submit.disabled = true;
+            submit.textContent = 'Đang lưu...';
+        });
         refreshFields();
     });
 </script>

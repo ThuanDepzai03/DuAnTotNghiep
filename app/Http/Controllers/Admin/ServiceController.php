@@ -132,7 +132,9 @@ class ServiceController extends Controller
         };
         $workflow->transitionAdmin('return', $returnRequest, $data['status'], $reason, $attributes, $request);
 
-        return back()->with('success', 'Đã cập nhật yêu cầu trả hàng.');
+        return redirect()
+            ->route('admin.returns.show', $returnRequest)
+            ->with('success', 'Đã cập nhật yêu cầu trả hàng.');
     }
 
     public function warranties()
