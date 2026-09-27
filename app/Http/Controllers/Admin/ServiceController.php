@@ -19,6 +19,7 @@ class ServiceController extends Controller
         foreach ($returns as $returnRequest) {
             $returnRequest->workflow_timeline = ServiceWorkflow::timeline('return', $returnRequest->status, $returnRequest->statusHistory, $returnRequest->created_at);
             $returnRequest->next_workflow_statuses = ServiceWorkflow::adminTransitions('return', $returnRequest->status);
+            $returnRequest->workflow_status = ServiceWorkflow::legacyStatus('return', $returnRequest->status);
         }
         $reasons = ServiceReason::for('warranty')->get();
         $workflowSteps = ServiceWorkflow::steps('return');
@@ -117,6 +118,7 @@ class ServiceController extends Controller
         foreach ($claims as $claim) {
             $claim->workflow_timeline = ServiceWorkflow::timeline('warranty', $claim->status, $claim->statusHistory, $claim->created_at);
             $claim->next_workflow_statuses = ServiceWorkflow::adminTransitions('warranty', $claim->status);
+            $claim->workflow_status = ServiceWorkflow::legacyStatus('warranty', $claim->status);
         }
         $reasons = ServiceReason::for('return')->get();
         $workflowSteps = ServiceWorkflow::steps('warranty');

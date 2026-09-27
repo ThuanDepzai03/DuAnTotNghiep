@@ -52,7 +52,7 @@
                             @method('PUT')
                             <label class="form-label" for="return-status-{{ $return->id }}">Chuyển sang bước</label>
                             <select id="return-status-{{ $return->id }}" name="status" class="form-select mb-3" data-status-select>
-                                <option value="{{ $return->status }}">Giữ trạng thái: {{ \App\Support\ServiceWorkflow::label('return', $return->status) }}</option>
+                                <option value="{{ $return->workflow_status }}">Giữ trạng thái: {{ \App\Support\ServiceWorkflow::label('return', $return->status) }}</option>
                                 @foreach($return->next_workflow_statuses as $status)
                                     <option value="{{ $status }}">{{ $workflowSteps[$status]['label'] ?? $status }}</option>
                                 @endforeach
@@ -82,17 +82,13 @@
                                 <label class="form-label">Lý do hoàn trả thất bại</label>
                                 <textarea name="return_failure_reason" class="form-control" rows="3" maxlength="2000" data-required-status="return_failed">{{ old('return_failure_reason', $return->return_failure_reason) }}</textarea>
                             </div>
-                            <div class="mt-2" data-status-field="request_rejected">
-                                <label class="form-label">Lý do từ chối yêu cầu</label>
-                                <textarea name="admin_note" class="form-control" rows="2" maxlength="2000" data-required-status="request_rejected">{{ old('admin_note', $return->admin_note) }}</textarea>
-                            </div>
                             <div class="mt-2" data-status-field="return_shipping">
                                 <label class="form-label">Mã vận đơn gửi trả khách</label>
                                 <input name="shop_return_tracking_number" class="form-control" maxlength="100" value="{{ old('shop_return_tracking_number', $return->shop_return_tracking_number) }}">
                             </div>
                             <div class="mt-2" data-status-field="default-note">
                                 <label class="form-label">Ghi chú xử lý</label>
-                                <textarea name="admin_note" class="form-control" rows="2" maxlength="2000">{{ old('admin_note', $return->admin_note) }}</textarea>
+                                <textarea name="admin_note" class="form-control" rows="2" maxlength="2000" data-required-status="request_rejected">{{ old('admin_note', $return->admin_note) }}</textarea>
                             </div>
                             <button class="btn btn-primary mt-3" type="submit">Lưu xử lý</button>
                         </form>
