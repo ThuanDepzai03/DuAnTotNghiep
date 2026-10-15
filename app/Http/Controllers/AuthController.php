@@ -837,10 +837,7 @@ class AuthController extends Controller
 
         $order = Order::with('items.variant.product')->findOrFail($id);
 
-        $customerPhone = $customer['tel'] ?? null;
-        $customerEmail = $customer['email'] ?? null;
-
-        if (($order->phone ?? null) != $customerPhone && ($order->email ?? null) != $customerEmail) {
+        if (! $this->ownsOrder($order, $customer)) {
             abort(403);
         }
 
@@ -861,13 +858,30 @@ class AuthController extends Controller
             abort(403);
         }
 
-        if ($order->status != 'pending') {
-            return back()->with('error', 'Đơn hàng đã được xử lý, không thể hủy.');
+        if ($order->status !== 'pending' && $order->status !== 'pending_payment') {
+            return back()->with('error', 'Đơn hàng đã được xử lý hoặc giao, không thể tự hủy.');
         }
 
-        $order->update([
-            'status' => 'cancelled',
-        ]);
+        DB::beginTransaction();
+        try {
+            app(InventoryService::class)->releaseOrder($order);
+
+            if ($order->payment_method === 'cod') {
+                $codes = array_filter(array_map('trim', explode(',', (string) ($order->voucher_code ?? ''))));
+                if (!empty($codes)) {
+                    Voucher::whereIn('code', $codes)->where('used_quantity', '>', 0)->decrement('used_quantity');
+                }
+            }
+
+            $order->update([
+                'status' => 'cancelled',
+            ]);
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return back()->with('error', 'Lỗi khi hủy đơn hàng: ' . $e->getMessage());
+        }
 
         return back()->with('success', 'Đã hủy đơn hàng thành công.');
     }
@@ -887,25 +901,44 @@ class AuthController extends Controller
         }
 
         if (!in_array($order->status, ['pending', 'pending_payment', 'completed'], true)) {
-            return back()->with('error', 'Chỉ có thể yêu cầu trả hàng/hoàn tiền cho đơn hàng đã hoàn thành hoặc đang chờ thanh toán.');
+            return back()->with('error', 'Chỉ có thể yêu cầu trả hàng/hoàn tiền cho đơn hàng đã hoàn thành hoặc đơn hàng chưa xử lý.');
         }
 
         $request->validate([
-            'refund_reason' => ['nullable', 'string', 'max:1000'],
+            'refund_reason' => ['required', 'string', 'max:1000'],
+        ], [
+            'refund_reason.required' => 'Vui lòng nhập lý do yêu cầu trả hàng / hoàn tiền.',
         ]);
 
-        if ($order->status === 'pending_payment') {
+        if ($order->status === 'completed') {
+            $order->update([
+                'refund_status' => 'requested',
+                'refund_reason' => $request->refund_reason,
+                'refund_requested_at' => now(),
+            ]);
+
+            return back()->with('success', 'Đã gửi yêu cầu hoàn tiền thành công. Cửa hàng sẽ sớm xem xét và phản hồi.');
+        }
+
+        // Nếu đơn còn ở pending/pending_payment thì chuyển thành hủy đơn
+        DB::beginTransaction();
+        try {
             app(InventoryService::class)->releaseOrder($order);
-        }
 
-        if ($order->payment_method === 'cod') {
-            $codes = array_filter(array_map('trim', explode(',', (string) ($order->voucher_code ?? ''))));
-            if (!empty($codes)) {
-                Voucher::whereIn('code', $codes)->where('used_quantity', '>', 0)->decrement('used_quantity');
+            if ($order->payment_method === 'cod') {
+                $codes = array_filter(array_map('trim', explode(',', (string) ($order->voucher_code ?? ''))));
+                if (!empty($codes)) {
+                    Voucher::whereIn('code', $codes)->where('used_quantity', '>', 0)->decrement('used_quantity');
+                }
             }
-        }
 
-        $order->update(['status' => 'cancelled']);
+            $order->update(['status' => 'cancelled']);
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return back()->with('error', 'Lỗi hủy đơn: ' . $e->getMessage());
+        }
 
         return back()->with('success', 'Đã hủy đơn hàng thành công.');
     }

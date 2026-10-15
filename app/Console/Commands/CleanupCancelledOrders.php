@@ -20,31 +20,30 @@ class CleanupCancelledOrders extends Command
      *
      * @var string
      */
-    protected $description = 'Xóa các đơn hàng đã hủy sau 1 ngày';
+    protected $description = 'Tự động hủy và hoàn tồn kho cho các đơn hàng chờ thanh toán quá hạn (sau 24h)';
 
     /**
      * Execute the console command.
      */
     public function handle()
     {
-        // Find cancelled orders that were cancelled more than 1 day ago
-        $oneDayAgo = now()->subDays(1);
+        // Tìm các đơn hàng VNPay pending_payment bị bỏ dở quá 24h
+        $oneDayAgo = now()->subHours(24);
 
-        $cancelledOrders = Order::where('status', 'cancelled')
-            ->where('updated_at', '<', $oneDayAgo)
+        $expiredPendingOrders = Order::where('status', 'pending_payment')
+            ->where('created_at', '<', $oneDayAgo)
             ->get();
 
         $count = 0;
-        foreach ($cancelledOrders as $order) {
-            app(InventoryService::class)->releaseOrder($order);
-            // Delete related items first
-            $order->items()->delete();
-            // Then delete the order
-            $order->delete();
+        foreach ($expiredPendingOrders as $order) {
+            \Illuminate\Support\Facades\DB::transaction(function () use ($order) {
+                app(InventoryService::class)->releaseOrder($order);
+                $order->update(['status' => 'cancelled']);
+            });
             $count++;
         }
 
-        $this->info("Đã xóa $count đơn hàng đã hủy.");
+        $this->info("Đã tự động hủy và hoàn tồn kho cho $count đơn hàng chờ thanh toán quá 24h.");
 
         return Command::SUCCESS;
     }

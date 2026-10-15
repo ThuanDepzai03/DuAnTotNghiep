@@ -303,6 +303,136 @@
 </div>
 
 {{-- =========================================================================
+     2B. SECTION SẢN PHẨM NỔI BẬT (THEO LƯỢT QUAN TÂM / CLICKS)
+     ========================================================================= --}}
+@if (isset($featuredProducts) && $featuredProducts->isNotEmpty())
+<div class="section home-products home-featured-section" style="padding-top: 10px;">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="section-title-wrap">
+                    <h3 class="title">SẢN PHẨM NỔI BẬT</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="product-carousel-container">
+            <div class="product-carousel-track" id="featuredCarouselTrack">
+                @foreach ($featuredProducts as $product)
+                    @php
+                        $activeVariants = $product->variants
+                            ->where('status', 1)
+                            ->sortBy(fn($v) => $v->sale_price ?? $v->price)
+                            ->values();
+
+                        $cheapestVariant = $activeVariants->first();
+
+                        $displayPrice = $cheapestVariant
+                            ? ($cheapestVariant->sale_price ?? $cheapestVariant->price)
+                            : 0;
+
+                        $oldPrice = ($cheapestVariant && $cheapestVariant->sale_price)
+                            ? $cheapestVariant->price
+                            : null;
+
+                        $imgPath = ltrim(str_replace('\\', '/', (string) $product->thumbnail), '/');
+
+                        if ($imgPath === '') {
+                            $imgSrc = asset('img/product01.png');
+                        } elseif (preg_match('#^https?://#i', $imgPath)) {
+                            $imgSrc = $imgPath;
+                        } else {
+                            $imgPath = preg_replace('#^public/#i', '', $imgPath);
+
+                            if (preg_match('#^(image/|img/|admin/|storage/)#i', $imgPath)) {
+                                $imgSrc = asset($imgPath);
+                            } else {
+                                $imgSrc = asset('image/' . $imgPath);
+                            }
+                        }
+                    @endphp
+
+                    <div class="product-item-wrapper">
+                        <div class="product-card-custom">
+                            <div class="product-card-thumb">
+                                <span class="badge-new" style="background: #2563eb;">NỔI BẬT</span>
+                                <a href="{{ route('product.detail', ['id' => $product->id]) }}">
+                                    <img
+                                        src="{{ $imgSrc }}"
+                                        alt="{{ $product->name }}"
+                                        onerror="this.onerror=null;this.src='{{ asset('img/product01.png') }}';"
+                                    >
+                                </a>
+                            </div>
+
+                            <div class="product-card-info">
+                                <span class="cat-label">
+                                    {{ $product->category?->name ?? 'Điện thoại' }}
+                                </span>
+
+                                <h4 class="prod-title">
+                                    <a href="{{ route('product.detail', ['id' => $product->id]) }}">
+                                        {{ $product->name }}
+                                    </a>
+                                </h4>
+
+                                <div class="prod-price-box">
+                                    <span class="main-price">{{ number_format($displayPrice, 0, ',', '.') }} ₫</span>
+                                    @if ($oldPrice)
+                                        <del class="old-price">{{ number_format($oldPrice, 0, ',', '.') }} ₫</del>
+                                    @endif
+                                </div>
+
+                                <div class="prod-rating">
+                                    <i class="fa fa-star"></i>
+                                    <i class="fa fa-star"></i>
+                                    <i class="fa fa-star"></i>
+                                    <i class="fa fa-star"></i>
+                                    <i class="fa fa-star"></i>
+                                </div>
+
+                                <div class="prod-actions">
+                                    <form action="{{ route('wishlist.toggle') }}" method="POST" class="wishlist-inline-form">
+                                        @csrf
+                                        <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                        <button type="submit" class="btn-icon wishlist-button" title="Yêu thích" aria-label="Thêm {{ $product->name }} vào yêu thích">
+                                            <i class="fa {{ in_array((int) $product->id, array_map('intval', session('wishlist', [])), true) ? 'fa-heart' : 'fa-heart-o' }}"></i>
+                                        </button>
+                                    </form>
+                                    <a href="{{ route('compare.index', ['product_id' => $product->id]) }}" class="btn-icon" title="So sánh sản phẩm">
+                                        <i class="fa fa-exchange"></i>
+                                    </a>
+                                    <a href="{{ route('product.detail', ['id' => $product->id]) }}" class="btn-icon" title="Xem nhanh">
+                                        <i class="fa fa-eye"></i>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="product-card-bottom">
+                                @if ($cheapestVariant && ($cheapestVariant->stock ?? 1) > 0)
+                                    <form action="{{ route('cart.add') }}" method="POST" style="margin: 0; width: 100%;">
+                                        @csrf
+                                        <input type="hidden" name="product_variant_id" value="{{ $cheapestVariant->id }}">
+                                        <button type="submit" class="btn-add-cart">
+                                            THÊM VÀO GIỎ
+                                        </button>
+                                    </form>
+                                @else
+                                    <a href="{{ route('product.detail', ['id' => $product->id]) }}" class="btn-add-cart btn-view-detail">
+                                        XEM CHI TIẾT
+                                    </a>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </div>
+</div>
+@endif
+
+{{-- =========================================================================
      3. BANNER TĨNH:
         - BANNER TO CHIỀU NGANG BẰNG WEB (FULL-WIDTH)
         - BANNER HÌNH CHỮ NHẬT (RECTANGLE / PROMO GRID)

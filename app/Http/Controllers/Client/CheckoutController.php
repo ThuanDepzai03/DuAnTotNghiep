@@ -585,17 +585,45 @@ class CheckoutController extends Controller
 
 
         // ==============================
-        // TÍNH TỔNG TIỀN GỐC
+        // TÍNH TỔNG TIỀN GỐC TỪ DATABASE (TRÁNH GIÁ CŨ / STALE PRICE TRONG SESSION)
         // ==============================
 
+        $validatedCartItems = [];
         $totalPrice = 0;
 
         foreach ($cart as $item) {
-
-            $price = (float) ($item['price'] ?? 0);
+            $variantId = $item['variant_id'] ?? null;
             $quantity = (int) ($item['quantity'] ?? 0);
 
-            $totalPrice += $price * $quantity;
+            if (!$variantId || $quantity <= 0) {
+                continue;
+            }
+
+            $variant = ProductVariant::with('product')
+                ->whereKey($variantId)
+                ->where('status', 1)
+                ->first();
+
+            if (!$variant || !$variant->product || (int) $variant->product->status !== 1) {
+                return redirect()->route('cart.index')->with('error', 'Một số sản phẩm trong giỏ hàng hiện không khả dụng.');
+            }
+
+            if ($variant->stock < $quantity) {
+                return redirect()->route('cart.index')->with('error', "Sản phẩm '{$variant->product->name}' không đủ số lượng tồn kho (chỉ còn {$variant->stock}).");
+            }
+
+            $realPrice = (float) ($variant->sale_price ?? $variant->price);
+            $totalPrice += $realPrice * $quantity;
+
+            $validatedCartItems[] = [
+                'variant_id' => $variant->id,
+                'quantity' => $quantity,
+                'price' => $realPrice,
+            ];
+        }
+
+        if (empty($validatedCartItems)) {
+            return redirect()->route('cart.index')->with('error', 'Giỏ hàng đang trống!');
         }
 
         $discountAmount = 0;
@@ -615,7 +643,6 @@ class CheckoutController extends Controller
             } else {
                 $discountAmount = min((float) $orderVoucher->discount_value, $totalPrice);
             }
-
 
             // Làm tròn
             $discountAmount = round($discountAmount);
@@ -664,7 +691,7 @@ class CheckoutController extends Controller
             // CHI TIẾT ĐƠN HÀNG
             // ==============================
 
-            foreach ($cart as $item) {
+            foreach ($validatedCartItems as $item) {
                 $variant = ProductVariant::whereKey($item['variant_id'])
                     ->where('status', 1)
                     ->lockForUpdate()
@@ -675,16 +702,9 @@ class CheckoutController extends Controller
                 }
 
                 $orderItem = OrderItem::create([
-
-                    'order_id' =>
-                    $order->id,
-
-                    'product_variant_id' =>
-                    $item['variant_id'],
-
-                    'quantity' =>
-                    $item['quantity'],
-
+                    'order_id' => $order->id,
+                    'product_variant_id' => $item['variant_id'],
+                    'quantity' => $quantity,
                     'price' => $item['price'],
                 ]);
 
@@ -739,11 +759,11 @@ class CheckoutController extends Controller
                     }
                 }
 
-                if (!Schema::hasColumn('users', 'name')) {
+                if (!CustomerTable::hasColumn('name')) {
                     unset($customerData['name']);
                 }
 
-                if (Schema::hasColumn('users', 'updated_at')) {
+                if (CustomerTable::hasColumn('updated_at')) {
                     $customerData['updated_at'] = now();
                 }
 
@@ -751,14 +771,17 @@ class CheckoutController extends Controller
                     ->where('id', $customerId)
                     ->update($customerData);
 
-                    session()->put('customer.name', trim($request->customer_name));
-                    session()->put('customer.city', trim($request->city));
-                    session()->put('customer.ward', trim($request->ward));
-                    session()->put('customer.address_detail', trim($request->address_detail));
+                session()->put('customer.name', trim($request->customer_name));
+                session()->put('customer.city', trim($request->city));
+                session()->put('customer.ward', trim($request->ward));
+                session()->put('customer.address_detail', trim($request->address_detail));
             }
 
-            $shippingVoucher?->increment('used_quantity');
-            $orderVoucher?->increment('used_quantity');
+            // Với COD thì tăng used_quantity ngay; với VNPay chỉ tăng khi thanh toán thành công
+            if ($request->payment_method === 'cod') {
+                $shippingVoucher?->increment('used_quantity');
+                $orderVoucher?->increment('used_quantity');
+            }
 
             DB::commit();
         } catch (\Exception $e) {
@@ -773,44 +796,30 @@ class CheckoutController extends Controller
                 ->withInput();
         }
 
-
-        // ==============================
-        // XÓA GIỎ HÀNG
-        // ==============================
-
-        $this->clearCartItems();
-
-        // Xóa voucher khỏi session
-        session()->forget('voucher');
-
-
         // ==============================
         // THANH TOÁN COD
         // ==============================
 
         if ($request->payment_method === 'cod') {
+            // Xóa giỏ hàng và voucher khỏi session khi đặt COD thành công
+            $this->clearCartItems();
+            session()->forget(['voucher', 'shipping_voucher', 'order_voucher']);
 
             return redirect()
                 ->route('checkout.success');
         }
-
 
         // ==============================
         // THANH TOÁN VNPAY
         // ==============================
 
         if ($request->payment_method === 'vnpay') {
-
+            // Giữ lại giỏ hàng trong session đề phòng thanh toán thất bại/hủy
             return redirect()
                 ->route('payment.vnpay', [
                     'order' => $order->id
                 ]);
         }
-
-        session()->forget('cart');
-        session()->forget('voucher');
-        session()->forget('shipping_voucher');
-        session()->forget('order_voucher');
 
         return back()
             ->with(

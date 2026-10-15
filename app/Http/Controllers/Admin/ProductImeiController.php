@@ -103,7 +103,34 @@ class ProductImeiController extends Controller
             'warehouse_location' => ['nullable', 'string', 'max:100'],
             'warranty_expired_at' => ['nullable', 'date'],
         ]);
-        $imei->update($data);
+
+        $oldStatus = $imei->status;
+        $newStatus = $data['status'];
+
+        DB::transaction(function () use ($imei, $data, $oldStatus, $newStatus) {
+            $imei->update($data);
+
+            if ($oldStatus === 'in_stock' && $newStatus !== 'in_stock') {
+                $imei->variant()->where('stock', '>', 0)->decrement('stock');
+                InventoryTransaction::create([
+                    'product_variant_id' => $imei->product_variant_id,
+                    'product_imei_id' => $imei->id,
+                    'type' => 'adjustment',
+                    'quantity' => -1,
+                    'note' => "Đổi trạng thái IMEI từ {$oldStatus} sang {$newStatus}",
+                ]);
+            } elseif ($oldStatus !== 'in_stock' && $newStatus === 'in_stock') {
+                $imei->variant()->increment('stock');
+                InventoryTransaction::create([
+                    'product_variant_id' => $imei->product_variant_id,
+                    'product_imei_id' => $imei->id,
+                    'type' => 'adjustment',
+                    'quantity' => 1,
+                    'note' => "Đổi trạng thái IMEI từ {$oldStatus} sang in_stock",
+                ]);
+            }
+        });
+
         return back()->with('success', 'Đã cập nhật trạng thái IMEI.');
     }
 }

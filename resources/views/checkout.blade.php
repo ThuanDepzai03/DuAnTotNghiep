@@ -87,12 +87,11 @@
 
     /*
     |--------------------------------------------------------------------------
-    | TÍNH GIẢM
+    | TÍNH GIẢM GIÁ & PHÍ SHIP
     |--------------------------------------------------------------------------
     */
 
-    $discountAmount = 0;
-    $shippingFee = 30000;
+    $shippingFee = isset($shippingFee) ? (float) $shippingFee : 30000;
 
     if ($shippingVoucher) {
         $shippingFee = 0;
@@ -112,31 +111,24 @@
         }
     }
 
+    $discountAmount = 0;
     if ($orderVoucher) {
+        $discountType = $orderVoucher['discount_type'] ?? ($orderVoucher->discount_type ?? '');
+        $discountValue = (float) ($orderVoucher['discount_value'] ?? ($orderVoucher->discount_value ?? 0));
+        $maxDiscount = (float) ($orderVoucher['max_discount'] ?? ($orderVoucher->max_discount ?? 0));
 
-        $discountValue = (float) ($orderVoucher['discount_value'] ?? 0);
-
-        if (($orderVoucher['discount_type'] ?? '') !== 'free_shipping' && !($orderVoucher['is_free_shipping'] ?? false)) {
+        if ($discountType === 'fixed') {
+            $discountAmount = min($discountValue, $totalPrice);
+        } elseif ($discountType === 'percent') {
             $discountAmount = $totalPrice * ($discountValue / 100);
-
-            if (
-                !empty($orderVoucher['max_discount']) &&
-                $discountAmount > (float) $orderVoucher['max_discount']
-            ) {
-
-                $discountAmount =
-                    (float) $orderVoucher['max_discount'];
+            if ($maxDiscount > 0) {
+                $discountAmount = min($discountAmount, $maxDiscount);
             }
-
-            if ($discountAmount > $totalPrice) {
-
-                $discountAmount = $totalPrice;
-            }
-
-            $discountAmount = round($discountAmount);
+            $discountAmount = min($discountAmount, $totalPrice);
         }
-    }
 
+        $discountAmount = round($discountAmount);
+    }
 
     /*
     |--------------------------------------------------------------------------
@@ -144,8 +136,7 @@
     |--------------------------------------------------------------------------
     */
 
-    $finalTotal =
-        $totalPrice + $shippingFee - $discountAmount;
+    $finalTotal = max(0, $totalPrice + $shippingFee - $discountAmount);
 
     $customerName = old('customer_name', $defaultCustomer['customer_name'] ?? '');
     $customerPhone = old('phone', $defaultCustomer['phone'] ?? '');

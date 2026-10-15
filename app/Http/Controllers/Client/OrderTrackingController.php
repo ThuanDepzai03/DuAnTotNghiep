@@ -93,7 +93,26 @@ class OrderTrackingController extends Controller
 
     protected function applyStatusTimeline(object $order): void
     {
-        $statusOrder = ['pending', 'confirmed', 'shipping', 'completed', 'cancelled'];
+        if ($order->status === 'cancelled') {
+            $order->tracking_timeline = [
+                [
+                    'status' => 'pending',
+                    'label' => 'Đã đặt đơn',
+                    'active' => true,
+                    'done' => true,
+                ],
+                [
+                    'status' => 'cancelled',
+                    'label' => 'Đơn hàng đã bị hủy',
+                    'active' => true,
+                    'done' => false,
+                ],
+            ];
+
+            return;
+        }
+
+        $statusOrder = ['pending', 'confirmed', 'shipping', 'completed'];
         $currentIndex = array_search($order->status, $statusOrder, true);
         $currentIndex = $currentIndex === false ? 0 : $currentIndex;
 

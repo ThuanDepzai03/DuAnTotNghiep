@@ -20,10 +20,12 @@ class HomeController extends Controller
      */
     public function index(Request $request)
     {
-        Log::info('HOME SESSION CHECK', [
-            'session_id' => $request->session()->getId(),
-            'customer' => $request->session()->get('customer'),
-        ]);
+        if ($request->hasSession()) {
+            Log::info('HOME SESSION CHECK', [
+                'session_id' => $request->session()->getId(),
+                'customer' => $request->session()->get('customer'),
+            ]);
+        }
 
         /*
         |--------------------------------------------------------------------------
@@ -91,22 +93,17 @@ class HomeController extends Controller
                 'variants',
             ])
             ->where('status', 1)
-            ->get()
-            ->sortByDesc(function ($product) {
-                return $product->clicks()
+            ->select('products.*')
+            ->selectSub(function ($query) {
+                $query->from('product_clicks')
+                    ->whereColumn('product_clicks.product_id', 'products.id')
                     ->whereNotNull('customer_id')
-                    ->select(DB::raw('COUNT(DISTINCT customer_id) as customer_click_count'))
-                    ->value('customer_click_count') ?? 0;
-            })
-            ->values()
-            ->take(8);
-
-        foreach ($featuredProducts as $product) {
-            $product->click_count = $product->clicks()
-                ->whereNotNull('customer_id')
-                ->select(DB::raw('COUNT(DISTINCT customer_id) as customer_click_count'))
-                ->value('customer_click_count') ?? 0;
-        }
+                    ->selectRaw('COUNT(DISTINCT customer_id)');
+            }, 'click_count')
+            ->orderByDesc('click_count')
+            ->latest('products.id')
+            ->take(8)
+            ->get();
 
 
         /*

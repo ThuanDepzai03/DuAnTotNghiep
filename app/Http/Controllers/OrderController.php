@@ -104,26 +104,52 @@ class OrderController extends Controller
                 ->with('error', "Không thể chuyển từ trạng thái '{$currentStatus}' sang '{$newStatus}'.");
         }
 
-        // Deduct stock when admin confirms the order (status: pending -> confirmed)
-        if ($currentStatus === 'pending' && $newStatus === 'confirmed') {
-            app(InventoryService::class)->markOrderSold($order);
-        }
+        DB::beginTransaction();
+        try {
+            // Deduct stock when admin confirms the order (status: pending -> confirmed)
+            if ($currentStatus === 'pending' && $newStatus === 'confirmed') {
+                app(InventoryService::class)->markOrderSold($order);
+            }
 
-        if ($currentStatus === 'pending_payment' && $newStatus === 'cancelled') {
-            app(InventoryService::class)->releaseOrder($order);
-        }
+            // Release reserved stock if cancelled from pending or pending_payment
+            if (in_array($currentStatus, ['pending', 'pending_payment'], true) && $newStatus === 'cancelled') {
+                app(InventoryService::class)->releaseOrder($order);
 
-        if (in_array($currentStatus, ['confirmed', 'shipping'], true) && $newStatus === 'cancelled') {
-            app(InventoryService::class)->restoreSoldOrder($order);
-        }
+                // Hoàn lại lượt sử dụng voucher nếu đơn COD đã từng trừ voucher
+                if ($order->payment_method === 'cod') {
+                    $voucherCodes = array_filter(array_map('trim', explode(',', (string) $order->voucher_code)));
+                    if ($voucherCodes !== []) {
+                        Voucher::whereIn('code', $voucherCodes)->where('used_quantity', '>', 0)->decrement('used_quantity');
+                    }
+                }
+            }
 
-        // Set completed_at timestamp when order is completed
-        $updateData = ['status' => $newStatus];
-        if ($newStatus === 'completed') {
-            $updateData['completed_at'] = now();
-        }
+            // Restore sold items if cancelled from confirmed or shipping
+            if (in_array($currentStatus, ['confirmed', 'shipping'], true) && $newStatus === 'cancelled') {
+                app(InventoryService::class)->restoreSoldOrder($order);
 
-        $order->update($updateData);
+                $voucherCodes = array_filter(array_map('trim', explode(',', (string) $order->voucher_code)));
+                if ($voucherCodes !== []) {
+                    Voucher::whereIn('code', $voucherCodes)->where('used_quantity', '>', 0)->decrement('used_quantity');
+                }
+            }
+
+            // Set completed_at timestamp when order is completed
+            $updateData = ['status' => $newStatus];
+            if ($newStatus === 'completed') {
+                $updateData['completed_at'] = now();
+            }
+
+            $order->update($updateData);
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return redirect()
+                ->route('admin.orders.show', $order->id)
+                ->with('error', 'Có lỗi xảy ra: ' . $e->getMessage());
+        }
 
         return redirect()
             ->route('admin.orders.show', $order->id)
@@ -148,10 +174,24 @@ class OrderController extends Controller
                 ->with('error', 'Đơn hàng này không có yêu cầu hoàn tiền đang chờ xử lý.');
         }
 
-        $order->update([
-            'refund_status' => $request->refund_status,
-            'refund_processed_at' => now(),
-        ]);
+        DB::beginTransaction();
+        try {
+            if ($request->refund_status === 'approved') {
+                app(InventoryService::class)->restoreSoldOrder($order);
+            }
+
+            $order->update([
+                'refund_status' => $request->refund_status,
+                'refund_processed_at' => now(),
+            ]);
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return redirect()->route('admin.orders.show', $order->id)
+                ->with('error', 'Lỗi xử lý hoàn tiền: ' . $e->getMessage());
+        }
 
         $label = $request->refund_status === 'approved' ? 'chấp nhận' : 'từ chối';
 

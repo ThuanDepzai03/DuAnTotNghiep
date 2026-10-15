@@ -95,26 +95,32 @@ class PaymentController extends Controller
 
             if ($order && $request->vnp_ResponseCode === '00' && $request->vnp_TransactionStatus === '00') {
                 if ($order->status === 'confirmed') {
+                    $this->clearCartItems();
+                    session()->forget(['voucher', 'shipping_voucher', 'order_voucher']);
+
                     return redirect()->route('checkout.success');
                 }
 
                 if ($order->status === 'pending_payment') {
-                    $order->update([
-                        'status' => 'confirmed',
-                        'transaction_no' => $request->vnp_TransactionNo,
-                        'bank_code' => $request->vnp_BankCode,
-                        'paid_at' => now(),
-                    ]);
+                    \Illuminate\Support\Facades\DB::transaction(function () use ($order, $request) {
+                        $order->update([
+                            'status' => 'confirmed',
+                            'transaction_no' => $request->vnp_TransactionNo,
+                            'bank_code' => $request->vnp_BankCode,
+                            'paid_at' => now(),
+                        ]);
 
-                    app(InventoryService::class)->markOrderSold($order);
+                        app(InventoryService::class)->markOrderSold($order);
 
-                    $voucherCodes = array_filter(array_map('trim', explode(',', (string) $order->voucher_code)));
-                    if ($voucherCodes !== []) {
-                        Voucher::whereIn('code', $voucherCodes)->increment('used_quantity');
-                    }
+                        $voucherCodes = array_filter(array_map('trim', explode(',', (string) $order->voucher_code)));
+                        if ($voucherCodes !== []) {
+                            Voucher::whereIn('code', $voucherCodes)->increment('used_quantity');
+                        }
+                    });
                 }
 
                 $this->clearCartItems();
+                session()->forget(['voucher', 'shipping_voucher', 'order_voucher']);
 
                 return redirect()->route('checkout.success');
             }
@@ -124,9 +130,9 @@ class PaymentController extends Controller
                 $order->update(['status' => 'cancelled']);
             }
 
-            return redirect()->route('checkout.show')->with('error', 'Thanh toán thất bại.');
+            return redirect()->route('checkout.show')->with('error', 'Thanh toán VNPay không thành công hoặc đã bị hủy. Giỏ hàng của bạn đã được giữ nguyên để thử lại hoặc chọn phương thức khác.');
         }
 
-        return redirect()->route('checkout.show')->with('error', 'Chữ ký không hợp lệ.');
+        return redirect()->route('checkout.show')->with('error', 'Chữ ký thanh toán không hợp lệ.');
     }
 }

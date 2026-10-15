@@ -2,13 +2,14 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithoutMiddleware;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class ProductClicksTest extends TestCase
 {
-    use WithoutMiddleware;
+    use RefreshDatabase, WithoutMiddleware;
 
     public function test_home_page_shows_featured_products_section(): void
     {

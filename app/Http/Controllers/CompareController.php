@@ -43,7 +43,7 @@ class CompareController extends Controller
             return response()->json(['error' => 'Cần chọn đủ 2 sản phẩm!'], 400);
         }
 
-        $apiKey = env('GEMINI_API_KEY');
+        $apiKey = config('services.gemini.api_key', env('GEMINI_API_KEY'));
         if (!$apiKey) {
             return response()->json(['error' => 'Chưa cấu hình GEMINI_API_KEY trong file .env'], 500);
         }
@@ -74,11 +74,11 @@ Yêu cầu: Trả về kết quả DUY NHẤT ở định dạng JSON hợp lệ
   \"verdict\": \"Lời khuyên ngắn gọn 3-4 câu: Máy nào nổi trội hơn ở điểm gì và ai nên chọn mua máy nào.\"
 }";
 
-        // Danh sách các model theo thứ tự ưu tiên (bị nghẽn thì tự chuyển)
+        // Danh sách các model chuẩn của Google Gemini API
         $models = [
-            'gemini-3.5-flash-lite', 
-            'gemini-3.1-flash-lite', 
-            'gemini-3.6-flash'
+            'gemini-2.0-flash',
+            'gemini-1.5-flash',
+            'gemini-1.5-pro'
         ];
 
         $lastError = '';

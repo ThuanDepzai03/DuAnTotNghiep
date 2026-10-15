@@ -1743,3 +1743,991 @@ body {
     transform: translateX(-50%) scaleX(1) !important;
     opacity: 1 !important;
 }
+
+/* =========================================================
+   MODERN SHOP UI ENHANCEMENTS
+   ========================================================= */
+
+/* Main Category Tabs */
+.shop-page .shop-main-tabs {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.shop-page .shop-main-tabs a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #ffffff;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 30px;
+    color: #4b5563;
+    font-size: 13.5px;
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.shop-page .shop-main-tabs a:hover {
+    border-color: #d10024;
+    color: #d10024;
+    background: #fff5f5;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(209, 0, 36, 0.12);
+}
+
+.shop-page .shop-main-tabs a.is-active {
+    background: linear-gradient(135deg, #d10024 0%, #b00020 100%);
+    border-color: #d10024;
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(209, 0, 36, 0.3);
+    transform: translateY(-1px);
+}
+
+.shop-page .shop-main-tabs a.is-active i {
+    color: #ffffff;
+}
+
+/* Brand Strip & Cards */
+.shop-page .brand-strip {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 4px 2px 14px;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+}
+
+.shop-page .brand-item {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-width: 100px;
+    height: 86px;
+    padding: 10px 14px;
+    background: #ffffff;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 14px;
+    color: #374151;
+    text-decoration: none;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+    flex-shrink: 0;
+}
+
+.shop-page .brand-item:hover {
+    border-color: #d10024;
+    color: #d10024;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 18px rgba(209, 0, 36, 0.12);
+    text-decoration: none;
+}
+
+.shop-page .brand-item.is-active {
+    border-color: #d10024;
+    background: #fff8f8;
+    color: #d10024;
+    font-weight: 700;
+    box-shadow: 0 6px 16px rgba(209, 0, 36, 0.15);
+    transform: translateY(-2px);
+}
+
+.shop-page .brand-item img {
+    width: 44px;
+    height: 32px;
+    object-fit: contain;
+}
+
+.shop-page .brand-item__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 32px;
+    font-size: 20px;
+    color: #d10024;
+}
+
+.shop-page .brand-item__avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #fee2e2;
+    color: #d10024;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.shop-page .brand-item__name {
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Shop Toolbar */
+.shop-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 14px;
+    padding: 14px 18px;
+    margin-bottom: 22px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.shop-toolbar-info {
+    font-size: 13.5px;
+    color: #6b7280;
+}
+
+.shop-toolbar-info strong {
+    color: #111827;
+}
+
+.shop-toolbar-sort {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.shop-toolbar-sort label {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: #4b5563;
+    white-space: nowrap;
+}
+
+.shop-sort-select {
+    height: 38px;
+    padding: 0 32px 0 12px;
+    border: 1.5px solid #d1d5db;
+    border-radius: 8px;
+    background: #ffffff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236B7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E") no-repeat right 10px center/16px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    color: #1f2937;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.shop-sort-select:focus {
+    border-color: #d10024;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(209, 0, 36, 0.12);
+}
+
+/* Active Filter Chips */
+.shop-active-filters {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 18px;
+    padding: 10px 14px;
+    background: #f9fafb;
+    border-radius: 10px;
+    border: 1px dashed #d1d5db;
+}
+
+.shop-active-filters-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #6b7280;
+    text-transform: uppercase;
+    margin-right: 4px;
+}
+
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 20px;
+    font-size: 12px;
+    color: #1f2937;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.filter-chip-remove {
+    color: #9ca3af;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    transition: color 0.15s ease;
+}
+
+.filter-chip-remove:hover {
+    color: #d10024;
+    text-decoration: none;
+}
+
+.filter-chip-clear-all {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: #fee2e2;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #d10024;
+    text-decoration: none;
+    transition: background 0.15s ease;
+}
+
+.filter-chip-clear-all:hover {
+    background: #fca5a5;
+    color: #b00020;
+    text-decoration: none;
+}
+
+/* Quick Price Chips */
+.quick-price-chips {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.quick-price-chip {
+    display: block;
+    padding: 6px 4px;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    background: #f9fafb;
+    color: #4b5563;
+    font-size: 11px;
+    font-weight: 500;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.quick-price-chip:hover,
+.quick-price-chip.is-selected {
+    border-color: #d10024;
+    background: #fff5f5;
+    color: #d10024;
+    font-weight: 600;
+}
+
+/* Category Filter Tree in Sidebar */
+.shop-page .category-tree-list {
+    max-height: 320px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.shop-page .category-tree-item {
+    margin-bottom: 6px;
+}
+
+.shop-page .category-tree-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin: 0;
+    padding: 6px 8px;
+    border-radius: 6px;
+    font-size: 12.5px;
+    color: #374151;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.shop-page .category-tree-label:hover {
+    background: #f3f4f6;
+    color: #d10024;
+}
+
+.shop-page .category-tree-label input[type="radio"] {
+    margin-right: 8px;
+    accent-color: #d10024;
+}
+
+.shop-page .category-tree-count {
+    font-size: 11px;
+    color: #9ca3af;
+    background: #f3f4f6;
+    padding: 2px 6px;
+    border-radius: 10px;
+}
+
+.shop-page .category-tree-sub {
+    padding-left: 18px;
+    border-left: 2px solid #f3f4f6;
+    margin-left: 10px;
+    margin-top: 4px;
+}
+
+/* Config Chips (RAM, Storage, Color) */
+.config-chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.config-chip-label {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #374151;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin: 0;
+}
+
+.config-chip-label input[type="checkbox"] {
+    display: none;
+}
+
+.config-chip-label:hover {
+    border-color: #d10024;
+    color: #d10024;
+}
+
+.config-chip-label:has(input:checked) {
+    border-color: #d10024;
+    background: #fff5f5;
+    color: #d10024;
+    font-weight: 700;
+    box-shadow: 0 2px 6px rgba(209, 0, 36, 0.12);
+}
+
+/* Empty Shop State */
+.shop-empty-state {
+    padding: 60px 20px;
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #e5e7eb;
+    text-align: center;
+}
+
+.shop-empty-state-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: #fee2e2;
+    color: #d10024;
+    font-size: 36px;
+    margin-bottom: 20px;
+}
+
+.shop-empty-state h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 8px;
+}
+
+.shop-empty-state p {
+    font-size: 14px;
+    color: #6b7280;
+    max-width: 420px;
+    margin: 0 auto 24px;
+}
+
+.shop-empty-state-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 28px;
+    background: #d10024;
+    color: #ffffff;
+    font-size: 13.5px;
+    font-weight: 700;
+    border-radius: 25px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.shop-empty-state-btn:hover {
+    background: #111827;
+    color: #ffffff;
+    text-decoration: none;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* ==========================================================================
+   UIVERSE GALAXY DESIGN SYSTEM (https://github.com/uiverse-io/galaxy)
+   Applied across Mobile Mart Store for premium, tactile, and logical UI
+   ========================================================================== */
+
+/* --- 1. UIVERSE BUTTONS: GLOW, SHIMMER & TACTILE DEPTH --- */
+.primary-btn,
+.btn-primary,
+.order-submit,
+.btn-add-cart,
+.add-to-cart-btn,
+.hero-shop-btn,
+.shop-empty-state-btn,
+.uiverse-btn-primary {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #d10024 0%, #ef233c 50%, #b00020 100%) !important;
+    color: #ffffff !important;
+    font-size: 13.5px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    border: none !important;
+    border-radius: 12px;
+    cursor: pointer;
+    overflow: hidden;
+    z-index: 1;
+    box-shadow: 0 4px 15px rgba(209, 0, 36, 0.3), 0 2px 6px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none !important;
+}
+
+/* Uiverse Shimmer Light Beam */
+.primary-btn::before,
+.btn-primary::before,
+.order-submit::before,
+.btn-add-cart::before,
+.add-to-cart-btn::before,
+.hero-shop-btn::before,
+.shop-empty-state-btn::before,
+.uiverse-btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+    transform: skewX(-20deg);
+    transition: left 0.75s ease;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.primary-btn:hover::before,
+.btn-primary:hover::before,
+.order-submit:hover::before,
+.btn-add-cart:hover::before,
+.add-to-cart-btn:hover::before,
+.hero-shop-btn:hover::before,
+.shop-empty-state-btn:hover::before,
+.uiverse-btn-primary:hover::before {
+    left: 150%;
+}
+
+.primary-btn:hover,
+.btn-primary:hover,
+.order-submit:hover,
+.btn-add-cart:hover,
+.add-to-cart-btn:hover,
+.hero-shop-btn:hover,
+.shop-empty-state-btn:hover,
+.uiverse-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(209, 0, 36, 0.45), 0 0 20px rgba(209, 0, 36, 0.25);
+    color: #ffffff !important;
+}
+
+.primary-btn:active,
+.btn-primary:active,
+.order-submit:active,
+.btn-add-cart:active,
+.add-to-cart-btn:active,
+.hero-shop-btn:active,
+.shop-empty-state-btn:active,
+.uiverse-btn-primary:active {
+    transform: scale(0.97) translateY(0);
+    box-shadow: 0 2px 8px rgba(209, 0, 36, 0.3);
+}
+
+/* Button Icon Micro-Animations */
+.primary-btn i,
+.order-submit i,
+.btn-add-cart i,
+.add-to-cart-btn i,
+.hero-shop-btn i {
+    transition: transform 0.25s ease;
+}
+
+.primary-btn:hover i.fa-arrow-right,
+.hero-shop-btn:hover i.fa-arrow-right {
+    transform: translateX(4px);
+}
+
+.btn-add-cart:hover i.fa-shopping-cart,
+.add-to-cart-btn:hover i.fa-shopping-cart {
+    transform: scale(1.18) rotate(-6deg);
+}
+
+/* Secondary & Outline Buttons */
+.btn-default,
+.btn-view-detail,
+.uiverse-btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 11px 20px;
+    background: #ffffff !important;
+    border: 1.5px solid #e5e7eb !important;
+    border-radius: 12px;
+    color: #374151 !important;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none !important;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+}
+
+.btn-default:hover,
+.btn-view-detail:hover,
+.uiverse-btn-secondary:hover {
+    border-color: #d10024 !important;
+    color: #d10024 !important;
+    background: #fff5f5 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(209, 0, 36, 0.12);
+}
+
+.btn-default:active,
+.btn-view-detail:active,
+.uiverse-btn-secondary:active {
+    transform: scale(0.98);
+}
+
+/* --- 2. UIVERSE ACTION BUTTONS & HEART POP (WISHLIST / COMPARE / EYE) --- */
+.prod-actions .btn-icon,
+.product-card-custom .prod-actions .btn-icon,
+.product-btns .add-to-wishlist,
+.product-btns .add-to-compare {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 1.5px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 14px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 0;
+    cursor: pointer;
+}
+
+.product-btns .add-to-wishlist,
+.product-btns .add-to-compare {
+    width: auto;
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.prod-actions .btn-icon:hover,
+.product-card-custom .prod-actions .btn-icon:hover,
+.product-btns .add-to-wishlist:hover,
+.product-btns .add-to-compare:hover {
+    background: #d10024;
+    border-color: #d10024;
+    color: #ffffff !important;
+    transform: translateY(-3px) scale(1.08);
+    box-shadow: 0 6px 16px rgba(209, 0, 36, 0.28);
+}
+
+.product-btns .add-to-wishlist:hover i,
+.product-btns .add-to-compare:hover i {
+    color: #ffffff;
+}
+
+/* Heart Pop Keyframes */
+@keyframes uiverse-heart-beat {
+    0% { transform: scale(1); }
+    30% { transform: scale(1.35); }
+    50% { transform: scale(0.95); }
+    70% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+}
+
+.wishlist-button:hover i.fa-heart,
+.wishlist-button:hover i.fa-heart-o,
+.add-to-wishlist:hover i {
+    animation: uiverse-heart-beat 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.wishlist-button i.fa-heart.text-danger,
+.btn-icon.is-active i.fa-heart {
+    color: #d10024 !important;
+    animation: uiverse-heart-beat 0.4s ease;
+}
+
+/* --- 3. UIVERSE HEADER SEARCH BAR & SUGGESTIONS --- */
+.header-search-form {
+    display: flex;
+    align-items: center;
+    position: relative;
+    max-width: 650px;
+    width: 100%;
+    background: #ffffff;
+    border: 2px solid #334155;
+    border-radius: 30px !important;
+    padding: 3px 4px 3px 18px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.header-search-form:focus-within {
+    border-color: #d10024;
+    box-shadow: 0 0 0 4px rgba(209, 0, 36, 0.2), 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.header-search-form .search-input {
+    width: 100%;
+    height: 38px;
+    border: none !important;
+    background: transparent !important;
+    color: #111827;
+    font-size: 13.5px;
+    outline: none !important;
+    box-shadow: none !important;
+    padding: 0;
+}
+
+.header-search-form .search-input::placeholder {
+    color: #9ca3af;
+}
+
+.header-search-form button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50% !important;
+    background: linear-gradient(135deg, #d10024, #ef233c) !important;
+    color: #ffffff;
+    border: none;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.25s ease;
+    box-shadow: 0 2px 8px rgba(209, 0, 36, 0.3);
+}
+
+.header-search-form button:hover {
+    transform: scale(1.08);
+    box-shadow: 0 4px 14px rgba(209, 0, 36, 0.45);
+}
+
+.search-suggestions {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    background: rgba(255, 255, 255, 0.98) !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 14px !important;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15) !important;
+    overflow: hidden;
+}
+
+.suggestion-item {
+    transition: background 0.2s ease, padding-left 0.2s ease;
+}
+
+.suggestion-item:hover {
+    background: #fff5f5 !important;
+    padding-left: 20px;
+}
+
+/* --- 4. UIVERSE HEADER ACTION BUTTONS & BOUNCING BADGES --- */
+.top-header-actions .header-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    color: #e2e8f0 !important;
+    font-size: 12.5px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(8px);
+}
+
+.top-header-actions .header-action:hover {
+    background: rgba(209, 0, 36, 0.2);
+    border-color: #d10024;
+    color: #ffffff !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(209, 0, 36, 0.25);
+    text-decoration: none;
+}
+
+.top-header-actions .header-action i {
+    font-size: 15px;
+    color: #f87171;
+    transition: transform 0.25s ease;
+}
+
+.top-header-actions .header-action:hover i {
+    transform: scale(1.15);
+    color: #ffffff;
+}
+
+@keyframes uiverse-badge-pop {
+    0% { transform: scale(0.8); }
+    50% { transform: scale(1.25); }
+    100% { transform: scale(1); }
+}
+
+.cart-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 10px;
+    background: #d10024;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+    box-shadow: 0 2px 6px rgba(209, 0, 36, 0.5);
+    animation: uiverse-badge-pop 0.3s ease;
+}
+
+/* --- 5. UIVERSE RADIO TILES & SELECTION CARDS --- */
+.choice-card,
+.payment-option .payment-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    background: #ffffff;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
+.choice-card:hover,
+.payment-option .payment-box:hover {
+    border-color: #d10024;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(209, 0, 36, 0.08);
+}
+
+.choice-card:has(input:checked),
+.payment-option:has(input:checked) .payment-box {
+    border-color: #d10024;
+    background: #fff8f8;
+    box-shadow: 0 4px 16px rgba(209, 0, 36, 0.15);
+}
+
+.choice-card input[type="radio"],
+.payment-option input[type="radio"] {
+    accent-color: #d10024;
+    width: 17px;
+    height: 17px;
+}
+
+/* --- 6. UIVERSE QUANTITY STEPPER (+ / -) --- */
+.product-details .add-to-cart .input-number,
+.cart-table .input-number {
+    display: inline-flex;
+    align-items: center;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 25px;
+    background: #f8fafc;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.product-details .add-to-cart .input-number input,
+.cart-table .input-number input {
+    width: 44px;
+    height: 38px;
+    text-align: center;
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    font-weight: 700;
+    color: #1f2937;
+    outline: none;
+}
+
+.product-details .add-to-cart .input-number span,
+.cart-table .input-number span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 38px;
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+}
+
+.product-details .add-to-cart .input-number span:hover,
+.cart-table .input-number span:hover {
+    background: #d10024;
+    color: #ffffff;
+}
+
+/* --- 7. UIVERSE PRODUCT VARIANT SPEC CHIPS --- */
+.variant-values {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.variant-value {
+    padding: 8px 16px;
+    background: #ffffff;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.variant-value:hover {
+    border-color: #d10024;
+    color: #d10024;
+    transform: translateY(-1px);
+}
+
+.variant-value.active {
+    border-color: #d10024;
+    background: #fff5f5;
+    color: #d10024;
+    font-weight: 700;
+    box-shadow: 0 3px 10px rgba(209, 0, 36, 0.15);
+}
+
+/* --- 8. UIVERSE FORM INPUTS --- */
+input.input,
+select.input,
+textarea.input,
+.aside-widget .input,
+.form-control {
+    height: 44px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 0 16px;
+    font-size: 13.5px;
+    color: #1f2937;
+    background: #ffffff;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+input.input:focus,
+select.input:focus,
+textarea.input:focus,
+.aside-widget .input:focus,
+.form-control:focus {
+    border-color: #d10024 !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3.5px rgba(209, 0, 36, 0.12) !important;
+    background: #ffffff;
+}
+
+/* --- 9. UIVERSE PRODUCT CARDS ELEVATION --- */
+.product-card-custom,
+.featured-product-card {
+    border: 1px solid #e5e7eb !important;
+    border-radius: 16px !important;
+    background: #ffffff;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03) !important;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease, border-color 0.3s ease !important;
+}
+
+.product-card-custom:hover,
+.featured-product-card:hover {
+    transform: translateY(-5px) !important;
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.08), 0 0 20px rgba(209, 0, 36, 0.06) !important;
+    border-color: rgba(209, 0, 36, 0.25) !important;
+}
+
+.product-card-custom .badge-new,
+.featured-product-card .featured-badge {
+    border-radius: 20px !important;
+    padding: 4px 10px !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px;
+    background: linear-gradient(135deg, #d10024, #ef233c) !important;
+    box-shadow: 0 2px 6px rgba(209, 0, 36, 0.3);
+}
+
+/* --- 10. UIVERSE NAVIGATION BAR ENHANCEMENT --- */
+.main-nav {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.main-nav li a {
+    padding: 14px 18px !important;
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    border-radius: 8px;
+    transition: all 0.25s ease !important;
+}
+
+.main-nav li a:hover {
+    background: rgba(209, 0, 36, 0.15) !important;
+    color: #ffffff !important;
+}
+
+.main-nav li.active a {
+    background: rgba(209, 0, 36, 0.25) !important;
+    color: #ffffff !important;
+}

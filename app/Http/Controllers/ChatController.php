@@ -23,17 +23,22 @@ class ChatController extends Controller
         $customer = $request->session()->get('customer', []);
         $userId = $customer['id'] ?? null;
 
-        $conversation = Conversation::firstOrCreate(
-            [
-                'session_id' => $sessionId,
-            ],
-            [
-                'last_message_at' => now(),
-                'user_id' => $userId,
-            ]
-        );
+        $conversation = null;
+        if ($userId) {
+            $conversation = Conversation::where('user_id', $userId)->latest('id')->first();
+        }
 
-        if ($userId && !$conversation->user_id) {
+        if (!$conversation) {
+            $conversation = Conversation::where('session_id', $sessionId)->latest('id')->first();
+        }
+
+        if (!$conversation) {
+            $conversation = Conversation::create([
+                'session_id' => $sessionId,
+                'user_id' => $userId,
+                'last_message_at' => now(),
+            ]);
+        } elseif ($userId && !$conversation->user_id) {
             $conversation->update(['user_id' => $userId]);
         }
 
@@ -58,26 +63,35 @@ class ChatController extends Controller
     // =========================
     // KHÁCH LẤY TIN NHẮN
     // =========================
-   public function customerMessages(Request $request)
-{
-    $sessionId = $request->session()->getId();
+    public function customerMessages(Request $request)
+    {
+        $sessionId = $request->session()->getId();
+        $customer = $request->session()->get('customer', []);
+        $userId = $customer['id'] ?? null;
 
-    $conversation = Conversation::where('session_id', $sessionId)->first();
+        $conversation = null;
+        if ($userId) {
+            $conversation = Conversation::where('user_id', $userId)->latest('id')->first();
+        }
 
-    if (!$conversation) {
+        if (!$conversation) {
+            $conversation = Conversation::where('session_id', $sessionId)->latest('id')->first();
+        }
+
+        if (!$conversation) {
+            return response()->json([
+                'messages' => []
+            ]);
+        }
+
+        $messages = Message::where('conversation_id', $conversation->id)
+            ->orderBy('created_at', 'asc')
+            ->get();
+
         return response()->json([
-            'messages' => []
+            'messages' => $messages
         ]);
     }
-
-    $messages = Message::where('conversation_id', $conversation->id)
-        ->orderBy('created_at', 'asc')
-        ->get();
-
-    return response()->json([
-        'messages' => $messages
-    ]);
-}
 
 
     // =========================

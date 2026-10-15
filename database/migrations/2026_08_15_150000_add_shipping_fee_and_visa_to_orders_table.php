@@ -18,7 +18,9 @@ return new class extends Migration
             }
         });
 
-        DB::statement("ALTER TABLE orders MODIFY payment_method ENUM('cod', 'vnpay') NOT NULL");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE orders MODIFY payment_method ENUM('cod', 'vnpay') NOT NULL");
+        }
     }
 
     /**
@@ -32,6 +34,8 @@ return new class extends Migration
             }
         });
 
-        DB::statement("ALTER TABLE orders MODIFY payment_method ENUM('cod', 'vnpay') NOT NULL");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE orders MODIFY payment_method ENUM('cod', 'vnpay') NOT NULL");
+        }
     }
 };

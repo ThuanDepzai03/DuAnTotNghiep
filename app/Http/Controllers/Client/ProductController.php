@@ -3,13 +3,14 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
+use App\Models\Attribute;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
-use Illuminate\Http\Request;
-use App\Models\Attribute;
-use App\Models\Review;
 use App\Models\ProductClick;
+use App\Models\ProductVariant;
+use App\Models\Review;
+use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
@@ -56,220 +57,261 @@ class ProductController extends Controller
     }
 
     public function index(Request $request)
-{
-    $categories = Category::where('status', 1)
-        ->whereNull('parent_id')
-        ->with(['children' => fn ($query) => $query->where('status', 1)
-            ->with(['children' => fn ($childQuery) => $childQuery->where('status', 1)->orderBy('name')])
-            ->orderBy('name')])
-        ->orderBy('name')
-        ->get();
-
-    $phoneCategory = Category::where('slug', 'dien-thoai')->first();
-    $accessoryCategory = Category::where('slug', 'phu-kien')->first();
-    $phoneCategoryIds = $this->categoryTreeIds($phoneCategory);
-    $accessoryCategoryIds = $this->categoryTreeIds($accessoryCategory);
-    $selectedGroup = $request->input('group');
-
-    $phoneHasProducts = !empty($phoneCategoryIds)
-        && Product::where('status', 1)
-            ->whereIn('category_id', $phoneCategoryIds)
-            ->exists();
-
-    $groupCategoryIds = match ($selectedGroup) {
-        'phone' => $phoneHasProducts ? $phoneCategoryIds : [],
-        'accessories' => $accessoryCategoryIds,
-        default => [],
-    };
-
-    $brands = Brand::where('status', 1)
-        ->whereHas('products', function ($query) use ($groupCategoryIds) {
-            $query->where('status', 1);
-
-            if ($groupCategoryIds) {
-                $query->whereIn('category_id', $groupCategoryIds);
-            }
-        })
-        ->orderBy('name')
-        ->get();
-
-    $accessoryCategories = $accessoryCategory?->children ?? collect();
-
-    // Lấy các cấu hình có trong database
-    $attributes = Attribute::with('values')
-        ->whereIn('name', ['Màu sắc', 'RAM', 'Bộ nhớ'])
-        ->get()
-        ->keyBy('name');
-
-    $colors = $attributes->get('Màu sắc')?->values ?? collect();
-    $rams = $attributes->get('RAM')?->values ?? collect();
-    $storages = $attributes->get('Bộ nhớ')?->values ?? collect();
-
-    // Các giá trị người dùng đã chọn
-    $selectedColors = collect((array) $request->input('colors', []))
-        ->filter()
-        ->map(fn ($id) => (int) $id)
-        ->values()
-        ->all();
-
-    $selectedRams = collect((array) $request->input('rams', []))
-        ->filter()
-        ->map(fn ($id) => (int) $id)
-        ->values()
-        ->all();
-
-    $selectedStorages = collect((array) $request->input('storages', []))
-        ->filter()
-        ->map(fn ($id) => (int) $id)
-        ->values()
-        ->all();
-
-    $minPrice = $request->filled('min_price')
-        ? (float) $request->min_price
-        : null;
-
-    $maxPrice = $request->filled('max_price')
-        ? (float) $request->max_price
-        : null;
-
-    $query = Product::with(['category', 'brand', 'variants'])
-        ->where('status', 1);
-
-    if ($groupCategoryIds) {
-        $query->whereIn('category_id', $groupCategoryIds);
-    }
-
-    // Tìm kiếm tên sản phẩm
-    if ($request->filled('keyword')) {
-        $keyword = trim($request->keyword);
-
-        $query->where('name', 'like', '%' . $keyword . '%');
-    }
-
-    // Lọc danh mục
-    if ($request->filled('category_id')) {
-        $category = Category::find($request->integer('category_id'));
-        $query->whereIn('category_id', $this->categoryTreeIds($category));
-    }
-
-    // Lọc thương hiệu
-    if ($request->filled('brand_id')) {
-        $query->where('brand_id', $request->brand_id);
-    }
-
-    /*
-     * Giá + cấu hình đều kiểm tra trên CÙNG một biến thể.
-     * Ví dụ chọn Đen + 8GB + 256GB thì phải có đúng biến thể đó.
-     */
-    $hasVariantFilter =
-        $minPrice !== null ||
-        $maxPrice !== null ||
-        !empty($selectedColors) ||
-        !empty($selectedRams) ||
-        !empty($selectedStorages);
-
-    if ($hasVariantFilter) {
-        $query->whereHas('variants', function ($variantQuery) use (
-            $minPrice,
-            $maxPrice,
-            $selectedColors,
-            $selectedRams,
-            $selectedStorages
-        ) {
-            $variantQuery->where('status', 1);
-
-            if ($minPrice !== null) {
-                $variantQuery->whereRaw(
-                    'COALESCE(sale_price, price) >= ?',
-                    [$minPrice]
-                );
-            }
-
-            if ($maxPrice !== null) {
-                $variantQuery->whereRaw(
-                    'COALESCE(sale_price, price) <= ?',
-                    [$maxPrice]
-                );
-            }
-
-            if (!empty($selectedColors)) {
-                $variantQuery->whereHas('attributeValues', function ($valueQuery) use ($selectedColors) {
-                    $valueQuery
-                        ->whereIn('attribute_values.id', $selectedColors)
-                        ->whereHas('attribute', function ($attributeQuery) {
-                            $attributeQuery->where('name', 'Màu sắc');
-                        });
-                });
-            }
-
-            if (!empty($selectedRams)) {
-                $variantQuery->whereHas('attributeValues', function ($valueQuery) use ($selectedRams) {
-                    $valueQuery
-                        ->whereIn('attribute_values.id', $selectedRams)
-                        ->whereHas('attribute', function ($attributeQuery) {
-                            $attributeQuery->where('name', 'RAM');
-                        });
-                });
-            }
-
-            if (!empty($selectedStorages)) {
-                $variantQuery->whereHas('attributeValues', function ($valueQuery) use ($selectedStorages) {
-                    $valueQuery
-                        ->whereIn('attribute_values.id', $selectedStorages)
-                        ->whereHas('attribute', function ($attributeQuery) {
-                            $attributeQuery->where('name', 'Bộ nhớ');
-                        });
-                });
-            }
-        });
-    }
-
-    $isAllProducts = ! $selectedGroup
-        && ! $request->filled('category_id')
-        && ! $request->filled('brand_id')
-        && ! $request->filled('keyword')
-        && $minPrice === null
-        && $maxPrice === null
-        && empty($selectedColors)
-        && empty($selectedRams)
-        && empty($selectedStorages);
-    $featuredProducts = collect();
-
-    if ($isAllProducts) {
-        $featuredProducts = Product::with(['category', 'brand', 'variants'])
-            ->where('status', 1)
-            ->orderByDesc(ProductClick::selectRaw('COUNT(DISTINCT customer_id)')
-                ->whereColumn('product_id', 'products.id'))
-            ->latest()
-            ->take(8)
+    {
+        $categories = Category::where('status', 1)
+            ->whereNull('parent_id')
+            ->withCount(['products' => fn ($query) => $query->where('status', 1)])
+            ->with(['children' => fn ($query) => $query->where('status', 1)
+                ->withCount(['products' => fn ($childCount) => $childCount->where('status', 1)])
+                ->with(['children' => fn ($childQuery) => $childQuery->where('status', 1)
+                    ->withCount(['products' => fn ($subCount) => $subCount->where('status', 1)])
+                    ->orderBy('name')])
+                ->orderBy('name')])
+            ->orderBy('name')
             ->get();
 
-        $query->whereNotIn('id', $featuredProducts->pluck('id'));
+        $phoneCategory = Category::where('slug', 'dien-thoai')->first();
+        $accessoryCategory = Category::where('slug', 'phu-kien')->first();
+        $tabletCategory = Category::where('slug', 'may-tinh-bang')->first();
+        $laptopCategory = Category::where('slug', 'laptop')->first();
+
+        $phoneCategoryIds = $this->categoryTreeIds($phoneCategory);
+        $accessoryCategoryIds = $this->categoryTreeIds($accessoryCategory);
+        $tabletCategoryIds = $this->categoryTreeIds($tabletCategory);
+        $laptopCategoryIds = $this->categoryTreeIds($laptopCategory);
+
+        $selectedGroup = $request->input('group');
+
+        $groupCategoryIds = match ($selectedGroup) {
+            'phone' => $phoneCategoryIds,
+            'accessories' => $accessoryCategoryIds,
+            'tablet' => $tabletCategoryIds,
+            'laptop' => $laptopCategoryIds,
+            default => [],
+        };
+
+        $brands = Brand::where('status', 1)
+            ->whereHas('products', function ($query) use ($groupCategoryIds) {
+                $query->where('status', 1);
+
+                if (!empty($groupCategoryIds)) {
+                    $query->whereIn('category_id', $groupCategoryIds);
+                }
+            })
+            ->orderBy('name')
+            ->get();
+
+        $accessoryCategories = $accessoryCategory?->children ?? collect();
+
+        // Lấy các cấu hình có trong database
+        $attributes = Attribute::with('values')
+            ->whereIn('name', ['Màu sắc', 'RAM', 'Bộ nhớ'])
+            ->get()
+            ->keyBy('name');
+
+        $colors = $attributes->get('Màu sắc')?->values ?? collect();
+        $rams = $attributes->get('RAM')?->values ?? collect();
+        $storages = $attributes->get('Bộ nhớ')?->values ?? collect();
+
+        // Các giá trị người dùng đã chọn
+        $selectedColors = collect((array) $request->input('colors', []))
+            ->filter()
+            ->map(fn ($id) => (int) $id)
+            ->values()
+            ->all();
+
+        $selectedRams = collect((array) $request->input('rams', []))
+            ->filter()
+            ->map(fn ($id) => (int) $id)
+            ->values()
+            ->all();
+
+        $selectedStorages = collect((array) $request->input('storages', []))
+            ->filter()
+            ->map(fn ($id) => (int) $id)
+            ->values()
+            ->all();
+
+        $minPrice = $request->filled('min_price')
+            ? (float) $request->min_price
+            : null;
+
+        $maxPrice = $request->filled('max_price')
+            ? (float) $request->max_price
+            : null;
+
+        $query = Product::with(['category', 'brand', 'variants'])
+            ->where('status', 1);
+
+        // Lọc danh mục / nhóm sản phẩm
+        if ($request->filled('category_id')) {
+            $selectedCategory = Category::find($request->integer('category_id'));
+            if ($selectedCategory) {
+                $catTreeIds = $this->categoryTreeIds($selectedCategory);
+                if (!empty($groupCategoryIds)) {
+                    $intersect = array_values(array_intersect($groupCategoryIds, $catTreeIds));
+                    $query->whereIn('category_id', !empty($intersect) ? $intersect : $catTreeIds);
+                } else {
+                    $query->whereIn('category_id', $catTreeIds);
+                }
+            }
+        } elseif (!empty($groupCategoryIds)) {
+            $query->whereIn('category_id', $groupCategoryIds);
+        }
+
+        // Tìm kiếm tên sản phẩm hoặc SKU
+        if ($request->filled('keyword')) {
+            $keyword = trim($request->keyword);
+            $query->where(function ($q) use ($keyword) {
+                $q->where('name', 'like', '%' . $keyword . '%')
+                  ->orWhere('sku', 'like', '%' . $keyword . '%');
+            });
+        }
+
+        // Lọc thương hiệu
+        if ($request->filled('brand_id')) {
+            $query->where('brand_id', $request->integer('brand_id'));
+        }
+
+        /*
+         * Giá + cấu hình đều kiểm tra trên CÙNG một biến thể.
+         * Ví dụ chọn Đen + 8GB + 256GB thì phải có đúng biến thể đó.
+         */
+        $hasVariantFilter =
+            $minPrice !== null ||
+            $maxPrice !== null ||
+            !empty($selectedColors) ||
+            !empty($selectedRams) ||
+            !empty($selectedStorages);
+
+        if ($hasVariantFilter) {
+            $query->whereHas('variants', function ($variantQuery) use (
+                $minPrice,
+                $maxPrice,
+                $selectedColors,
+                $selectedRams,
+                $selectedStorages
+            ) {
+                $variantQuery->where('status', 1);
+
+                if ($minPrice !== null) {
+                    $variantQuery->whereRaw(
+                        'COALESCE(sale_price, price) >= ?',
+                        [$minPrice]
+                    );
+                }
+
+                if ($maxPrice !== null) {
+                    $variantQuery->whereRaw(
+                        'COALESCE(sale_price, price) <= ?',
+                        [$maxPrice]
+                    );
+                }
+
+                if (!empty($selectedColors)) {
+                    $variantQuery->whereHas('attributeValues', function ($valueQuery) use ($selectedColors) {
+                        $valueQuery
+                            ->whereIn('attribute_values.id', $selectedColors)
+                            ->whereHas('attribute', function ($attributeQuery) {
+                                $attributeQuery->where('name', 'Màu sắc');
+                            });
+                    });
+                }
+
+                if (!empty($selectedRams)) {
+                    $variantQuery->whereHas('attributeValues', function ($valueQuery) use ($selectedRams) {
+                        $valueQuery
+                            ->whereIn('attribute_values.id', $selectedRams)
+                            ->whereHas('attribute', function ($attributeQuery) {
+                                $attributeQuery->where('name', 'RAM');
+                            });
+                    });
+                }
+
+                if (!empty($selectedStorages)) {
+                    $variantQuery->whereHas('attributeValues', function ($valueQuery) use ($selectedStorages) {
+                        $valueQuery
+                            ->whereIn('attribute_values.id', $selectedStorages)
+                            ->whereHas('attribute', function ($attributeQuery) {
+                                $attributeQuery->where('name', 'Bộ nhớ');
+                            });
+                    });
+                }
+            });
+        }
+
+        $isAllProducts = ! $selectedGroup
+            && ! $request->filled('category_id')
+            && ! $request->filled('brand_id')
+            && ! $request->filled('keyword')
+            && $minPrice === null
+            && $maxPrice === null
+            && empty($selectedColors)
+            && empty($selectedRams)
+            && empty($selectedStorages);
+
+        $featuredProducts = collect();
+
+        if ($isAllProducts) {
+            $featuredProducts = Product::with(['category', 'brand', 'variants'])
+                ->where('status', 1)
+                ->orderByDesc(ProductClick::selectRaw('COUNT(DISTINCT customer_id)')
+                    ->whereColumn('product_id', 'products.id'))
+                ->latest('products.created_at')
+                ->take(8)
+                ->get();
+
+            $query->whereNotIn('id', $featuredProducts->pluck('id'));
+        }
+
+        // Sắp xếp
+        $sortBy = $request->input('sort_by', 'popular');
+
+        match ($sortBy) {
+            'price_asc' => $query->orderBy(
+                ProductVariant::selectRaw('MIN(COALESCE(sale_price, price))')
+                    ->whereColumn('product_id', 'products.id')
+                    ->where('status', 1),
+                'asc'
+            ),
+            'price_desc' => $query->orderBy(
+                ProductVariant::selectRaw('MIN(COALESCE(sale_price, price))')
+                    ->whereColumn('product_id', 'products.id')
+                    ->where('status', 1),
+                'desc'
+            ),
+            'latest' => $query->latest('products.created_at'),
+            'name_asc' => $query->orderBy('products.name', 'asc'),
+            default => $query->orderByDesc(
+                ProductClick::selectRaw('COUNT(DISTINCT customer_id)')
+                    ->whereColumn('product_id', 'products.id')
+            )->latest('products.created_at'),
+        };
+
+        $products = $query
+            ->paginate(12)
+            ->withQueryString();
+
+        return view('client.shop', compact(
+            'products',
+            'featuredProducts',
+            'categories',
+            'phoneCategory',
+            'accessoryCategory',
+            'tabletCategory',
+            'laptopCategory',
+            'accessoryCategories',
+            'brands',
+            'colors',
+            'rams',
+            'storages',
+            'selectedColors',
+            'selectedRams',
+            'selectedStorages',
+            'selectedGroup',
+            'sortBy'
+        ));
     }
-
-    $products = $query
-        ->orderByDesc(ProductClick::selectRaw('COUNT(DISTINCT customer_id)')
-            ->whereColumn('product_id', 'products.id'))
-        ->latest()
-        ->paginate(12)
-        ->withQueryString();
-
-    return view('client.shop', compact(
-        'products',
-        'featuredProducts',
-        'categories',
-        'phoneCategory',
-        'accessoryCategory',
-        'accessoryCategories',
-        'brands',
-        'colors',
-        'rams',
-        'storages',
-        'selectedColors',
-        'selectedRams',
-        'selectedStorages'
-    ));
-}
 
     protected function categoryTreeIds(?Category $category): array
     {
@@ -396,19 +438,38 @@ class ProductController extends Controller
 
         $product = Product::where('status', 1)->findOrFail($id);
 
+        $phone = trim((string) ($customer['tel'] ?? ''));
+        $email = strtolower(trim((string) ($customer['email'] ?? '')));
+
+        $hasPurchased = \App\Models\Order::where('status', 'completed')
+            ->where(function ($query) use ($phone, $email) {
+                if ($phone !== '') {
+                    $query->where('phone', $phone);
+                }
+                if ($email !== '') {
+                    $phone === '' ? $query->where('email', $email) : $query->orWhere('email', $email);
+                }
+            })
+            ->whereHas('items.variant', fn ($query) => $query->where('product_id', $product->id))
+            ->exists();
+
+        if (!$hasPurchased) {
+            return back()->with('error', 'Bạn chỉ có thể đánh giá những sản phẩm đã mua và hoàn tất đơn hàng.');
+        }
+
         Review::updateOrCreate(
             [
                 'product_id' => $product->id,
                 'customer_id' => $customer['id'],
             ],
             [
-                'customer_name' => $customer['user'] ?? 'Khách hàng',
+                'customer_name' => $customer['name'] ?? $customer['user'] ?? 'Khách hàng',
                 'rating' => $data['rating'],
                 'comment' => $data['comment'],
-                'status' => 'approved',
+                'status' => 'pending',
             ]
         );
 
-        return back()->with('success', 'Đã lưu đánh giá sản phẩm.');
+        return back()->with('success', 'Đã gửi đánh giá sản phẩm thành công. Đánh giá sẽ hiển thị sau khi được kiểm duyệt.');
     }
 }

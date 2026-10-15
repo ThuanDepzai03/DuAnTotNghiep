@@ -10,10 +10,11 @@ class CategorySeeder extends Seeder
 {
     public function run(): void
     {
-        $categories = [            [
+        $categories = [
+            [
                 'name' => 'Bộ sạc',
                 'slug' => 'bo-sac',
-                'parent_slug' => 'dien-thoai',
+                'parent_slug' => 'phu-kien',
                 'status' => 1,
             ],
             [
@@ -55,7 +56,7 @@ class CategorySeeder extends Seeder
             [
                 'name' => 'Máy tính bảng',
                 'slug' => 'may-tinh-bang',
-                'parent_slug' => 'dien-thoai',
+                'parent_slug' => null,
                 'status' => 1,
             ],
             [
