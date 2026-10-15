@@ -596,16 +596,23 @@
                             @endphp
 
                             <div class="col-md-3 col-sm-6">
-                                <div class="product">
-                                    <div class="product-img">
+                                <div class="product product-card-custom" style="padding: 15px; border-radius: 16px; margin-bottom: 25px;">
+                                    <div class="product-img" style="border-radius: 12px; overflow: hidden; background: #f8fafc; height: 180px; display: flex; align-items: center; justify-content: center;">
                                         <a href="{{ route('product.detail', ['id' => $recentProduct->id]) }}">
-                                            <img src="{{ $recentImgSrc }}" alt="{{ $recentProduct->name }}" style="width:100%; height:220px; object-fit:cover;">
+                                            <img src="{{ $recentImgSrc }}" alt="{{ $recentProduct->name }}" style="max-height: 160px; max-width: 100%; object-fit: contain; transition: transform 0.3s ease;">
                                         </a>
                                     </div>
-                                    <div class="product-body">
-                                        <p class="product-category">{{ $recentProduct->category?->name ?? 'Sản phẩm' }}</p>
-                                        <h3 class="product-name"><a href="{{ route('product.detail', ['id' => $recentProduct->id]) }}">{{ $recentProduct->name }}</a></h3>
-                                        <h4 class="product-price">{{ number_format($recentPrice, 0, ',', '.') }} ₫</h4>
+                                    <div class="product-body" style="padding-top: 12px;">
+                                        <p class="product-category" style="font-size: 11px; text-transform: uppercase; color: #94a3b8; margin-bottom: 4px;">{{ $recentProduct->category?->name ?? 'Sản phẩm' }}</p>
+                                        <h3 class="product-name" style="font-size: 14px; font-weight: 700; height: 38px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
+                                            <a href="{{ route('product.detail', ['id' => $recentProduct->id]) }}">{{ $recentProduct->name }}</a>
+                                        </h3>
+                                        <h4 class="product-price" style="color: #d10024; font-size: 15px; font-weight: 800; margin: 8px 0 12px;">
+                                            {{ number_format($recentPrice, 0, ',', '.') }} ₫
+                                        </h4>
+                                        <a href="{{ route('product.detail', ['id' => $recentProduct->id]) }}" class="btn-default w-100" style="padding: 7px 12px; font-size: 12.5px; border-radius: 10px; text-align: center; display: block;">
+                                            Xem chi tiết
+                                        </a>
                                     </div>
                                 </div>
                             </div>
@@ -619,12 +626,27 @@
 
 <style>
     .variant-group {
-        margin-bottom: 18px;
+        margin-bottom: 22px;
     }
 
     .variant-group h4 {
-        font-size: 15px;
-        margin-bottom: 10px;
+        font-size: 14px;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .variant-group h4 span {
+        color: #d10024;
+        font-weight: 800;
+        background: #fff1f2;
+        padding: 3px 12px;
+        border-radius: 14px;
+        font-size: 13px;
+        border: 1px solid rgba(209, 0, 36, 0.15);
     }
 
     .variant-values {
@@ -634,24 +656,63 @@
     }
 
     .variant-value {
-        background: #fff;
-        border: 1px solid #d1d1d1;
-        border-radius: 3px;
-        padding: 8px 14px;
+        position: relative;
+        background: #ffffff;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 10px 18px;
+        font-size: 13.5px;
+        font-weight: 600;
+        color: #334155;
         cursor: pointer;
-        transition: 0.2s;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+        user-select: none;
     }
 
-    .variant-value:hover,
-    .variant-value.active {
-        color: #d10024;
+    .variant-value:hover:not(:disabled):not(.disabled) {
         border-color: #d10024;
+        color: #d10024;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(209, 0, 36, 0.12);
     }
 
-    .variant-value.disabled {
-        opacity: 0.45;
+    .variant-value.active {
+        background: linear-gradient(135deg, #fff5f5 0%, #ffffff 100%);
+        border-color: #d10024 !important;
+        color: #d10024 !important;
+        font-weight: 700;
+        box-shadow: 0 0 0 1px #d10024, 0 4px 15px rgba(209, 0, 36, 0.2) !important;
+        transform: translateY(-1px);
+    }
+
+    .variant-value.active::after {
+        content: '✓';
+        position: absolute;
+        top: -6px;
+        right: -6px;
+        width: 18px;
+        height: 18px;
+        background: #d10024;
+        color: #fff;
+        border-radius: 50%;
+        font-size: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 5px rgba(209, 0, 36, 0.4);
+    }
+
+    .variant-value.disabled,
+    .variant-value:disabled {
+        opacity: 0.38;
         cursor: not-allowed;
+        background: #f8fafc;
+        border-color: #e2e8f0;
+        color: #94a3b8;
         text-decoration: line-through;
+        box-shadow: none;
+        transform: none;
     }
     /* =========================================
    PRODUCT REVIEW - Mobile Mart

@@ -64,9 +64,14 @@ class AdminAuthController extends Controller
 
     public function logout(Request $request)
     {
+        $customer = session('customer');
+        if (!empty($customer) && (int)($customer['role'] ?? 0) === 1) {
+            session()->forget(['customer', 'customer_session_version']);
+        }
+
         session()->forget('admin');
         $request->session()->regenerateToken();
 
-        return redirect()->route('admin.login');
+        return redirect()->route('admin.login')->with('success', 'Đã đăng xuất khỏi hệ thống quản trị.');
     }
 }

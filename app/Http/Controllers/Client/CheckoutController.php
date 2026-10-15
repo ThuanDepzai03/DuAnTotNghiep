@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Client;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\CustomerAddress;
 use App\Models\ProductImei;
 use App\Models\ProductVariant;
 use App\Models\InventoryTransaction;
@@ -215,6 +216,9 @@ class CheckoutController extends Controller
                 $customerValue('address', 'address')
             ),
         ];
+        $savedAddresses = Schema::hasTable('customer_addresses')
+            ? CustomerAddress::query()->where('user_id', $customer['id'])->orderByDesc('is_default')->latest()->get()
+            : collect();
 
 
         // ==============================
@@ -323,6 +327,7 @@ class CheckoutController extends Controller
         return view('checkout', compact(
             'cart',
             'defaultCustomer',
+            'savedAddresses',
             'addressProvinces',
             'addressWards',
             'totalPrice',

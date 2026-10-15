@@ -12,17 +12,21 @@ class UserController extends Controller
 {
     public function index()
     {
+        $columns = [
+            'id',
+            'user',
+            'email',
+            'tel',
+            'address',
+            'role',
+            'created_at',
+        ];
+        if (CustomerTable::hasColumn('name')) {
+            array_splice($columns, 1, 0, ['name']);
+        }
+
         $users = CustomerTable::query()
-            ->select([
-                'id',
-                'name',
-                'user',
-                'email',
-                'tel',
-                'address',
-                'role',
-                'created_at',
-            ])
+            ->select($columns)
             ->orderByDesc('id')
             ->get();
 
@@ -79,15 +83,19 @@ class UserController extends Controller
             'email.unique' => 'Email này đã được sử dụng.',
         ]);
 
-        CustomerTable::query()->insert([
-            'name' => trim($data['name']),
+        $userData = [
             'user' => trim($data['user']),
             'pass' => Hash::make($data['pass']),
             'email' => trim($data['email']),
             'address' => $data['address'] ?? null,
             'tel' => $data['tel'] ?? null,
             'role' => (int) $data['role'],
-        ]);
+        ];
+        if (CustomerTable::hasColumn('name')) {
+            $userData['name'] = trim($data['name']);
+        }
+
+        CustomerTable::query()->insert($userData);
 
         \App\Services\SeederSyncService::syncUsers();
 
@@ -151,13 +159,15 @@ class UserController extends Controller
         ]);
 
         $updateData = [
-            'name' => trim($data['name']),
             'user' => trim($data['user']),
             'email' => trim($data['email']),
             'address' => $data['address'] ?? null,
             'tel' => $data['tel'] ?? null,
             'role' => (int) $data['role'],
         ];
+        if (CustomerTable::hasColumn('name')) {
+            $updateData['name'] = trim($data['name']);
+        }
 
         // Không nhập mật khẩu mới thì giữ nguyên mật khẩu cũ.
         if (!empty($data['pass'])) {
@@ -177,6 +187,20 @@ class UserController extends Controller
 
     public function destroy($id)
     {
+        $currentCustomer = session('customer');
+        if (!empty($currentCustomer['id']) && (int) $currentCustomer['id'] === (int) $id) {
+            return redirect()
+                ->route('admin.users.index')
+                ->with('error', 'Bạn không thể tự xóa tài khoản của chính mình.');
+        }
+
+        $currentAdmin = session('admin');
+        if (!empty($currentAdmin['id']) && (int) $currentAdmin['id'] === (int) $id) {
+            return redirect()
+                ->route('admin.users.index')
+                ->with('error', 'Bạn không thể tự xóa tài khoản quản trị của chính mình.');
+        }
+
         CustomerTable::query()
             ->where('id', $id)
             ->delete();

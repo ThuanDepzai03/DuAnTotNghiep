@@ -134,6 +134,16 @@
                             <span>Thống kê doanh thu</span>
                         </a>
                     </li>
+
+                    <li class="sidebar-item mt-3 pt-3 border-top border-secondary border-opacity-25">
+                        <form action="{{ route('admin.logout') }}" method="POST" class="d-inline w-100">
+                            @csrf
+                            <button type="submit" class="sidebar-link border-0 bg-transparent text-danger w-100 text-start" style="cursor: pointer;">
+                                <i class="bi bi-box-arrow-right text-danger"></i>
+                                <span>Đăng xuất</span>
+                            </button>
+                        </form>
+                    </li>
                 </ul>
             </div>
             <button class="sidebar-toggler btn x"><i data-feather="x"></i></button>
@@ -141,19 +151,27 @@
     </div>
 
     <div id="main">
-        <header class="mb-3 d-flex justify-content-between align-items-center px-3">
+        <header class="mb-3 d-flex justify-content-between align-items-center px-3 py-2 bg-body rounded-3 shadow-sm">
 
     <a href="#" class="burger-btn d-block d-xl-none">
         <i class="bi bi-justify fs-3"></i>
     </a>
 
-    <div class="admin-header-right">
+    <div class="d-none d-md-flex align-items-center gap-2">
+        <a href="{{ route('home') }}" target="_blank" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1 rounded-pill px-3">
+            <i class="bi bi-shop"></i>
+            <span>Xem cửa hàng</span>
+            <i class="bi bi-arrow-up-right fs-7 ms-1"></i>
+        </a>
+    </div>
+
+    <div class="admin-header-right d-flex align-items-center gap-2">
 
         <!-- Chuông thông báo -->
-        <a href="{{ route('admin.chat') }}" class="notification-bell">
-    <i class="bi bi-bell-fill"></i>
-    <span class="notification-badge" id="notification-count">0</span>
-</a>
+        <a href="{{ route('admin.chat') }}" class="notification-bell position-relative" title="Tin nhắn & Thông báo">
+            <i class="bi bi-bell-fill"></i>
+            <span class="notification-badge" id="notification-count">0</span>
+        </a>
 
         <!-- Chế độ tối -->
         <button type="button" class="theme-switch-btn" id="theme-toggle-btn" aria-label="Chuyển sang chế độ sáng">
@@ -165,6 +183,37 @@
             </span>
             <span class="theme-switch-text" id="theme-label">Dark</span>
         </button>
+
+        <!-- Dropdown Tài khoản Admin -->
+        @php
+            $currentAdminUser = session('admin')['name'] ?? session('customer')['name'] ?? session('customer')['user'] ?? 'Admin';
+        @endphp
+        <div class="dropdown">
+            <button class="btn btn-outline-secondary btn-sm dropdown-toggle d-flex align-items-center gap-2 py-1 px-2 rounded-pill" type="button" id="adminUserDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <img src="{{ asset('admin-assets/images/faces/1.jpg') }}" alt="Avatar" class="rounded-circle" width="28" height="28" style="object-fit: cover;">
+                <span class="d-none d-sm-inline fw-semibold text-truncate" style="max-width: 120px;">{{ $currentAdminUser }}</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="adminUserDropdown" style="border-radius: 12px; min-width: 180px;">
+                <li class="px-3 py-2 border-bottom">
+                    <div class="fw-bold text-truncate">{{ $currentAdminUser }}</div>
+                    <small class="text-muted">Quản trị viên</small>
+                </li>
+                <li>
+                    <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{{ route('home') }}" target="_blank">
+                        <i class="bi bi-shop text-primary"></i> Về cửa hàng
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider my-1"></li>
+                <li>
+                    <form action="{{ route('admin.logout') }}" method="POST">
+                        @csrf
+                        <button type="submit" class="dropdown-item text-danger d-flex align-items-center gap-2 py-2">
+                            <i class="bi bi-box-arrow-right"></i> Đăng xuất
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </div>
 
     </div>
 

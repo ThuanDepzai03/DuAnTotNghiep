@@ -34,18 +34,27 @@ class AdminController extends Controller
     ];
 
     // Hôm nay
-    $revenueToday = Order::where('status', 'completed')->whereNotIn('status', ['pending_payment'])
+    $revenueToday = Order::where('status', 'completed')
+        ->where(function ($q) {
+            $q->whereNull('refund_status')->orWhere('refund_status', '!=', 'approved');
+        })
         ->whereDate('created_at', today())
-        ->sum('total_price');
+        ->sum(DB::raw('COALESCE(final_price, total_price)'));
 
     // Tháng này
-    $revenueMonth = Order::where('status', 'completed')->whereNotIn('status', ['pending_payment'])
+    $revenueMonth = Order::where('status', 'completed')
+        ->where(function ($q) {
+            $q->whereNull('refund_status')->orWhere('refund_status', '!=', 'approved');
+        })
         ->whereMonth('created_at', now()->month)
         ->whereYear('created_at', now()->year)
-        ->sum('total_price');
+        ->sum(DB::raw('COALESCE(final_price, total_price)'));
 
     // Query doanh thu
-    $query = Order::where('status', 'completed')->whereNotIn('status', ['pending_payment']);
+    $query = Order::where('status', 'completed')
+        ->where(function ($q) {
+            $q->whereNull('refund_status')->orWhere('refund_status', '!=', 'approved');
+        });
 
     if ($from) {
         $query->whereDate('created_at', '>=', $from);
@@ -55,34 +64,43 @@ class AdminController extends Controller
         $query->whereDate('created_at', '<=', $to);
     }
 
-    $revenueTotal = $query->sum('total_price');
+    $revenueTotal = $query->sum(DB::raw('COALESCE(final_price, total_price)'));
 
-    // Biểu đồ 7 ngày gần nhất
+    // Biểu đồ 7 ngày gần nhất (sắp xếp giảm dần rồi đảo lại để lấy 7 ngày mới nhất)
     $chart = Order::selectRaw("
             DATE(created_at) as ngay,
-            SUM(total_price) as tong
+            SUM(COALESCE(final_price, total_price)) as tong
         ")
         ->where('status', 'completed')
+        ->where(function ($q) {
+            $q->whereNull('refund_status')->orWhere('refund_status', '!=', 'approved');
+        })
         ->groupBy(DB::raw("DATE(created_at)"))
-        ->orderBy(DB::raw("DATE(created_at)"))
+        ->orderByDesc(DB::raw("DATE(created_at)"))
         ->limit(7)
-        ->get();
+        ->get()
+        ->reverse()
+        ->values();
 
     $chartLabels = [];
     $chartData = [];
 
     foreach ($chart as $row) {
-
         $chartLabels[] = date('d/m', strtotime($row->ngay));
-        $chartData[] = $row->tong;
-
+        $chartData[] = (float) $row->tong;
     }
 
-    // Top 5 bán chạy
+    // Top 5 bán chạy (chỉ tính đơn hàng đã hoàn thành)
     $bestSellingProducts = OrderItem::selectRaw("
             product_variant_id,
             SUM(quantity) as total_sold
         ")
+        ->whereHas('order', function ($q) {
+            $q->where('status', 'completed')
+              ->where(function ($sq) {
+                  $sq->whereNull('refund_status')->orWhere('refund_status', '!=', 'approved');
+              });
+        })
         ->groupBy('product_variant_id')
         ->orderByDesc('total_sold')
         ->with('variant.product')

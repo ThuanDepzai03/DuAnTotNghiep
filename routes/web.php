@@ -112,6 +112,12 @@ Route::post('/admin/logout', [AdminAuthController::class, 'logout'])->name('admi
 Route::get('/account/profile', [AuthController::class, 'profile'])->name('account.profile');
 Route::post('/account/profile', [AuthController::class, 'updateProfile'])->name('account.update');
 Route::post('/account/password', [AuthController::class, 'updatePassword'])->name('account.password.update');
+Route::post('/account/addresses', [AuthController::class, 'storeAddress'])->name('account.addresses.store');
+Route::put('/account/addresses/{address}', [AuthController::class, 'updateAddress'])->name('account.addresses.update');
+Route::delete('/account/addresses/{address}', [AuthController::class, 'deleteAddress'])->name('account.addresses.delete');
+Route::post('/account/addresses/{address}/default', [AuthController::class, 'setDefaultAddress'])->name('account.addresses.default');
+Route::post('/account/preferences', [AuthController::class, 'updatePreferences'])->name('account.preferences.update');
+Route::post('/account/logout-other-devices', [AuthController::class, 'logoutOtherDevices'])->name('account.sessions.destroy-others');
 
 Route::get('/account/orders/{id}', [AuthController::class, 'orderDetail'])
     ->name('account.order.detail');

@@ -3,55 +3,18 @@
 namespace Tests\Feature;
 
 use App\Support\CustomerTable;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 class AuthAndProfileTest extends TestCase
 {
+    use RefreshDatabase;
+
     protected function setUp(): void
     {
         parent::setUp();
-
-        if (!Schema::hasTable('nguoidung')) {
-            Schema::create('nguoidung', function ($table) {
-                $table->id();
-                $table->string('user');
-                $table->string('pass');
-                $table->string('email')->nullable();
-                $table->string('address')->nullable();
-                $table->string('tel')->nullable();
-                $table->integer('role')->default(0);
-                $table->timestamps();
-            });
-        }
-
-        if (!Schema::hasTable('admins')) {
-            Schema::create('admins', function ($table) {
-                $table->id();
-                $table->string('name');
-                $table->string('email')->unique();
-                $table->string('password');
-                $table->timestamps();
-            });
-        }
-
-        if (!Schema::hasTable('hoadon')) {
-            Schema::create('hoadon', function ($table) {
-                $table->id();
-                $table->string('tenkhachhang')->nullable();
-                $table->string('sdt')->nullable();
-                $table->text('diachi')->nullable();
-                $table->decimal('tongtien', 12, 2)->default(0);
-                $table->integer('trangthai')->default(0);
-                $table->timestamp('ngaygiodat')->nullable();
-                $table->timestamps();
-            });
-        }
-
-        CustomerTable::query()->delete();
-        DB::table('admins')->delete();
-        DB::table('hoadon')->delete();
     }
 
     public function test_admin_requires_login(): void
@@ -64,6 +27,7 @@ class AuthAndProfileTest extends TestCase
     public function test_customer_can_register_and_view_profile(): void
     {
         $response = $this->post('/register', [
+            'name' => 'Khách Hàng 1',
             'user' => 'khachhang1',
             'email' => 'khachhang1@example.com',
             'pass' => '123456',
@@ -96,6 +60,7 @@ class AuthAndProfileTest extends TestCase
 
         Schema::create('nguoidung', function ($table) {
             $table->id();
+            $table->string('name')->nullable();
             $table->string('user');
             $table->string('pass');
             $table->string('email')->nullable();
@@ -105,6 +70,7 @@ class AuthAndProfileTest extends TestCase
         });
 
         $response = $this->post('/register', [
+            'name' => 'Khách Hàng 2',
             'user' => 'khachhang2',
             'email' => 'khachhang2@example.com',
             'pass' => '123456',
@@ -117,6 +83,17 @@ class AuthAndProfileTest extends TestCase
 
     public function test_default_admin_can_login_and_access_admin_dashboard(): void
     {
+        CustomerTable::query()->insert([
+            'name' => 'Admin User',
+            'user' => 'admin',
+            'pass' => \Illuminate\Support\Facades\Hash::make('123123123'),
+            'role' => 1,
+            'status' => 1,
+            'email_verified_at' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
         $response = $this->post('/login', [
             'user' => 'admin',
             'pass' => '123123123',

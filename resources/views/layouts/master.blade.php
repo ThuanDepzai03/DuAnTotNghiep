@@ -17,8 +17,13 @@
     <link rel="stylesheet" href="{{ asset('css/style.css') }}" />
     <link rel="stylesheet" href="{{ asset('css/custom-ui.css') }}" />
     <link rel="stylesheet" href="{{ asset('css/service-workflow.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/account-settings.css') }}" />
+    <link rel="stylesheet" href="{{ asset('css/site-theme.css') }}?v={{ filemtime(public_path('css/site-theme.css')) }}" />
 </head>
-<body>
+@php
+    $sitePreferences = session('customer_preferences', []);
+@endphp
+<body data-account-theme="{{ !empty($sitePreferences['dark_mode']) ? 'dark' : 'light' }}">
     <header class="site-header">
 
     {{-- =====================================================
@@ -166,6 +171,16 @@
                         </a>
 
                     @endif
+
+                    {{-- CHUYỂN CHẾ ĐỘ SÁNG / TỐI --}}
+                    <button type="button"
+                            class="site-theme-toggle"
+                            id="btn-toggle-site-theme"
+                            title="Chuyển giao diện sáng / tối"
+                            aria-label="Chuyển giao diện sáng / tối">
+                        <i class="fa fa-sun-o theme-icon-light" aria-hidden="true"></i>
+                        <i class="fa fa-moon-o theme-icon-dark" aria-hidden="true"></i>
+                    </button>
 
                 </div>
 
@@ -788,7 +803,3 @@ body {
     <script src="{{ asset('js/chat.js') }}?v={{ time() }}"></script>
 </body>
 </html>
-<!-- ádsdaas -->
- <!-- ádsdaas -->
-   <!-- ádsdaas -->
-     <!-- ádsdaas -->

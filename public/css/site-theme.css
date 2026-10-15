@@ -1,0 +1,434 @@
+/* =========================================================
+   MOBILE MART COMPREHENSIVE THEME SYSTEM (LIGHT / DARK)
+   ========================================================= */
+
+/* --- 1. LIGHT MODE (DEFAULT STOREFRONT) --- */
+body[data-account-theme="light"],
+body:not([data-account-theme="dark"]) {
+    --site-bg: #f8fafc;
+    --site-surface: #ffffff;
+    --site-surface-alt: #f1f5f9;
+    --site-text: #1e293b;
+    --site-muted: #64748b;
+    --site-border: #e2e8f0;
+    --site-header-bg: rgba(18, 21, 27, 0.98);
+    --site-nav-bg: #1e1f29;
+    background-color: var(--site-bg) !important;
+    color: var(--site-text);
+    color-scheme: light;
+}
+
+body[data-account-theme="light"] main,
+body:not([data-account-theme="dark"]) main {
+    background-color: var(--site-bg) !important;
+    color: var(--site-text);
+}
+
+/* Light Mode Header & Nav MUST maintain signature sleek dark aesthetic */
+body[data-account-theme="light"] #top-header,
+body:not([data-account-theme="dark"]) #top-header {
+    background: rgba(18, 21, 27, 0.98) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+body[data-account-theme="light"] #top-header .brand-logo,
+body[data-account-theme="light"] #top-header .brand-logo__text,
+body:not([data-account-theme="dark"]) #top-header .brand-logo,
+body:not([data-account-theme="dark"]) #top-header .brand-logo__text {
+    color: #ffffff !important;
+}
+
+body[data-account-theme="light"] #top-header .header-action,
+body:not([data-account-theme="dark"]) #top-header .header-action {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #e2e8f0 !important;
+}
+
+body[data-account-theme="light"] #navigation,
+body:not([data-account-theme="dark"]) #navigation {
+    background: #1e1f29 !important;
+    border-bottom: 2px solid #d10024 !important;
+}
+
+body[data-account-theme="light"] .main-nav li a,
+body:not([data-account-theme="dark"]) .main-nav li a {
+    color: #ffffff !important;
+}
+
+/* --- 2. DARK MODE (SEAMLESS DARK STOREFRONT) --- */
+body[data-account-theme="dark"] {
+    --site-bg: #0f1117;
+    --site-surface: #1a1d26;
+    --site-surface-alt: #222634;
+    --site-text: #e2e8f0;
+    --site-muted: #94a3b8;
+    --site-border: rgba(255, 255, 255, 0.1);
+    --site-header-bg: #12151c;
+    --site-nav-bg: #161922;
+    background-color: var(--site-bg) !important;
+    color: var(--site-text) !important;
+    color-scheme: dark;
+}
+
+body[data-account-theme="dark"] main {
+    background-color: var(--site-bg) !important;
+    color: var(--site-text) !important;
+}
+
+/* Dark Header & Nav */
+body[data-account-theme="dark"] #top-header {
+    background: var(--site-header-bg) !important;
+    border-bottom: 1px solid var(--site-border) !important;
+}
+
+body[data-account-theme="dark"] #navigation {
+    background: var(--site-nav-bg) !important;
+    border-bottom: 2px solid #d10024 !important;
+}
+
+body[data-account-theme="dark"] .main-nav li a {
+    color: #e2e8f0 !important;
+}
+
+/* Headings in Dark Mode */
+body[data-account-theme="dark"] h1,
+body[data-account-theme="dark"] h2,
+body[data-account-theme="dark"] h3,
+body[data-account-theme="dark"] h4,
+body[data-account-theme="dark"] h5,
+body[data-account-theme="dark"] h6,
+body[data-account-theme="dark"] .title,
+body[data-account-theme="dark"] .section-title h3,
+body[data-account-theme="dark"] .prod-title a,
+body[data-account-theme="dark"] .panel-header h3,
+body[data-account-theme="dark"] .panel-header h4,
+body[data-account-theme="dark"] .summary-header h3,
+body[data-account-theme="dark"] .aside-title {
+    color: #f8fafc !important;
+}
+
+body[data-account-theme="dark"] p,
+body[data-account-theme="dark"] small,
+body[data-account-theme="dark"] span.cat-label,
+body[data-account-theme="dark"] .shop-result-note,
+body[data-account-theme="dark"] .text-muted {
+    color: var(--site-muted) !important;
+}
+
+/* Links in Dark Mode */
+body[data-account-theme="dark"] a:not(.primary-btn):not(.btn):not([class*="btn-"]):not(.brand-logo):not(.header-action):not(.main-nav a):not(.shop-main-tabs a) {
+    color: #cbd5e1 !important;
+}
+
+body[data-account-theme="dark"] a:not(.primary-btn):not(.btn):not([class*="btn-"]):not(.brand-logo):not(.header-action):not(.main-nav a):not(.shop-main-tabs a):hover {
+    color: #f87171 !important;
+}
+
+/* Dark Mode Cards & Surfaces */
+body[data-account-theme="dark"] .product-card-custom,
+body[data-account-theme="dark"] .featured-product-card,
+body[data-account-theme="dark"] .cart-table-wrapper,
+body[data-account-theme="dark"] .cart-summary-card,
+body[data-account-theme="dark"] .checkout-panel,
+body[data-account-theme="dark"] .order-details,
+body[data-account-theme="dark"] .delivery-info-card,
+body[data-account-theme="dark"] .choice-card,
+body[data-account-theme="dark"] .payment-box,
+body[data-account-theme="dark"] .voucher-box,
+body[data-account-theme="dark"] .voucher-item,
+body[data-account-theme="dark"] .uiverse-coupon-ticket,
+body[data-account-theme="dark"] .uiverse-empty-box,
+body[data-account-theme="dark"] .news-card,
+body[data-account-theme="dark"] #aside .aside-widget,
+body[data-account-theme="dark"] .shop-discovery-panel,
+body[data-account-theme="dark"] .shop-category-panel,
+body[data-account-theme="dark"] .featured-products-panel,
+body[data-account-theme="dark"] .shop-toolbar,
+body[data-account-theme="dark"] .modal-content,
+body[data-account-theme="dark"] .card,
+body[data-account-theme="dark"] .panel,
+body[data-account-theme="dark"] .list-group-item,
+body[data-account-theme="dark"] .service-card,
+body[data-account-theme="dark"] .contact-card,
+body[data-account-theme="dark"] .about-card,
+body[data-account-theme="dark"] .custom-confirm-modal {
+    background-color: var(--site-surface) !important;
+    border-color: var(--site-border) !important;
+    color: var(--site-text) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25) !important;
+}
+
+/* Dark Mode Table styling */
+body[data-account-theme="dark"] .table {
+    color: var(--site-text) !important;
+}
+
+body[data-account-theme="dark"] .table thead,
+body[data-account-theme="dark"] .cart-table-wrapper thead {
+    background-color: var(--site-surface-alt) !important;
+    border-bottom: 1.5px solid var(--site-border) !important;
+}
+
+body[data-account-theme="dark"] .table thead th,
+body[data-account-theme="dark"] .cart-table-wrapper thead th {
+    color: #f1f5f9 !important;
+    background-color: var(--site-surface-alt) !important;
+    border-color: var(--site-border) !important;
+}
+
+body[data-account-theme="dark"] .table tbody tr,
+body[data-account-theme="dark"] .cart-table-wrapper tbody tr {
+    border-bottom: 1px solid var(--site-border) !important;
+}
+
+body[data-account-theme="dark"] .table tbody td,
+body[data-account-theme="dark"] .cart-table-wrapper tbody td {
+    color: var(--site-text) !important;
+    background-color: transparent !important;
+    border-color: var(--site-border) !important;
+}
+
+body[data-account-theme="dark"] .item-subtotal,
+body[data-account-theme="dark"] .cart-total-quantity {
+    color: #f8fafc !important;
+}
+
+/* Dark Mode Inputs, Selects, and Textareas */
+body[data-account-theme="dark"] input.input,
+body[data-account-theme="dark"] select.input,
+body[data-account-theme="dark"] textarea.input,
+body[data-account-theme="dark"] .form-control,
+body[data-account-theme="dark"] .aside-widget .input,
+body[data-account-theme="dark"] .voucher-input-group input,
+body[data-account-theme="dark"] .shop-sort-select {
+    background-color: #12141c !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+    color: #ffffff !important;
+}
+
+body[data-account-theme="dark"] input::placeholder,
+body[data-account-theme="dark"] textarea::placeholder {
+    color: #64748b !important;
+}
+
+body[data-account-theme="dark"] input.input:focus,
+body[data-account-theme="dark"] select.input:focus,
+body[data-account-theme="dark"] textarea.input:focus,
+body[data-account-theme="dark"] .form-control:focus {
+    border-color: #d10024 !important;
+    box-shadow: 0 0 0 3px rgba(209, 0, 36, 0.25) !important;
+}
+
+/* Dark Mode Quantity Stepper */
+body[data-account-theme="dark"] .quantity-control {
+    background: #12141c !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+body[data-account-theme="dark"] .quantity-control .qty-btn {
+    background: #222634 !important;
+    color: #e2e8f0 !important;
+}
+
+body[data-account-theme="dark"] .quantity-control .qty-btn:hover {
+    background: #d10024 !important;
+    color: #ffffff !important;
+}
+
+body[data-account-theme="dark"] .quantity-control .qty-input {
+    color: #ffffff !important;
+}
+
+/* Dark Mode Ghost / Secondary Buttons */
+body[data-account-theme="dark"] .btn-default,
+body[data-account-theme="dark"] .btn-uiverse-ghost {
+    background-color: var(--site-surface-alt) !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+    color: #e2e8f0 !important;
+}
+
+body[data-account-theme="dark"] .btn-default:hover,
+body[data-account-theme="dark"] .btn-uiverse-ghost:hover {
+    background-color: #2a2f42 !important;
+    border-color: rgba(255, 255, 255, 0.25) !important;
+    color: #ffffff !important;
+}
+
+/* Dark Mode Choice Cards (Radio Options) */
+body[data-account-theme="dark"] .choice-card:has(input:checked),
+body[data-account-theme="dark"] .payment-option:has(input:checked) .payment-box {
+    border-color: #d10024 !important;
+    background-color: #2a1b22 !important;
+}
+
+/* Dark Mode Voucher & Coupon */
+body[data-account-theme="dark"] .voucher-input-group {
+    background-color: #12141c !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+body[data-account-theme="dark"] .coupon-code-pill {
+    background: #12141c !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    color: #f8fafc !important;
+}
+
+body[data-account-theme="dark"] .coupon-copy-btn {
+    background: #222634 !important;
+    color: #e2e8f0 !important;
+}
+
+/* Dark Mode Empty State Shortcuts */
+body[data-account-theme="dark"] .empty-shortcut-pill {
+    background: #222634 !important;
+    color: #cbd5e1 !important;
+}
+
+body[data-account-theme="dark"] .empty-shortcut-pill:hover {
+    background: #2a2f42 !important;
+    color: #ffffff !important;
+}
+
+/* Dark Mode Shop Tabs & Filters */
+body[data-account-theme="dark"] .shop-main-tabs a {
+    background: var(--site-surface) !important;
+    border-color: var(--site-border) !important;
+    color: #cbd5e1 !important;
+}
+
+body[data-account-theme="dark"] .shop-main-tabs a.is-active {
+    background: #d10024 !important;
+    color: #ffffff !important;
+    border-color: #d10024 !important;
+}
+
+body[data-account-theme="dark"] .brand-item {
+    background: var(--site-surface) !important;
+    border-color: var(--site-border) !important;
+    color: #cbd5e1 !important;
+}
+
+body[data-account-theme="dark"] .brand-item:hover,
+body[data-account-theme="dark"] .brand-item.is-active {
+    border-color: #d10024 !important;
+    color: #ffffff !important;
+}
+
+body[data-account-theme="dark"] .brand-item img {
+    background: #222634 !important;
+}
+
+body[data-account-theme="dark"] .quick-price-chip {
+    background: #222634 !important;
+    color: #cbd5e1 !important;
+}
+
+body[data-account-theme="dark"] .filter-chip {
+    background: #222634 !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    color: #cbd5e1 !important;
+}
+
+body[data-account-theme="dark"] .category-tree-label strong {
+    color: #f8fafc !important;
+}
+
+body[data-account-theme="dark"] .category-tree-count {
+    background: #222634 !important;
+    color: #94a3b8 !important;
+}
+
+/* Dark Mode Search Suggestions */
+body[data-account-theme="dark"] .search-suggestions {
+    background: rgba(26, 29, 38, 0.98) !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+    color: #ffffff !important;
+}
+
+body[data-account-theme="dark"] .suggestion-item:hover {
+    background: #252a38 !important;
+}
+
+body[data-account-theme="dark"] .suggestion-title {
+    color: #ffffff !important;
+}
+
+/* Dark Mode Product Detail Chips */
+body[data-account-theme="dark"] .variant-value {
+    background: var(--site-surface) !important;
+    border-color: var(--site-border) !important;
+    color: #e2e8f0 !important;
+}
+
+body[data-account-theme="dark"] .variant-value.active {
+    background: #28161c !important;
+    border-color: #d10024 !important;
+    color: #f87171 !important;
+}
+
+/* Dark Mode Product Preview Thumbnail */
+body[data-account-theme="dark"] .product-card-thumb,
+body[data-account-theme="dark"] .featured-product-image,
+body[data-account-theme="dark"] .product-preview {
+    background: #141720 !important;
+}
+
+/* Dark Mode Footer */
+body[data-account-theme="dark"] #footer {
+    background: #090a0f !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+body[data-account-theme="dark"] #bottom-footer {
+    background: #06070a !important;
+}
+
+/* =========================================================
+   3. HEADER THEME SWITCH BUTTON (UNIVERSAL)
+   ========================================================= */
+.site-theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: #f8fafc;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(8px);
+}
+
+.site-theme-toggle:hover {
+    background: rgba(209, 0, 36, 0.25);
+    border-color: #d10024;
+    color: #ffffff;
+    transform: scale(1.08);
+    box-shadow: 0 4px 12px rgba(209, 0, 36, 0.3);
+}
+
+.site-theme-toggle:active {
+    transform: scale(0.92);
+}
+
+body[data-account-theme="dark"] .site-theme-toggle .theme-icon-light {
+    display: inline-block;
+}
+
+body[data-account-theme="dark"] .site-theme-toggle .theme-icon-dark {
+    display: none;
+}
+
+body[data-account-theme="light"] .site-theme-toggle .theme-icon-light,
+body:not([data-account-theme="dark"]) .site-theme-toggle .theme-icon-light {
+    display: none;
+}
+
+body[data-account-theme="light"] .site-theme-toggle .theme-icon-dark,
+body:not([data-account-theme="dark"]) .site-theme-toggle .theme-icon-dark {
+    display: inline-block;
+}

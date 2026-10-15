@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Mail\VerifyEmail;
+use App\Models\CustomerAddress;
 use App\Support\CustomerTable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -11,8 +12,10 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 use App\Models\Order;
@@ -143,6 +146,7 @@ class AuthController extends Controller
             'tel' => $customer->tel ?? null,
             'role' => (int) ($customer->role ?? 0),
         ]);
+        $request->session()->put('customer_session_version', (int) ($customer->session_version ?? 1));
 
         Log::info('GOOGLE LOGIN SESSION CHECK', [
             'session_id' => $request->session()->getId(),
@@ -268,6 +272,7 @@ class AuthController extends Controller
             'role' => (int) ($customer->role ?? 0),
         ],
     ]);
+    $request->session()->put('customer_session_version', (int) ($customer->session_version ?? 1));
 
     $this->migrateGuestCartToCustomer();
 
@@ -298,7 +303,7 @@ class AuthController extends Controller
 
     public function logout()
     {
-        session()->forget(['customer', 'admin']);
+        session()->forget(['customer', 'admin', 'customer_session_version', 'customer_preferences']);
         return redirect()->route('login');
     }
 
@@ -409,6 +414,9 @@ class AuthController extends Controller
         }
 
         $userData = ['pass' => Hash::make($data['password'])];
+        if (CustomerTable::hasColumn('session_version')) {
+            $userData['session_version'] = DB::raw('session_version + 1');
+        }
         if (CustomerTable::hasColumn('updated_at')) {
             $userData['updated_at'] = now();
         }
@@ -605,6 +613,7 @@ class AuthController extends Controller
             'tel' => $user->tel ?? null,
             'role' => (int) ($user->role ?? 0),
         ]]);
+        $request->session()->put('customer_session_version', (int) ($user->session_version ?? 1));
 
         $this->migrateGuestCartToCustomer();
 
@@ -646,6 +655,7 @@ class AuthController extends Controller
             'tel' => $user->tel ?? null,
             'role' => (int) ($user->role ?? 0),
         ]]);
+        $request->session()->put('customer_session_version', (int) ($user->session_version ?? 1));
 
         $this->migrateGuestCartToCustomer();
 
@@ -701,29 +711,36 @@ class AuthController extends Controller
             ];
         }
 
-        $cities = $this->cityList();
-        $wardsByCity = $this->wardListByCity();
-        $wards = $wardsByCity[$user->city ?? ''] ?? [];
+        $addresses = Schema::hasTable('customer_addresses')
+            ? CustomerAddress::query()->where('user_id', $customer['id'])->orderByDesc('is_default')->latest()->get()
+            : collect();
+        $preferences = json_decode((string) ($user->preferences ?? ''), true) ?: [];
+        $orders = collect();
 
-        $orders = DB::table('orders')
-            ->where(function ($query) use ($user) {
-                $hasCondition = false;
-                if (filled($user->tel)) {
-                    $query->where('phone', $user->tel);
-                    $hasCondition = true;
-                }
-                if (filled($user->email)) {
-                    $hasCondition ? $query->orWhere('email', $user->email) : $query->where('email', $user->email);
-                    $hasCondition = true;
-                }
-                if (! $hasCondition) {
-                    $query->whereRaw('1 = 0');
-                }
-            })
-            ->orderByDesc('id')
-            ->get();
+        if (Schema::hasTable('orders')) {
+            $orders = DB::table('orders')
+                ->where(function ($query) use ($user) {
+                    $hasCondition = false;
+                    if (filled($user->tel ?? null)) {
+                        $query->where('phone', $user->tel);
+                        $hasCondition = true;
+                    }
+                    if (filled($user->email ?? null)) {
+                        $hasCondition
+                            ? $query->orWhere('email', $user->email)
+                            : $query->where('email', $user->email);
+                        $hasCondition = true;
+                    }
+                    if (! $hasCondition) {
+                        $query->whereRaw('1 = 0');
+                    }
+                })
+                ->orderByDesc('id')
+                ->limit(5)
+                ->get();
+        }
 
-        return view('account.profile', compact('user', 'orders', 'cities', 'wards'));
+        return view('account.settings', compact('user', 'addresses', 'preferences', 'orders'));
     }
 
     public function updateProfile(Request $request)
@@ -734,20 +751,28 @@ class AuthController extends Controller
             return redirect()->route('login');
         }
 
-        $request->validate([
-            'name' => 'nullable|string|max:255',
-            'email' => 'nullable|email',
+        $user = CustomerTable::query()->where('id', $customer['id'])->first();
+        if (! $user) {
+            abort(404);
+        }
+
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255', Rule::unique(CustomerTable::name(), 'email')->ignore($customer['id'])],
             'city' => 'nullable|string|max:255',
             'ward' => 'nullable|string|max:255',
             'address_detail' => 'nullable|string|max:500',
             'address' => 'nullable|string|max:500',
-            'tel' => 'nullable|string',
+            'tel' => ['nullable', 'string', 'max:20', 'regex:/^[0-9+\s().-]{7,20}$/'],
+            'gender' => ['nullable', Rule::in(['male', 'female', 'other'])],
+            'birth_date' => ['nullable', 'date', 'before_or_equal:today'],
+            'avatar' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ]);
 
-        $city = trim((string) $request->city);
-        $ward = trim((string) $request->ward);
-        $addressDetail = trim((string) $request->address_detail);
-        $parsedAddress = trim((string) $request->address);
+        $city = trim((string) ($data['city'] ?? ''));
+        $ward = trim((string) ($data['ward'] ?? ''));
+        $addressDetail = trim((string) ($data['address_detail'] ?? ''));
+        $parsedAddress = trim((string) ($data['address'] ?? ''));
 
         if ($parsedAddress === '' && ($city !== '' || $ward !== '' || $addressDetail !== '')) {
             $parts = array_filter([$addressDetail, $ward, $city], fn ($value) => $value !== '');
@@ -755,11 +780,24 @@ class AuthController extends Controller
         }
 
         $data = [
-            'name' => trim((string) $request->name),
-            'email' => $request->email,
+            'name' => trim($data['name']),
+            'email' => $data['email'] ?? null,
             'address' => $parsedAddress,
-            'tel' => $request->tel,
+            'tel' => $data['tel'] ?? null,
         ];
+
+        foreach (['gender', 'birth_date'] as $field) {
+            if (CustomerTable::hasColumn($field)) {
+                $data[$field] = $request->input($field) ?: null;
+            }
+        }
+
+        if ($request->hasFile('avatar') && CustomerTable::hasColumn('avatar_path')) {
+            $data['avatar_path'] = $request->file('avatar')->store('avatars', 'public');
+            if (! empty($user->avatar_path)) {
+                Storage::disk('public')->delete($user->avatar_path);
+            }
+        }
 
         if (CustomerTable::hasColumn('city')) {
             $data['city'] = $city;
@@ -777,7 +815,7 @@ class AuthController extends Controller
             $data['address_detail'] = $addressDetail;
         }
 
-        if (!Schema::hasTable('users') || !Schema::hasColumn('users', 'name')) {
+        if (! CustomerTable::hasColumn('name')) {
             unset($data['name']);
         }
 
@@ -787,14 +825,24 @@ class AuthController extends Controller
 
         CustomerTable::query()->where('id', $customer['id'])->update($data);
 
-        session()->put('customer.email', $request->email);
-        session()->put('customer.name', trim((string) $request->name));
+        session()->put('customer.email', $data['email'] ?? null);
+        session()->put('customer.name', trim($request->name));
         session()->put('customer.address', $parsedAddress);
         session()->put('customer.city', $city);
         session()->put('customer.district', trim((string) $request->district));
         session()->put('customer.ward', $ward);
         session()->put('customer.address_detail', $addressDetail);
-        session()->put('customer.tel', $request->tel);
+        session()->put('customer.tel', $data['tel'] ?? null);
+        if (Schema::hasTable('customer_addresses')) {
+            $defaultAddress = CustomerAddress::query()->where('user_id', $customer['id'])->where('is_default', true)->first();
+            if ($defaultAddress) {
+                $defaultChanges = ['recipient_name' => trim($request->name)];
+                if (! empty($data['tel'])) {
+                    $defaultChanges['phone'] = $data['tel'];
+                }
+                $defaultAddress->update($defaultChanges);
+            }
+        }
 
         return back()->with('success', 'Cập nhật thông tin thành công.');
     }
@@ -822,9 +870,165 @@ class AuthController extends Controller
 
         CustomerTable::query()
             ->where('id', $customer['id'])
-            ->update(['pass' => Hash::make($data['password'])]);
+            ->update([
+                'pass' => Hash::make($data['password']),
+                ...(CustomerTable::hasColumn('session_version') ? ['session_version' => DB::raw('session_version + 1')] : []),
+            ]);
+        $this->refreshCurrentSessionVersion($customer['id']);
 
         return back()->with('success', 'Đổi mật khẩu thành công.');
+    }
+
+    protected function refreshCurrentSessionVersion(int|string $customerId): void
+    {
+        if (! CustomerTable::hasColumn('session_version')) {
+            return;
+        }
+
+        $version = CustomerTable::query()->where('id', $customerId)->value('session_version');
+        session()->put('customer_session_version', (int) $version);
+    }
+
+    protected function saveDefaultAddress(CustomerAddress $address): void
+    {
+        CustomerAddress::query()->where('user_id', $address->user_id)->update(['is_default' => false]);
+        CustomerAddress::query()->whereKey($address->getKey())->update(['is_default' => true]);
+        $address->is_default = true;
+
+        $parts = [$address->address_detail, $address->ward, $address->city];
+        $customerData = [
+            'name' => $address->recipient_name,
+            'tel' => $address->phone,
+            'city' => $address->city,
+            'ward' => $address->ward,
+            'address_detail' => $address->address_detail,
+            'address' => implode(', ', array_filter($parts)),
+        ];
+        $customerData = array_filter($customerData, fn ($field) => CustomerTable::hasColumn($field), ARRAY_FILTER_USE_KEY);
+        if (CustomerTable::hasColumn('updated_at')) {
+            $customerData['updated_at'] = now();
+        }
+        CustomerTable::query()->where('id', $address->user_id)->update($customerData);
+
+        session()->put('customer.name', $address->recipient_name);
+        session()->put('customer.tel', $address->phone);
+        session()->put('customer.city', $address->city);
+        session()->put('customer.ward', $address->ward);
+        session()->put('customer.address_detail', $address->address_detail);
+        session()->put('customer.address', $customerData['address'] ?? null);
+    }
+
+    protected function validateAddress(Request $request): array
+    {
+        return $request->validate([
+            'recipient_name' => ['required', 'string', 'max:255'],
+            'phone' => ['required', 'string', 'max:20', 'regex:/^[0-9+\s().-]{7,20}$/'],
+            'label' => ['required', Rule::in(['home', 'company'])],
+            'city' => ['required', 'string', 'max:255'],
+            'ward' => ['required', 'string', 'max:255'],
+            'address_detail' => ['required', 'string', 'max:500'],
+            'is_default' => ['sometimes', 'boolean'],
+        ]);
+    }
+
+    public function storeAddress(Request $request)
+    {
+        $customer = session('customer');
+        abort_unless($customer, 403);
+        $data = $this->validateAddress($request);
+        $data['user_id'] = $customer['id'];
+        $address = CustomerAddress::create($data);
+
+        if (! CustomerAddress::query()->where('user_id', $customer['id'])->where('is_default', true)->where('id', '!=', $address->id)->exists()
+            || $request->boolean('is_default')) {
+            $this->saveDefaultAddress($address);
+        }
+
+        return back()->with('success', 'Đã thêm địa chỉ nhận hàng.');
+    }
+
+    public function updateAddress(Request $request, int $addressId)
+    {
+        $customer = session('customer');
+        abort_unless($customer, 403);
+        $address = CustomerAddress::query()->where('user_id', $customer['id'])->findOrFail($addressId);
+        $wasDefault = $address->is_default;
+        $data = $this->validateAddress($request);
+        $address->update($data);
+
+        if ($wasDefault || $request->boolean('is_default')) {
+            $this->saveDefaultAddress($address);
+        }
+
+        return back()->with('success', 'Đã cập nhật địa chỉ nhận hàng.');
+    }
+
+    public function setDefaultAddress(int $addressId)
+    {
+        $customer = session('customer');
+        abort_unless($customer, 403);
+        $address = CustomerAddress::query()->where('user_id', $customer['id'])->findOrFail($addressId);
+        $this->saveDefaultAddress($address);
+
+        return back()->with('success', 'Đã đặt địa chỉ mặc định.');
+    }
+
+    public function deleteAddress(int $addressId)
+    {
+        $customer = session('customer');
+        abort_unless($customer, 403);
+        $address = CustomerAddress::query()->where('user_id', $customer['id'])->findOrFail($addressId);
+        $wasDefault = $address->is_default;
+        $address->delete();
+
+        if ($wasDefault) {
+            $nextAddress = CustomerAddress::query()->where('user_id', $customer['id'])->latest()->first();
+            if ($nextAddress) {
+                $this->saveDefaultAddress($nextAddress);
+            } else {
+                $clearData = array_filter(
+                    ['city' => null, 'ward' => null, 'address_detail' => null, 'address' => null],
+                    fn ($value, $field) => CustomerTable::hasColumn($field),
+                    ARRAY_FILTER_USE_BOTH
+                );
+                CustomerTable::query()->where('id', $customer['id'])->update($clearData);
+                session()->forget(['customer.city', 'customer.ward', 'customer.address_detail', 'customer.address']);
+            }
+        }
+
+        return back()->with('success', 'Đã xóa địa chỉ nhận hàng.');
+    }
+
+    public function updatePreferences(Request $request)
+    {
+        $customer = session('customer');
+        abort_unless($customer, 403);
+        abort_unless(CustomerTable::hasColumn('preferences'), 503, 'Vui lòng chạy migration cài đặt tài khoản.');
+        $preferences = [
+            'dark_mode' => $request->boolean('dark_mode'),
+            'interactive_sound' => $request->boolean('interactive_sound'),
+            'promotional_notifications' => $request->boolean('promotional_notifications'),
+            'order_notifications' => $request->boolean('order_notifications'),
+        ];
+        $data = ['preferences' => json_encode($preferences, JSON_THROW_ON_ERROR)];
+        if (CustomerTable::hasColumn('updated_at')) {
+            $data['updated_at'] = now();
+        }
+        CustomerTable::query()->where('id', $customer['id'])->update($data);
+        session()->put('customer_preferences', $preferences);
+
+        return back()->with('success', 'Đã lưu tùy chọn trải nghiệm.');
+    }
+
+    public function logoutOtherDevices()
+    {
+        $customer = session('customer');
+        abort_unless($customer, 403);
+        abort_unless(CustomerTable::hasColumn('session_version'), 503, 'Vui lòng chạy migration cài đặt tài khoản.');
+        CustomerTable::query()->where('id', $customer['id'])->increment('session_version');
+        $this->refreshCurrentSessionVersion($customer['id']);
+
+        return back()->with('success', 'Đã đăng xuất tài khoản khỏi các thiết bị khác.');
     }
 
     public function orderDetail($id)

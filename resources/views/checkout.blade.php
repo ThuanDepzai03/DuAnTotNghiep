@@ -179,22 +179,28 @@
     @endif
 
 
-    @if($errors->any())
+    @php
+        $hasCheckoutErrors = false;
+        $checkoutErrorItems = [];
+        if (isset($errors)) {
+            if ($errors instanceof \Illuminate\Support\ViewErrorBag || $errors instanceof \Illuminate\Contracts\Support\MessageBag) {
+                $hasCheckoutErrors = $errors->any();
+                $checkoutErrorItems = $errors->all();
+            } elseif (is_array($errors) && !empty($errors)) {
+                $hasCheckoutErrors = true;
+                $checkoutErrorItems = \Illuminate\Support\Arr::flatten($errors);
+            }
+        }
+    @endphp
 
+    @if($hasCheckoutErrors)
         <div class="alert alert-danger mt-3">
-
             <ul class="mb-0">
-
-                @foreach($errors->all() as $error)
-
+                @foreach($checkoutErrorItems as $error)
                     <li>{{ $error }}</li>
-
                 @endforeach
-
             </ul>
-
         </div>
-
     @endif
 
 </div>
@@ -242,6 +248,25 @@
                             <span class="panel-step">01</span>
                             <h3 class="title">Địa chỉ giao hàng</h3>
                         </div>
+
+                        @if(($savedAddresses ?? collect())->isNotEmpty())
+                            <div class="form-group saved-address-selector">
+                                <label for="saved-checkout-address">Chọn địa chỉ đã lưu</label>
+                                <select class="input" id="saved-checkout-address">
+                                    <option value="">-- Nhập địa chỉ khác --</option>
+                                    @foreach($savedAddresses as $savedAddress)
+                                        <option value="{{ $savedAddress->id }}"
+                                            data-name="{{ $savedAddress->recipient_name }}"
+                                            data-phone="{{ $savedAddress->phone }}"
+                                            data-city="{{ $savedAddress->city }}"
+                                            data-ward="{{ $savedAddress->ward }}"
+                                            data-detail="{{ $savedAddress->address_detail }}">
+                                            {{ $savedAddress->label === 'company' ? 'Công ty' : 'Nhà riêng' }} — {{ $savedAddress->recipient_name }} — {{ $savedAddress->city }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        @endif
 
                         <div class="address-form-grid">
                             <div class="form-group">
@@ -423,51 +448,111 @@
                             </div>
 
                             <div class="voucher-box">
-                                <div class="voucher-header">
-                                    <h4>1. Voucher đã áp dụng</h4>
+                                <div class="voucher-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                    <h4 style="margin: 0; font-size: 15px; font-weight: 700; color: #1e293b;">
+                                        <i class="fa fa-ticket text-danger"></i> Mã giảm giá & Voucher
+                                    </h4>
+                                    <a href="{{ route('vouchers.index') }}" target="_blank" style="font-size: 12px; color: #d10024; font-weight: 600; text-decoration: none;">
+                                        Kho voucher <i class="fa fa-external-link"></i>
+                                    </a>
                                 </div>
+
+                                {{-- Input nhập mã voucher trực tiếp --}}
+                                <form action="{{ route('checkout.applyVoucher') }}" method="POST" class="voucher-input-group">
+                                    @csrf
+                                    <input type="text" name="voucher_code" placeholder="Nhập mã voucher (VD: FREESHIP)..." style="text-transform: uppercase;" required>
+                                    <button type="submit"><i class="fa fa-check"></i> Áp dụng</button>
+                                </form>
+
+                                {{-- Voucher đã áp dụng --}}
                                 @if($shippingVoucher || $orderVoucher)
-                                    @if($shippingVoucher)
-                                        <div class="voucher-applied voucher-applied--shipping">
-                                            <div><strong>{{ $shippingVoucher['code'] }}</strong><small>Phí vận chuyển: {{ $shippingVoucher['name'] }}</small></div>
-                                            <span class="voucher-choice">Lựa chọn hợp lý</span>
-                                        </div>
-                                    @endif
-                                    @if($orderVoucher)
-                                        <div class="voucher-applied voucher-applied--order">
-                                            <div><strong>{{ $orderVoucher['code'] }}</strong><small>Đơn hàng: {{ $orderVoucher['name'] }}</small></div>
-                                            <span class="voucher-choice">Lựa chọn hợp lý</span>
-                                        </div>
-                                    @endif
-                                @else
-                                    <small>Chưa có voucher nào được áp dụng.</small>
+                                    <div style="margin-top: 14px;">
+                                        <small style="font-weight: 700; color: #475569; display: block; margin-bottom: 8px;">Voucher đang áp dụng:</small>
+
+                                        @if($shippingVoucher)
+                                            <div class="voucher-applied voucher-applied--shipping" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: #ecfdf5; border: 1.5px solid #a7f3d0; border-radius: 10px; margin-bottom: 8px;">
+                                                <div style="display: flex; align-items: center; gap: 10px;">
+                                                    <span style="font-size: 18px;">🚚</span>
+                                                    <div>
+                                                        <strong style="color: #065f46; font-size: 13.5px;">{{ $shippingVoucher['code'] }}</strong>
+                                                        <small style="display: block; color: #047857;">{{ $shippingVoucher['name'] ?? 'Miễn phí vận chuyển' }}</small>
+                                                    </div>
+                                                </div>
+                                                <button type="button" onclick="document.getElementById('remove-shipping-voucher-form').submit();" style="border: none; background: #fee2e2; color: #dc2626; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer;" title="Bỏ áp dụng">
+                                                    &times; Bỏ chọn
+                                                </button>
+                                            </div>
+                                        @endif
+
+                                        @if($orderVoucher)
+                                            <div class="voucher-applied voucher-applied--order" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: #fff1f2; border: 1.5px solid #fecdd3; border-radius: 10px; margin-bottom: 8px;">
+                                                <div style="display: flex; align-items: center; gap: 10px;">
+                                                    <span style="font-size: 18px;">🏷️</span>
+                                                    <div>
+                                                        <strong style="color: #9f1239; font-size: 13.5px;">{{ $orderVoucher['code'] }}</strong>
+                                                        <small style="display: block; color: #be123c;">{{ $orderVoucher['name'] ?? 'Giảm giá đơn hàng' }}</small>
+                                                    </div>
+                                                </div>
+                                                <button type="button" onclick="document.getElementById('remove-order-voucher-form').submit();" style="border: none; background: #fee2e2; color: #dc2626; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer;" title="Bỏ áp dụng">
+                                                    &times; Bỏ chọn
+                                                </button>
+                                            </div>
+                                        @endif
+                                    </div>
                                 @endif
                             </div>
 
-                            <div class="voucher-box">
-                                <div class="voucher-header">
-                                    <h4>2. Kho voucher</h4>
-                                </div>
-                                <div class="voucher-list">
-                                    @forelse($availableVouchers as $availableVoucher)
-                                        @php $isShippingVoucher = $availableVoucher->discount_type === 'free_shipping'; @endphp
-                                        <div class="voucher-item {{ $isShippingVoucher ? 'voucher-item--shipping' : 'voucher-item--order' }} {{ ($shippingVoucher && $isShippingVoucher && $shippingVoucher['id'] == $availableVoucher->id) || ($orderVoucher && !$isShippingVoucher && $orderVoucher['id'] == $availableVoucher->id) ? 'is-applied' : '' }}">
-                                            <div>
-                                                <strong>{{ $availableVoucher->code }}</strong>
-                                                <small>{{ $availableVoucher->name }}</small>
-                                                <small>{{ $isShippingVoucher ? 'Miễn phí vận chuyển' : ($availableVoucher->discount_type === 'fixed' ? 'Giảm ' . number_format($availableVoucher->discount_value, 0, ',', '.') . '₫' : 'Giảm ' . $availableVoucher->discount_value . '%') }}</small>
+                            {{-- Gợi ý mã voucher khả dụng --}}
+                            @if(isset($availableVouchers) && $availableVouchers->isNotEmpty())
+                                <div class="voucher-box" style="margin-top: 14px;">
+                                    <div class="voucher-header">
+                                        <h4 style="margin: 0 0 10px; font-size: 14px; font-weight: 700; color: #334155;">
+                                            <i class="fa fa-gift text-danger"></i> Voucher gợi ý cho bạn
+                                        </h4>
+                                    </div>
+                                    <div class="voucher-list" style="display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow-y: auto; padding-right: 4px;">
+                                        @foreach($availableVouchers as $availableVoucher)
+                                            @php
+                                                $isShippingVoucher = $availableVoucher->discount_type === 'free_shipping';
+                                                $isApplied = ($shippingVoucher && $isShippingVoucher && $shippingVoucher['id'] == $availableVoucher->id)
+                                                    || ($orderVoucher && !$isShippingVoucher && $orderVoucher['id'] == $availableVoucher->id);
+                                            @endphp
+                                            <div class="voucher-item {{ $isApplied ? 'is-applied' : '' }}" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: #ffffff; border: 1.5px dashed {{ $isApplied ? '#d10024' : '#e2e8f0' }}; border-radius: 10px; transition: all 0.2s ease;">
+                                                <div style="flex: 1; min-width: 0;">
+                                                    <div style="display: flex; align-items: center; gap: 6px;">
+                                                        <strong style="color: #1e293b; font-size: 13px; font-family: monospace;">{{ $availableVoucher->code }}</strong>
+                                                        <span style="font-size: 10px; padding: 2px 6px; border-radius: 4px; background: {{ $isShippingVoucher ? '#ecfdf5' : '#fff1f2' }}; color: {{ $isShippingVoucher ? '#059669' : '#e11d48' }}; font-weight: 700;">
+                                                            {{ $isShippingVoucher ? 'Freeship' : 'Giảm giá' }}
+                                                        </span>
+                                                    </div>
+                                                    <small style="display: block; color: #64748b; font-size: 11.5px; margin-top: 2px;">
+                                                        {{ $availableVoucher->name }}
+                                                        @if($availableVoucher->min_order > 0)
+                                                            &bull; Đơn từ {{ number_format($availableVoucher->min_order, 0, ',', '.') }}₫
+                                                        @endif
+                                                    </small>
+                                                </div>
+
+                                                <div>
+                                                    @if($isApplied)
+                                                        <span style="font-size: 11.5px; font-weight: 700; color: #10b981; padding: 4px 8px; background: #ecfdf5; border-radius: 6px;">
+                                                            <i class="fa fa-check"></i> Đang dùng
+                                                        </span>
+                                                    @else
+                                                        <form action="{{ route('checkout.applyVoucher') }}" method="POST" style="margin: 0;">
+                                                            @csrf
+                                                            <input type="hidden" name="voucher_code" value="{{ $availableVoucher->code }}">
+                                                            <button type="submit" class="btn-uiverse-ghost" style="padding: 4px 10px; font-size: 11.5px; font-weight: 700; border-radius: 6px;">
+                                                                Dùng ngay
+                                                            </button>
+                                                        </form>
+                                                    @endif
+                                                </div>
                                             </div>
-                                            @if(($shippingVoucher && $isShippingVoucher && $shippingVoucher['id'] == $availableVoucher->id) || ($orderVoucher && !$isShippingVoucher && $orderVoucher['id'] == $availableVoucher->id))
-                                                <span class="voucher-choice">Đã áp dụng</span>
-                                            @else
-                                                <a href="{{ route('vouchers.claim', $availableVoucher->id) }}" class="btn btn-outline-primary btn-sm">Lấy mã</a>
-                                            @endif
-                                        </div>
-                                    @empty
-                                        <small>Hiện chưa có voucher khả dụng.</small>
-                                    @endforelse
+                                        @endforeach
+                                    </div>
                                 </div>
-                            </div>
+                            @endif
 
                             <div class="summary-total-box">
                                 <div class="order-col">
@@ -1498,6 +1583,33 @@
         hiddenInput.value = code;
         form.submit();
     }
+
+    document.getElementById('saved-checkout-address')?.addEventListener('change', function () {
+        const option = this.options[this.selectedIndex];
+        if (!option?.value) return;
+        const setValue = (selector, value) => {
+            const field = document.querySelector(selector);
+            if (field) field.value = value;
+        };
+        setValue('[name="customer_name"]', option.dataset.name || '');
+        setValue('[name="phone"]', option.dataset.phone || '');
+        setValue('[name="address_detail"]', option.dataset.detail || '');
+
+        const citySelect = document.getElementById('checkout-city');
+        const wardSelect = document.getElementById('checkout-ward');
+        const ensureOption = (select, value) => {
+            if (!select || !value) return;
+            if (![...select.options].some((item) => item.value === value)) {
+                select.add(new Option(value, value));
+            }
+            select.value = value;
+        };
+        ensureOption(citySelect, option.dataset.city || '');
+        citySelect?.options[citySelect.selectedIndex]?.removeAttribute('data-address-id');
+        citySelect?.dispatchEvent(new Event('change', { bubbles: true }));
+        ensureOption(wardSelect, option.dataset.ward || '');
+        wardSelect?.dispatchEvent(new Event('change', { bubbles: true }));
+    });
 </script>
 
 

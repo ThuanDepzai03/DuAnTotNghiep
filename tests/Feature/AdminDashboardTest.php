@@ -2,12 +2,15 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 class AdminDashboardTest extends TestCase
 {
+    use RefreshDatabase;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -78,7 +81,7 @@ class AdminDashboardTest extends TestCase
         $response = $this->get('/admin');
 
         $response->assertStatus(200);
-        $response->assertSee('Hệ thống AE STORE');
+        $response->assertSee('Hệ thống Mobile Mart');
     }
 
     public function test_admin_categories_page_is_accessible(): void
@@ -128,6 +131,6 @@ class AdminDashboardTest extends TestCase
         $response = $this->get('/admin/users');
 
         $response->assertStatus(200);
-        $response->assertSee('Quản lý khách hàng');
+        $response->assertSee('Quản lý danh sách tài khoản');
     }
 }
